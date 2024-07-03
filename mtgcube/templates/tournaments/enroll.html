@@ -1,0 +1,22 @@
+{% extends "tournaments/base.html" %}
+
+{% block content %}
+    <h1>Tournament Enrollment Page</h1>
+    <h2> {{ tournament.name }} </h2>
+    
+    <h3>Event Information</h3>
+    <ul>
+        <li>Rounds: {{ tournament.round_number }}</li>
+        <li>Start Time: {{ tournament.start_datetime }}</li>
+        <li>End Time: {{ tournament.end_datetime }}</li>
+    </ul>
+
+    <div class="row">
+
+        <div class="col-sm-12">
+            <a class="btn btn-primary" href="{% url 'tournaments:enroll_user_view' tournament.id %}" role="button">Sign up for this event</a>
+            <!-- Your Stuff: Custom user template urls -->
+        </div>
+
+    </div>
+{% endblock %}

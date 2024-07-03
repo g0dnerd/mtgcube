@@ -1,0 +1,9 @@
+h1, body {
+    font-family: sans-serif
+}
+li a {
+    color: green;
+}
+li a:visited {
+    color: palevioletred;
+}

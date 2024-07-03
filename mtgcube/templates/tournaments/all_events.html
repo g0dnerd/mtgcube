@@ -1,0 +1,12 @@
+{% extends "tournaments/base.html" %}
+
+{% block content %}
+  <h1>All available Events</h1>
+  <ul>
+    {% for event in available %}
+      <li><a href="{% url 'tournaments:enroll_view' event.id %}">{{ event.name }}</a></li>
+    {% empty %}
+      <li>There are no available events.</li>
+    {% endfor %}
+  </ul>
+{% endblock %}

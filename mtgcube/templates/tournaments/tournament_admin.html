@@ -1,0 +1,14 @@
+{% extends "tournaments/base.html" %}
+
+{% block content %}
+    <h1>Tournament Overview Page - Admin</h1>
+    <h2> {{ tournament.name }} </h2>
+    
+    <ul>
+        <h4> Rounds: {{ tournament.round_number }} </h4>
+        <h4> Players: </h4>
+            {% for enrollment in enrollments %}
+                <li>{{ enrollment.player.name }}</li>
+            {% endfor %}
+    </ul>
+{% endblock %}
