@@ -1,0 +1,28 @@
+{% extends "tournaments/base.html" %}
+
+{% block content %}
+<h1> {{ tournament.name}} </h1>
+<h2> Standings after round {{ tournament.current_round }} </h2>
+<table>
+    <thead>
+      <tr>
+        <th style="text-align: center; padding-right: 40px;">Player</th>
+        <th style="text-align: center; padding-right: 40px;">Points</th>
+        <th style="text-align: center; padding-right: 40px;">OMW</th>
+        <th style="text-align: center; padding-right: 40px;">PGW</th>
+        <th style="text-align: center; padding-right: 40px;">OGW</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for player in players %}
+      <tr>
+        <td style="text-align: center; padding-right: 40px;">{{ player.player.user.name }}</a></td>
+        <td style="text-align: center; padding-right: 40px;">{{ player.score }}</td>
+        <td style="text-align: center; padding-right: 40px;">{{ player.OMW }}</td>
+        <td style="text-align: center; padding-right: 40px;">{{ player.PGW }}</td>
+        <td style="text-align: center; padding-right: 40px;">{{ player.OGW }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

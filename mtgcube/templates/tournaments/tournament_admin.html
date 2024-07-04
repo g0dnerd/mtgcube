@@ -1,14 +1,101 @@
 {% extends "tournaments/base.html" %}
 
+{% block javascript %}
+    <script>
+    function formatTime(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+    }
+
+    function updateTimer() {
+        const timeRemainingElement = document.getElementById('time-remaining');
+        if (timeRemainingElement) {
+            let timeRemaining = parseInt(timeRemainingElement.getAttribute('data-seconds'));
+            if (timeRemaining > 0) {
+                timeRemaining -= 1;
+                timeRemainingElement.setAttribute('data-seconds', timeRemaining);
+                timeRemainingElement.textContent = formatTime(timeRemaining);
+            }
+        }
+    }
+
+    function fetchGameResults() {
+    fetch("{% url 'tournaments:game_results' %}")
+        .then(response => response.json())
+        .then(data => {
+            data.games.forEach(game => {
+                const resultElement = document.getElementById(`game-result-${game.id}`);
+                if (resultElement) {
+                    resultElement.textContent = game.result;
+                }
+            });
+        })
+        .catch(error => console.error('Error fetching game results:', error));
+    }
+
+    // Initial formatting
+    document.addEventListener('DOMContentLoaded', () => {
+        const timeRemainingElement = document.getElementById('time-remaining');
+        if (timeRemainingElement) {
+            let timeRemaining = parseInt(timeRemainingElement.getAttribute('data-seconds'));
+            timeRemainingElement.textContent = formatTime(timeRemaining);
+        }
+    });
+    
+    setInterval(updateTimer, 1000);
+    setInterval(fetchGameResults, 10000);
+
+    fetchGameResults();
+    </script>
+{% endblock %}
+
 {% block content %}
     <h1>Tournament Overview Page - Admin</h1>
     <h2> {{ tournament.name }} </h2>
     
-    <ul>
-        <h4> Rounds: {{ tournament.round_number }} </h4>
-        <h4> Players: </h4>
-            {% for enrollment in enrollments %}
-                <li>{{ enrollment.player.name }}</li>
-            {% endfor %}
-    </ul>
+    <h4> Rounds: {{ tournament.round_number }} (Currently in round {{ tournament.current_round }}) </h4>
+    <div class="row">
+        <div class="col-sm-12">
+            {% if tournament.timer_active %}
+                <p>Timer is running. Time remaining:
+                    <span id="time-remaining" data-seconds="{{ tournament.time_remaining_seconds }}">
+                        {{ tournament.time_remaining_formatted }}
+                    </span></p>
+                <form method="post" action="{% url 'tournaments:stop_round_view' tournament.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary">Stop round</button>
+                </form>
+            {% else %}
+                <form method="post" action="{% url 'tournaments:start_round_view' tournament.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary">Start round</button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <h4> Pairings: </h4>
+    {% for game in games %}
+        <ul>
+            <li>
+                Table {{ game.table }}: {{ game.player1.player.name }} vs {{ game.player2.player.name }}. Result: 
+                <span id="game-result-{{ game.id }}">
+                    {{ game.result_formatted }}
+                </span>
+            </li>
+        </ul>
+        <div class="row">
+            <div class="col-sm-12">
+                <a class="btn btn-primary" href="{% url 'tournaments:clear_history_view' tournament.id %}" role="button">Clear pairing history</a>
+            </div>
+        </div>
+    {% empty %}
+        <div class="row">
+            <div class="col-sm-12">
+                <a class="btn btn-primary" href="{% url 'tournaments:pair_round_view' tournament.id %}" role="button">Pair Round</a>
+            </div>
+        </div>
+    {% endfor %}
 {% endblock %}
+

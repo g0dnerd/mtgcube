@@ -1,0 +1,171 @@
+{% extends "tournaments/base.html" %}
+
+{% block javascript %}
+<script>
+    function getCsrfToken() {
+        return document.querySelector('[name=csrfmiddlewaretoken]').value;
+    }
+
+    function formatTime(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+    }
+
+    function updateTimer() {
+        const timeRemainingElement = document.getElementById('time-remaining');
+        if (timeRemainingElement) {
+            let timeRemaining = parseInt(timeRemainingElement.getAttribute('data-seconds'));
+            if (timeRemaining > 0) {
+                timeRemaining -= 1;
+                timeRemainingElement.setAttribute('data-seconds', timeRemaining);
+                timeRemainingElement.textContent = formatTime(timeRemaining);
+            }
+        }
+    }
+
+    function fetchGameDetails() {
+        fetch("{% url 'tournaments:current_game' tournament.id %}")
+        .then(response => response.json())
+        .then(data => {
+            const gameDetailsElement = document.getElementById('game-details');
+            const reportFormElement = document.getElementById('report-result-form');
+            const confirmButtonElement = document.getElementById('confirm-result');
+
+            if (data.error) {
+                gameDetailsElement.innerHTML = `<li>${data.error}</li>`;
+                reportFormElement.style.display = 'none';
+                confirmButtonElement.style.display = 'none';
+            } else {
+                const game = data.current_game;
+                gameDetailsElement.innerHTML = `
+                    <li>Table ${game.table}: ${game.player1} vs ${game.player2}. Result: <span id="game-result">${game.result_formatted}</span></li>
+                    <li>Player 1 Wins: ${game.player1_wins}</li>
+                    <li>Player 2 Wins: ${game.player2_wins}</li>
+                `;
+
+                if (game.result_formatted === "Pending") {
+                    reportFormElement.style.display = 'block';
+                    confirmButtonElement.style.display = 'none';
+                } else if (!game.result_confirmed && game.player_role != game.reported_by) {
+                    reportFormElement.style.display = 'none';
+                    confirmButtonElement.style.display = 'block';
+                } else {
+                    reportFormElement.style.display = 'none';
+                    confirmButtonElement.style.display = 'none';
+                }
+            }
+        })
+        .catch(error => console.error('Error fetching game result for user:', error));
+    }
+
+    // Initial formatting
+    document.addEventListener('DOMContentLoaded', () => {
+        const timeRemainingElement = document.getElementById('time-remaining');
+        if (timeRemainingElement) {
+            let timeRemaining = parseInt(timeRemainingElement.getAttribute('data-seconds'));
+            timeRemainingElement.textContent = formatTime(timeRemaining);
+        }
+        
+        fetchGameDetails();
+        setInterval(updateTimer, 1000);
+        setInterval(fetchGameDetails, 10000);
+
+        const confirmButtonElement = document.getElementById('confirm-result');
+        if (confirmButtonElement) {
+            confirmButtonElement.addEventListener('click', () => {
+                fetch("{% url 'tournaments:confirm_result' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCsrfToken()
+                    },
+                    body: JSON.stringify({
+                        tournament_id: "{{ tournament.id }}"
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        fetchGameDetails();
+                    } else {
+                        console.error('Error confirming result:', data.error);
+                    }
+                })
+                .catch(error => console.error('Error confirming result:', error));
+            });
+        } else {
+            console.error("Confirm result button not found in the document.");
+        }
+    });
+
+    function submitResult(event) {
+        event.preventDefault();
+        const player1Wins = document.getElementById('player1-wins').value;
+        const player2Wins = document.getElementById('player2-wins').value;
+        
+        fetch("{% url 'tournaments:report_result' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken()
+            },
+            body: JSON.stringify({
+                tournament_id: "{{ tournament.id }}",
+                player1_wins: player1Wins,
+                player2_wins: player2Wins
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                fetchGameDetails();
+            } else {
+                console.error('Error reporting result:', data.error);
+            }
+        })
+        .catch(error => console.error('Error reporting result:', error));
+    }
+
+</script>
+{% endblock %}
+
+{% block content %}
+    <h1>Tournament Overview Page</h1>
+    <h2> {{ tournament.name }} </h2>
+    
+    <h4> Rounds: {{ tournament.round_number }} (Currently in round {{ tournament.current_round }}) </h4>
+    <div class="row">
+        <div class="col-sm-12">
+            {% if tournament.timer_active %}
+                <p>Timer is running. Time remaining:
+                    <span id="time-remaining" data-seconds="{{ tournament.time_remaining_seconds }}">
+                        {{ tournament.time_remaining_formatted }}
+                    </span></p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div id="game-info">
+        <ul id="game-details">
+        </ul>
+        <form id="report-result-form" style="display:none;" onsubmit="submitResult(event)">
+            {% csrf_token %}
+            <label for="player1-wins">Player 1 Wins:</label>
+            <select id="player1-wins" name="player1_wins">
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+            </select>
+            <label for="player2-wins">Player 2 Wins:</label>
+            <select id="player2-wins" name="player2_wins">
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+            </select>
+            <button type="submit">Submit Result</button>
+        </form>
+        <button id="confirm-result" style="display:none;">Confirm result</button>
+    </div>
+
+{% endblock %}

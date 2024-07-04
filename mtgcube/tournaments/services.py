@@ -76,7 +76,7 @@ def pair(tournament, player1, player2, table):
     player1.save()
     player2.save()
 
-def report_result(game_id, player1_wins, player2_wins):
+def update_result(game_id, player1_wins, player2_wins):
     game = Game.objects.get(pk=game_id)
     game.player1_wins = player1_wins
     game.player2_wins = player2_wins
