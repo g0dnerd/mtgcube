@@ -1,4 +1,5 @@
 {% extends "tournaments/base.html" %}
+{% load tournament_utils %}
 
 {% block javascript %}
 <script>
@@ -19,9 +20,8 @@
     }
 
     // Initial formatting
-    document.addEventListener('DOMContentLoaded', () => {        
+    document.addEventListener('DOMContentLoaded', () => {
         fetchGameDetails();
-        setInterval(updateTimer, 1000);
         setInterval(fetchGameDetails, 10000);
     });
 </script>
@@ -31,11 +31,16 @@
 {% block content %}
     <h1>Tournament Overview Page - {{ tournament.name }}</h1>
     
-    <p> Rounds: {{ tournament.round_number }} (Currently in round {{ tournament.current_round }}) </p>
-    
-    My Current Match:
-    <div id="game-info"></div>
-
-    <a href="{% url 'tournaments:standings' tournament.id %}">Standings</a>
+    <div id="draft-info">
+        {% with cube=draft|get_item:'cube' %}
+            {% with phase=draft|get_item:'phase' %}
+                {% with cube_url=draft|get_item:'cube_url' %}
+                    <h3>My Current Draft:</h3> Phase {{ phase }} - Cube: 
+                    <a href="{{ cube_url }}">{{ cube }}</a>
+                {% endwith %}
+            {% endwith %}
+        {% endwith %}
+    </div>
+    My Current Match: <div id="game-info"></div>
 
 {% endblock %}

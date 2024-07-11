@@ -1,8 +1,9 @@
 import random
 
-from .models import Tournament, Game, Player, Enrollment
+from .models import Game, Enrollment, Draft, Round
 
-def pair_current_round(tournament):
+
+def pair_current_round(draft: Draft):
     """
     Definition of Swiss Pairing:
     1. For the first round, players are paired randomly (or fixed by the tournament organizer).
@@ -23,23 +24,21 @@ def pair_current_round(tournament):
     4. If there is an odd number of players, give a bye to the lowest ranked player who has not already had a bye.
     """
 
-    print("Pairing players...") 
-    
-    players = list(Enrollment.objects.filter(tournament=tournament.id))
-    
+    print("Pairing players...")
+
+    players = list(Enrollment.objects.filter(draft=draft))
+
     random.shuffle(players)
 
-    tournament.current_round += 1
-    print("Updated current round to", tournament.current_round)
-    try:
-        tournament.save()
-    except:
-        print("Error saving tournament")
+    draft.phase.current_round += 1
+    draft.phase.save()
 
     for player in players:
         player.paired = False
 
-    sorted_players = sorted(players, key=lambda x: (x.score, x.omw, x.pgw, x.ogw), reverse=True)
+    sorted_players = sorted(
+        players, key=lambda x: (x.score, x.omw, x.pgw, x.ogw), reverse=True
+    )
     pairings = []
 
     # Assign a bye if necessary
@@ -49,7 +48,7 @@ def pair_current_round(tournament):
                 print("Assigning bye to", player.name)
                 pairings.append((player, None))
                 player.had_bye = True """
-                # TODO: Add a result
+    # TODO: Add a result
 
     # Pair players
     for player in sorted_players:
@@ -59,15 +58,21 @@ def pair_current_round(tournament):
                     if not opponent.paired:
                         if opponent not in player.pairings.all():
                             pairings.append((player, opponent))
-                            pair(tournament, player, opponent, len(pairings))
+                            pair(draft, player, opponent, len(pairings))
                             break
 
     for table, pairing in enumerate(pairings):
         print(f"Table {table + 1}: {pairing[0]} vs {pairing[1]}")
 
 
-def pair(tournament, player1, player2, table):
-    game = Game(tournament=tournament, player1=player1, player2=player2, table=table, round=tournament.current_round)
+def pair(draft, player1, player2, table):
+    round = Round.objects.filter(draft=draft).order_by("-round_idx").first()
+    game = Game(
+        round=round,
+        player1=player1,
+        player2=player2,
+        table=table,
+    )
     game.save()
     player1.paired = True
     player2.paired = True
@@ -75,6 +80,7 @@ def pair(tournament, player1, player2, table):
     player2.pairings.add(player1)
     player1.save()
     player2.save()
+
 
 def update_result(game_id, player1_wins, player2_wins):
     game = Game.objects.get(pk=game_id)
@@ -95,33 +101,55 @@ def update_result(game_id, player1_wins, player2_wins):
     game.player1.save()
     game.player2.save()
 
-def update_tiebreakers(tournament):
-    players = Enrollment.objects.filter(tournament=tournament.id)
+
+def update_tiebreakers(draft):
+    players = draft.enrollments.all()
+    round_num = Round.objects.filter(draft=draft).order_by("-round_idx").first().round_idx
     for player in players:
-        player.pmw = max(round((player.score//3)/len(player.played.all()),2),0.33)
+        player.pmw = max(round((player.score // 3) / round_num, 2), 0.33)
         player.omw = 0
-        player.pgw = max(round(player.games_won/player.games_played,2),0.33)
+        player.pgw = max(round(player.games_won / player.games_played, 2), 0.33)
         player.ogw = 0
         player.save()
     for player in players:
         for opponent in player.pairings.all():
             player.omw += opponent.pmw
             player.ogw += opponent.pgw
-        player.omw = max(round(player.omw/len(player.played.all()),2),0.33)
-        player.ogw = max(round(player.ogw/len(player.played.all()),2),0.33)
+        player.omw = max(round(player.omw / round_num, 2), 0.33)
+        player.ogw = max(round(player.ogw / round_num, 2), 0.33)
         player.save()
 
-def make_standings(tournament):
-    players = Enrollment.objects.filter(tournament=tournament.id)
-    sorted_players = sorted(players, key=lambda x: (x.score, x.omw, x.pgw, x.ogw), reverse=True)
+def finish_round(draft: Draft):
+    current_round = Round.objects.filter(draft=draft).order_by("-round_idx").first()
+    current_round.finished = True
+    if current_round.round_idx < draft.round_number:
+        new_round = Round(
+            draft = draft,
+            round_idx = current_round.round_idx + 1
+        )
+        new_round.save()
+
+def make_standings(draft):
+    update_tiebreakers(draft)
+    players = draft.enrollments.all()
+    sorted_players = sorted(
+        players, key=lambda x: (x.score, x.omw, x.pgw, x.ogw), reverse=True
+    )
     return sorted_players
 
-def clear_histories(tournament_id):
-    tournament = Tournament.objects.get(pk=tournament_id)
-    tournament.current_round = 0
-    tournament.save()
-    players = Enrollment.objects.filter(tournament=tournament_id)
-    games = Game.objects.filter(tournament=tournament_id)
+
+def clear_histories(draft):
+    draft.phase.current_round = 0
+    draft.phase.save()
+    
+    players = draft.enrollments.all()
+
+    try:
+        rounds = Round.objects.filter(draft=draft)
+    except Round.DoesNotExist as exc:
+        raise ValueError("Could not find any rounds to reset") from exc
+
+    games = Game.objects.filter(round__in=rounds)
     for game in games:
         game.delete()
     for player in players:
