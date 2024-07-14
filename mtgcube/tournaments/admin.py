@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Tournament, Game, Enrollment, Player, Phase, Round, Draft, Cube, Group
+from .models import Tournament, Game, Enrollment, Player, Phase, Round, Draft, Cube
 
 
 # Register your models here.

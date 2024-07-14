@@ -29,7 +29,8 @@
 {% endblock %}
 
 {% block content %}
-    <h1>Tournament Overview Page - {{ tournament.name }}</h1>
+<div class="event-dashboard">
+    <h1>Event Dashboard - {{ tournament.name }}</h1>
     
     <div id="draft-info">
         {% with cube=draft|get_item:'cube' %}
@@ -41,6 +42,8 @@
             {% endwith %}
         {% endwith %}
     </div>
-    My Current Match: <div id="game-info"></div>
-
+    <div id="game-info">
+        My Current Match:
+    </div>
+</div>
 {% endblock %}

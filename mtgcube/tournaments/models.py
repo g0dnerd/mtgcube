@@ -116,17 +116,6 @@ class Enrollment(models.Model):
         return f"{self.player.user.username} in {self.tournament.name}"
 
 
-class Group(models.Model):
-    enrollments = models.ManyToManyField("Enrollment")
-
-    def __str__(self):
-        players = ''
-        for en in self.enrollments.all():
-            players += ' ' + en.player.user.name + ','
-        players = players.rstrip(',')
-        return f"Group:{players}"
-
-
 class Game(models.Model):
     id = models.AutoField(primary_key=True)
     round = models.ForeignKey("Round", on_delete=models.CASCADE)

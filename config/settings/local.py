@@ -23,6 +23,7 @@ CACHES = {
     }
 }
 
+
 # EMAIL
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#email-backend
@@ -45,6 +46,12 @@ DEBUG_TOOLBAR_CONFIG = {
 INTERNAL_IPS = ["127.0.0.1", "10.0.2.2"]
 
 
+SECURE_SSL_REDIRECT = False
+
+SOCIALACCOUNT_STORE_TOKENS = True
+
+ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
+
 # django-extensions
 # ------------------------------------------------------------------------------
 # https://django-extensions.readthedocs.io/en/latest/installation_instructions.html#configuration
@@ -53,4 +60,5 @@ INSTALLED_APPS += ["django_extensions"]  # noqa F405
 SECURE_REFERRER_POLICY= "strict-origin-when-cross-origin"
 
 # Your stuff...
-# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------Masterpassword
+

@@ -3,6 +3,11 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+staticfiles/
+cloud-sql-proxy
+logfile
+*.yaml
+
 # C extensions
 *.so
 

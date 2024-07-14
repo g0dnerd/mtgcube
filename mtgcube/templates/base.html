@@ -63,10 +63,7 @@
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
           <ul class="navbar-nav mr-auto">
             <li class="nav-item active">
-              <a class="nav-link" href="{% url 'home' %}">Home <span class="sr-only">(current)</span></a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'about' %}">About</a>
+              <a class="nav-link" href="{% url 'home' %}">My Dashboard<span class="sr-only">(current)</span></a>
             </li>
             {% if request.user.is_authenticated %}
               <li class="nav-item">
@@ -114,7 +111,7 @@
       <script src="//accounts.google.com/gsi/client" async></script>
       <div
         id="g_id_onload"
-          data-client_id="997244083060-ta5mpg1ov47c1ck3t37b5re51f667f9m.apps.googleusercontent.com"
+          data-client_id="914789792440-s3j2snqq4mjh24o0d6bdem01c87b98nl.apps.googleusercontent.com"
           data-login_uri="{% url 'google_login_by_token' %}">
       </div>
     {% endif %}
