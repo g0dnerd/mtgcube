@@ -9,9 +9,10 @@ urlpatterns = [
     path("<int:game_id>/~match-info", views.game_by_id, name="game_by_id"),
     path("~report-result", views.report_result, name="report_result"),
     path("~confirm-result", views.confirm_result, name="confirm_result"),
-    path("my-events/", views.my_events, name="my_events"),
+    path("dashboard/", views.dashboard, name="dashboard"),
     path("<int:tournament_id>/", views.tournament_view, name="tournament_view"),
     path("<int:tournament_id>/~current-match", views.current_match, name="current_match"),
+    path("<int:tournament_id>/~other-pairings", views.other_pairings, name="other_pairings"),
     path(
         "<int:tournament_id>/admin/",
         views.tournament_admin_view,

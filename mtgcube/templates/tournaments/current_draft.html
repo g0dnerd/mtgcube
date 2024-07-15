@@ -6,6 +6,33 @@
             return document.querySelector('[name=csrfmiddlewaretoken]').value;
         }
 
+        function fetchOtherPairings() {
+            fetch("{% url 'tournaments:other_pairings' tournament_id %}")
+            .then(response => response.json())
+            .then(data => {
+                const pairingsElement = document.getElementById('other-pairings');
+                pairingsElement.innerHTML = ``;
+                if (!data.error) {
+                    let htmlOut = `
+                        Other Pairings:
+                        <ul>
+                    `;
+                    data.pairings.forEach(match => {
+                        htmlOut += `
+                            <li>
+                                Table ${match.table}: ${match.player1} vs ${match.player2}
+                            </li>
+                        `;
+                    });
+                    htmlOut += `
+                        </ul>
+                    `;
+                    pairingsElement.innerHTML = htmlOut;
+                }
+            })
+            .catch(error => console.error('Error fetching other pairings:', error));
+        }
+        
         function fetchGameDetails() {
             fetch("{% url 'tournaments:current_match' tournament_id %}")
             .then(response => response.json())
@@ -26,7 +53,7 @@
                         player1WinForm.name = `${data.id}`;
                     }
                     gameDetailsElement.innerHTML = `
-                        Table ${data.table}: ${data.player1} vs ${data.player2}. Result: <span id="game-result">${data.result}</span>`;
+                        My Match: Table ${data.table}: ${data.player1} vs ${data.player2}. Result: <span id="game-result">${data.result}</span>`;
 
                     reportFormElement.innerHTML = `
                     <label for="player1-wins">${data.player1} Wins:</label>
@@ -172,11 +199,13 @@
         // Initial formatting
         document.addEventListener('DOMContentLoaded', () => {
             fetchGameDetails();
+            fetchOtherPairings();
             fetchSeatings();
             fetchStandings();
             setInterval(fetchGameDetails, 60000);
             setInterval(fetchStandings, 60000);
             setInterval(fetchSeatings, 60000);
+            setInterval(fetchOtherPairings, 60000);
 
             const confirmButtonElement = document.getElementById('confirm-result');
             const gameId = confirmButtonElement.name;
@@ -214,24 +243,21 @@
 {% endblock %}
 
 {% block content %}
-    <div class="container">
-        <div id="draft-info">
-            <h1>My Current Draft
-                {% with cube=draft|get_item:'cube' %}
-                    {% with phase=draft|get_item:'phase' %}
-                        {% with cube_url=draft|get_item:'cube_url' %}
-                            {% with draftid=draft|get_item:'id' %}
-                                <h2>
-                                    Phase {{ phase }} - Cube: <a href="{{ cube_url }}">{{ cube }}</a>
-                                </h2>
-                            {% endwith %}
+    <div id="draft-info">
+        <h1>My Current Draft
+            {% with cube=draft|get_item:'cube' %}
+                {% with phase=draft|get_item:'phase' %}
+                    {% with cube_url=draft|get_item:'cube_url' %}
+                        {% with draftid=draft|get_item:'id' %}
+                            <h2>
+                                Phase {{ phase }} - Cube: <a href="{{ cube_url }}">{{ cube }}</a>
+                            </h2>
                         {% endwith %}
                     {% endwith %}
                 {% endwith %}
-            </h1>
-
-        </div>
-        <div class="user-info-list">
+            {% endwith %}
+        </h1>
+        <div class="player-info-list">
             <ul>
                 <li>
                     <a href="{% url 'home' %}">My Decklist</a>
@@ -257,6 +283,9 @@
                         </form>
                         <button id="confirm-result" style="display:none;">Confirm result</button>
                     </div>
+                </li>
+                <li>
+                    <div id="other-pairings"></div>
                 </li>
                 <li>
                     <div id="standings-info">Standings:</div>

@@ -19,7 +19,7 @@ class IndexView(generic.ListView):
 
 
 @login_required
-def my_events(request):
+def dashboard(request):
     user = request.user
     if user.is_superuser:
         tournaments = Tournament.objects.all()
@@ -32,11 +32,8 @@ def my_events(request):
         return render(
             request, "tournaments/my_events.html", {"tournaments": []}
         )  # Handle the case where the user is not a player
-    enrollments = Enrollment.objects.filter(player=player)
-    tournaments = []
-    for en in enrollments:
-        tournaments.append(en.tournament)
-    return render(request, "tournaments/my_events.html", {"tournaments": tournaments})
+    current_event = Enrollment.objects.filter(player=player).order_by("-enrolled_on").first().tournament.id
+    return redirect('tournaments:tournament_view', current_event)
 
 
 @login_required
@@ -64,7 +61,7 @@ def tournament_view(request, tournament_id):
         "draft": draft_json,
     }
     if not user.is_superuser:
-        return render(request, "tournaments/tournament.html", context)
+        return render(request, "tournaments/event_dashboard.html", context)
 
 
 @login_required
@@ -133,12 +130,13 @@ def start_round(request, tournament_id, draft_id):
     round.save()
     return redirect("tournaments:tournament_view", tournament_id)
 
+
 @login_required
 def round_status(request, tournament_id, draft_id):
     user = request.user
     if not user.is_superuser:
         return redirect("tournaments:tournament", tournament_id)
-    
+
     draft = get_object_or_404(Draft, pk=draft_id)
     round = Round.objects.filter(draft=draft).order_by("-round_idx").first()
     games = Game.objects.filter(round=round)
@@ -154,21 +152,21 @@ def round_status(request, tournament_id, draft_id):
 @login_required
 def game_by_id(request, game_id):
     if game_id == 0:
-        return JsonResponse(
-            {"error": "No valid game ID provided."}, status=404
-        )
+        return JsonResponse({"error": "No valid game ID provided."}, status=404)
     game = get_object_or_404(Game, pk=game_id)
 
     round = game.round
     draft = round.draft
     phase = draft.phase
     tournament = phase.tournament
-    
+
     user = request.user
     if not user.is_superuser:
         player = Player.objects.get(user=user)
         try:
-            enrollment = get_object_or_404(Enrollment, player=player, tournament=tournament)
+            enrollment = get_object_or_404(
+                Enrollment, player=player, tournament=tournament
+            )
         except Enrollment.DoesNotExist:
             return JsonResponse(
                 {"error": "Player is not enrolled in this tournament."}, status=404
@@ -194,18 +192,49 @@ def game_by_id(request, game_id):
         }
     )
 
+
+@login_required
+def other_pairings(request, tournament_id):
+    user = request.user
+    tournament = get_object_or_404(Tournament, pk=tournament_id)
+    player = get_object_or_404(Player, user=user)
+    enrollment = get_object_or_404(Enrollment, player=player, tournament=tournament)
+    draft = get_object_or_404(Draft, enrollments__in=[enrollment])
+
+    round = Round.objects.filter(draft=draft).order_by("-round_idx").first()
+    games = Game.objects.filter(round=round)
+    non_player_games = games.filter(~(Q(player1=enrollment) | Q(player2=enrollment)))
+
+    return JsonResponse({"pairings": [
+        {
+            "id": game.id,
+            "table": game.table,
+            "player1": game.player1.player.user.name,
+            "player2": game.player2.player.user.name,
+            "result": game.result,
+            "player1_wins": game.player1_wins,
+            "player2_wins": game.player2_wins,
+        }
+        for game in non_player_games
+    ]})
+
+
 @login_required
 def current_match(request, tournament_id):
     user = request.user
     tournament = get_object_or_404(Tournament, pk=tournament_id)
     player = get_object_or_404(Player, user=user)
     enrollment = get_object_or_404(Enrollment, player=player, tournament=tournament)
-    
-    game_id = Game.objects.filter(
-            Q(player1=enrollment) | Q(player2=enrollment)
-    ).order_by("-round").first().id
+
+    game_id = (
+        Game.objects.filter(Q(player1=enrollment) | Q(player2=enrollment))
+        .order_by("-round")
+        .first()
+        .id
+    )
 
     return redirect("tournaments:game_by_id", game_id)
+
 
 @login_required
 def current_draft_view(request, tournament_id, draft_id):
@@ -213,9 +242,11 @@ def current_draft_view(request, tournament_id, draft_id):
     draft = get_object_or_404(Draft, pk=draft_id)
     player = get_object_or_404(Player, user=user)
     enrollment = get_object_or_404(Enrollment, player=player, draft__in=[draft])
-    game = Game.objects.filter(
-            Q(player1=enrollment) | Q(player2=enrollment)
-    ).order_by("-round").first()
+    game = (
+        Game.objects.filter(Q(player1=enrollment) | Q(player2=enrollment))
+        .order_by("-round")
+        .first()
+    )
     game_id = game.id if game else 0
     draft_json = {
         "id": draft.id,
