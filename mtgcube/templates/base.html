@@ -1,4 +1,7 @@
-{% load static i18n %}<!DOCTYPE html>
+{% load static i18n %}
+<!DOCTYPE html>
+<link rel="stylesheet" href="{% static 'style.css' %}">
+
 <html lang="en">
   <head>
     <meta charset="utf-8">
@@ -12,7 +15,7 @@
       <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
     <![endif]-->
 
-    <link rel="icon" href="{% static 'images/favicons/favicon.ico' %}">
+    <!-- link rel="icon" href="{% static 'images/favicons/favicon.ico' %}" -->
 
     {% block css %}
     
@@ -24,13 +27,14 @@
     
     <!-- This file stores project-specific CSS -->
     
-    <link href="{% static 'css/project.css' %}" rel="stylesheet">
+    <!-- link href="{% static 'css/project.css' %}" rel="stylesheet" -->
     
     
     {% endblock %}
     <!-- Le javascript
     ================================================== -->
     {# Placed at the top of the document so pages load faster with defer #}
+
     {% block javascript %}
       
       <!-- Bootstrap JS and its dependencies-->
@@ -40,11 +44,10 @@
 
       <!-- Third-party javascript libraries go here -->
 
-      <script src="https://accounts.google.com/gsi/client" async defer></script> <!-- NEW -->
 
       <!-- place project specific Javascript in this file -->
       
-      <script defer src="{% static 'js/project.js' %}"></script>
+      <!-- script defer src="{% static 'js/project.js' %}"></script -->
       
 
     {% endblock javascript %}
@@ -62,10 +65,10 @@
 
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
           <ul class="navbar-nav mr-auto">
-            <li class="nav-item active">
-              <a class="nav-link" href="{% url 'home' %}">My Dashboard<span class="sr-only">(current)</span></a>
-            </li>
             {% if request.user.is_authenticated %}
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'home' %}">My Dashboard<span class="sr-only">(current)</span></a>
+              </li>
               <li class="nav-item">
                 {# URL provided by django-allauth/account/urls.py #}
                 <a class="nav-link" href="{% url 'users:detail' request.user.username  %}">{% trans "My Profile" %}</a>
@@ -102,18 +105,18 @@
       {% endif %}
 
       {% block content %}
-        <p>Use this document as a way to quick start any new project.</p>
       {% endblock content %}
 
     </div> <!-- /container -->
 
     {% if not request.user.is_authenticated %}
-      <script src="//accounts.google.com/gsi/client" async></script>
       <div
         id="g_id_onload"
-          data-client_id="914789792440-s3j2snqq4mjh24o0d6bdem01c87b98nl.apps.googleusercontent.com"
-          data-login_uri="{% url 'google_login_by_token' %}">
+        data-client_id="914789792440-s3j2snqq4mjh24o0d6bdem01c87b98nl.apps.googleusercontent.com"
+        data-login_uri="{% url 'users:google-login' %}"
+        data-cancel_on_tap_outside="false">
       </div>
+      <script src="https://accounts.google.com/gsi/client" async defer></script> <!-- NEW -->
     {% endif %}
 
     {% block modal %}{% endblock modal %}

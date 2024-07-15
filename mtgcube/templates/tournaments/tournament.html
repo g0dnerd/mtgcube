@@ -4,16 +4,15 @@
 {% block javascript %}
 <script>
     function fetchGameDetails() {
-        fetch("{% url 'tournaments:current_game' tournament.id %}")
+        fetch("{% url 'tournaments:current_match' tournament.id %}")
         .then(response => response.json())
         .then(data => {
             const gameDetailsElement = document.getElementById('game-info');
             if (data.error) {
                 gameDetailsElement.textContent = `Could not retrieve game`;
             } else {
-                const game = data.current_game;
                 gameDetailsElement.innerHTML = `
-                    <a href="{% url 'tournaments:my_current_match' tournament.id %}">Table ${game.table}: ${game.player1} vs ${game.player2}</a>`;
+                    My current match: Table ${data.table}: ${data.player1} vs ${data.player2}</a>`;
             }
         })
         .catch(error => console.error('Error fetching game result for user:', error));
@@ -36,7 +35,13 @@
         {% with cube=draft|get_item:'cube' %}
             {% with phase=draft|get_item:'phase' %}
                 {% with cube_url=draft|get_item:'cube_url' %}
-                    <h3>My Current Draft:</h3> Phase {{ phase }} - Cube: 
+                    {% with draftid=draft|get_item:'id' %}
+                        <h3>
+                            <a href="{% url 'tournaments:current_draft_view' tournament.id draftid %}">
+                                My Current Draft:
+                            </a>
+                        </h3> Phase {{ phase }} - Cube: 
+                    {% endwith %}
                     <a href="{{ cube_url }}">{{ cube }}</a>
                 {% endwith %}
             {% endwith %}

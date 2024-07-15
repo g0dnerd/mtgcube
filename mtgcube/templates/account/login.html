@@ -17,14 +17,15 @@
 of your existing third party accounts: {% endblocktrans %}</p>
 
 <div class="socialaccount_ballot">
-
-  <ul class="socialaccount_providers">
-    {% csrf_token %}
-    {% include "socialaccount/snippets/provider_list.html" with process="login" %}
-  </ul>
-
-  <div class="login-or">{% trans 'or' %}</div>
-
+  <script src="//accounts.google.com/gsi/client" async></script>
+  <div
+    class="g_id_signin"
+    data-type="standard"
+    data-theme="outline"
+    data-text="signin_with"
+    data-size="large"
+    data-logo_alignment="left">
+  </div>
 </div>
 
 

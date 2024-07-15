@@ -1,0 +1,270 @@
+{% extends "tournaments/base.html" %}
+
+{% block javascript %}
+    <script>
+        function getCsrfToken() {
+            return document.querySelector('[name=csrfmiddlewaretoken]').value;
+        }
+
+        function fetchGameDetails() {
+            fetch("{% url 'tournaments:current_match' tournament_id %}")
+            .then(response => response.json())
+            .then(data => {
+                const confirmButtonElement = document.getElementById('confirm-result');
+                const player1WinForm = document.getElementById('player1-wins');
+                const reportFormElement = document.getElementById('report-result-form');
+                const gameDetailsElement = document.getElementById('match-details');
+                if (data.error) {
+                    gameDetailsElement.textContent = `Current Match: Waiting for pairings`;
+                    reportFormElement.style.display = 'none';
+                    confirmButtonElement.style.display = 'none';
+                } else {
+                    if (confirmButtonElement) {
+                        confirmButtonElement.name = `${data.id}`;
+                    }
+                    if (player1WinForm) {
+                        player1WinForm.name = `${data.id}`;
+                    }
+                    gameDetailsElement.innerHTML = `
+                        Table ${data.table}: ${data.player1} vs ${data.player2}. Result: <span id="game-result">${data.result}</span>`;
+
+                    reportFormElement.innerHTML = `
+                    <label for="player1-wins">${data.player1} Wins:</label>
+                        <select id="player1-wins" name="player1_wins">
+                            <option value="0">0</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                        </select>
+                        <label for="player2-wins">${data.player2} Wins:</label>
+                        <select id="player2-wins" name="player2_wins">
+                            <option value="0">0</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                        </select>
+                        <button type="submit">Submit Result</button>
+                    `;
+
+                    if (data.result === "Pending") {
+                        reportFormElement.style.display = 'block';
+                        confirmButtonElement.style.display = 'none';
+                    } else {
+                        if (!data.result_confirmed) {
+                            if (data.player_role != data.reported_by) {
+                                reportFormElement.style.display = 'none';
+                                confirmButtonElement.style.display = 'block';
+                            }
+                        } else {
+                                reportFormElement.style.display = 'none';
+                                confirmButtonElement.style.display = 'none';
+                        }
+                    }
+                }
+            })
+            .catch(error => console.error('Error fetching game result for user:', error));
+        }
+
+        function fetchSeatings() {
+            fetch("{% url 'tournaments:seatings' tournament_id draft.id %}")
+            .then(response => response.json())
+            .then(data => {
+                const seatingsElement = document.getElementById('seatings-info');
+                if (data.error) {
+                    seatingsElement.innerHTML = `Seatings go here`;
+                } else {
+                    let htmlOut = `
+                    Seatings:
+                    <ol type="1">
+                    `
+                    data.seatings.forEach(function (player, i) {
+                        htmlOut += `
+                        <li>
+                            ${player.name}
+                        </li>
+                        `;
+                    });
+                    htmlOut += `
+                    </ol>
+                    `;
+                    seatingsElement.innerHTML = htmlOut;
+                }
+            })
+            .catch(error => console.error('Error fetching seatings:', error));
+        }
+
+        function fetchStandings() {
+            fetch("{% url 'tournaments:draft_standings' tournament_id draft.id %}")
+            .then(response => response.json())
+            .then(data => {
+                const standingsElement = document.getElementById('standings-info');
+                if (data.error) {
+                    standingsElement.innerHTML = `Standings: Waiting for round to finish`;
+                } else {
+                    let htmlOut = `
+                    Standings:
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="text-align: center; padding-right: 40px;">Place</th>
+                                <th style="text-align: center; padding-right: 40px;">Player</th>
+                                <th style="text-align: center; padding-right: 40px;">Points</th>
+                                <th style="text-align: center; padding-right: 40px;">OMW</th>
+                                <th style="text-align: center; padding-right: 40px;">PGW</th>
+                                <th style="text-align: center; padding-right: 40px;">OGW</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                    `;
+
+                    data.standings.forEach(function (player, i) {
+                        htmlOut += `
+                        <tr>
+                            <td style="text-align: center; padding-right: 40px;">${i+1}</td>
+                            <td style="text-align: center; padding-right: 40px;">${player.name}</td>
+                            <td style="text-align: center; padding-right: 40px;">${player.score}</td>
+                            <td style="text-align: center; padding-right: 40px;">${player.omw}</td>
+                            <td style="text-align: center; padding-right: 40px;">${player.pgw}</td>
+                            <td style="text-align: center; padding-right: 40px;">${player.ogw}</td>
+                        </tr>
+                        `;
+                    });
+                    htmlOut += `
+                            </tbody>
+                        </table>
+                    `;
+                    standingsElement.innerHTML = htmlOut;
+                }
+            })
+            .catch(error => console.error('Error fetching draft standings:', error));
+        }
+
+        function submitResult(event) {
+            event.preventDefault();
+            const player1WinForm = document.getElementById('player1-wins');
+            const player2WinForm = document.getElementById('player2-wins');
+            const gameId = player1WinForm.name;
+            const player1Wins = player1WinForm.value;
+            const player2Wins = player2WinForm.value;
+            
+            fetch("{% url 'tournaments:report_result' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken()
+                },
+                body: JSON.stringify({
+                    tournament_id: "{{ tournament_id }}",
+                    game_id: gameId,
+                    player1_wins: player1Wins,
+                    player2_wins: player2Wins,
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    fetchGameDetails();
+                } else {
+                    console.error('Error reporting result:', data.error);
+                }
+            })
+            .catch(error => console.error('Error reporting result:', error));
+        }
+
+        // Initial formatting
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchGameDetails();
+            fetchSeatings();
+            fetchStandings();
+            setInterval(fetchGameDetails, 60000);
+            setInterval(fetchStandings, 60000);
+            setInterval(fetchSeatings, 60000);
+
+            const confirmButtonElement = document.getElementById('confirm-result');
+            const gameId = confirmButtonElement.name;
+            if (confirmButtonElement) {
+                confirmButtonElement.addEventListener('click', () => {
+                    fetch("{% url 'tournaments:confirm_result' %}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCsrfToken()
+                        },
+                        body: JSON.stringify({
+                            tournament_id: "{{ tournament_id }}",
+                            game_id: gameId,
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            fetchGameDetails();
+                        } else {
+                            console.error('Error confirming result:', data.error);
+                        }
+                    })
+                    .catch(error => console.error('Error confirming result:', error));
+                });
+            } else {
+                console.error("Confirm result button not found in the document.");
+            }
+        });
+        
+
+    </script>
+
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div id="draft-info">
+            <h1>My Current Draft
+                {% with cube=draft|get_item:'cube' %}
+                    {% with phase=draft|get_item:'phase' %}
+                        {% with cube_url=draft|get_item:'cube_url' %}
+                            {% with draftid=draft|get_item:'id' %}
+                                <h2>
+                                    Phase {{ phase }} - Cube: <a href="{{ cube_url }}">{{ cube }}</a>
+                                </h2>
+                            {% endwith %}
+                        {% endwith %}
+                    {% endwith %}
+                {% endwith %}
+            </h1>
+
+        </div>
+        <div class="user-info-list">
+            <ul>
+                <li>
+                    <a href="{% url 'home' %}">My Decklist</a>
+                </li>
+                <li>
+                    <div id="match-info">
+                        {% csrf_token %}
+                        <div id="match-details"></div>
+                        <form id="report-result-form" style="display:none;" onsubmit="submitResult(event)">
+                            <label for="player1-wins">Player 1 Wins:</label>
+                            <select id="player1-wins">
+                                <option value="0">0</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                            </select>
+                            <label for="player2-wins">Player 2 Wins:</label>
+                            <select id="player2-wins">
+                                <option value="0">0</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                            </select>
+                            <button type="submit">Submit Result</button>
+                        </form>
+                        <button id="confirm-result" style="display:none;">Confirm result</button>
+                    </div>
+                </li>
+                <li>
+                    <div id="standings-info">Standings:</div>
+                </li>
+                <li>
+                    <div id="seatings-info"></div>
+                </li>
+            </ul>
+        </div>
+    </div>
+{% endblock %}

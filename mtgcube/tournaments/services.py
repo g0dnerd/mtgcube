@@ -129,16 +129,28 @@ def finish_round(draft: Draft):
         )
         new_round.save()
 
-def make_standings(draft):
-    update_tiebreakers(draft)
+def standings(draft, update=True):
+    if update:
+        update_tiebreakers(draft)
     players = draft.enrollments.all()
     sorted_players = sorted(
         players, key=lambda x: (x.score, x.omw, x.pgw, x.ogw), reverse=True
     )
     return sorted_players
 
+def seatings(draft):
+    players = list(draft.enrollments.all())
+    random.shuffle(players)
+    for idx, player in enumerate(players):
+        player.seat = idx + 1
+        player.save()
+    draft.seated = True
+    draft.save()
 
 def clear_histories(draft):
+    draft.seated = False
+    draft.save()
+
     draft.phase.current_round = 0
     draft.phase.save()
     
@@ -148,6 +160,11 @@ def clear_histories(draft):
         rounds = Round.objects.filter(draft=draft)
     except Round.DoesNotExist as exc:
         raise ValueError("Could not find any rounds to reset") from exc
+    
+    for round in rounds:
+        round.started = False
+        round.finished = False
+        round.save()
 
     games = Game.objects.filter(round__in=rounds)
     for game in games:

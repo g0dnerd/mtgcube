@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}My Dashboard{% endblock %}
+{% block title %}My Profile Settings{% endblock %}
 
 {% block content %}
 <div class="container">
@@ -9,9 +9,9 @@
   <div class="row">
     <div class="col-sm-12">
 
-      <h2>{{ object.username }}</h2>
+      <h2>Display name: {{ object.username }}</h2>
       {% if object.name %}
-        <p>{{ object.name }}</p>
+        <p>Name: {{ object.name }}</p>
       {% endif %}
     </div>
   </div>
@@ -21,14 +21,8 @@
 <div class="row">
 
   <div class="col-sm-12">
-    <a class="btn btn-primary" href="{% url 'tournaments:all_events' %}" role="button">Sign up for an event</a>
-    <!-- Your Stuff: Custom user template urls -->
-  </div>
-  <br><br>
-  <div class="col-sm-12">
-    <a class="btn btn-primary" href="{% url 'users:update' %}" role="button">My Info</a>
+    <a class="btn btn-primary" href="{% url 'users:update' %}" role="button">My Information</a>
     <a class="btn btn-primary" href="{% url 'account_email' %}" role="button">E-Mail</a>
-    <!-- Your Stuff: Custom user template urls -->
   </div>
 
 </div>
@@ -36,6 +30,6 @@
 {% endif %}
 
 
-</div>
+</div> 
 {% endblock content %}
 

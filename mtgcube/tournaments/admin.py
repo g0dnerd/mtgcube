@@ -10,7 +10,9 @@ class GameInline(admin.TabularInline):
 
 
 class GameAdmin(admin.ModelAdmin):
+    readonly_fields = ("id", )
     fields = [
+        "id",
         "round",
         "player1",
         "player2",

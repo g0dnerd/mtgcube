@@ -25,12 +25,10 @@
     }
 
     function fetchGameDetails() {
-        fetch("{% url 'tournaments:current_game' tournament.id %}")
+        fetch("{% url 'tournaments:game_by_id' game.id %}")
         .then(response => response.json())
         .then(data => {
-            const gameDetailsElement = document.getElementById('game-details');
-            const reportFormElement = document.getElementById('report-result-form');
-            const confirmButtonElement = document.getElementById('confirm-result');
+            const gameDetailsElement = document.getElementsByName('game-details')[0];
 
             if (data.error) {
                 gameDetailsElement.innerHTML = `<li>${data.error}</li>`;
@@ -39,7 +37,7 @@
             } else {
                 const game = data.current_game;
                 gameDetailsElement.innerHTML = `
-                    Table ${game.table}: ${game.player1} vs ${game.player2}. Result: <span id="game-result">${game.result_formatted}</span>`;
+                    Table ${game.table}: ${game.player1} vs ${game.player2}. Result: <span id="game-result">${game.result}</span>`;
 
                 reportFormElement.innerHTML = `
                     <label for="player1-wins">${game.player1} Wins:</label>
@@ -64,12 +62,10 @@
                         reportFormElement.style.display = 'none';
                         confirmButtonElement.style.display = 'block';
                     } else {
-                        gameDetailsElement.innerHTML += ` (awaiting confirmation from opponent)`;
                         reportFormElement.style.display = 'none';
                         confirmButtonElement.style.display = 'none';
                     }
                 } else {
-                    gameDetailsElement.innerHTML += ` (result confirmed)`;
                     reportFormElement.style.display = 'none';
                     confirmButtonElement.style.display = 'none';
                 }
@@ -91,6 +87,7 @@
         setInterval(fetchGameDetails, 10000);
 
         const confirmButtonElement = document.getElementById('confirm-result');
+        const gameId = confirmButtonElement.name;
         if (confirmButtonElement) {
             confirmButtonElement.addEventListener('click', () => {
                 fetch("{% url 'tournaments:confirm_result' %}", {
@@ -100,7 +97,8 @@
                         'X-CSRFToken': getCsrfToken()
                     },
                     body: JSON.stringify({
-                        tournament_id: "{{ tournament.id }}"
+                        tournament_id: "{{ tournament.id }}",
+                        game_id: gameId,
                     })
                 })
                 .then(response => response.json())
@@ -120,8 +118,11 @@
 
     function submitResult(event) {
         event.preventDefault();
-        const player1Wins = document.getElementById('player1-wins').value;
-        const player2Wins = document.getElementById('player2-wins').value;
+        const player1WinForm = document.getElementsByName('player1-wins')[0];
+        const gameId = player1WinForm.id;
+        const player1Wins = player1WinForm.value;
+        const player2WinForm = document.getElementsByName('player2-wins')[0];
+        const player2Wins = player2WinForm.value;
         
         fetch("{% url 'tournaments:report_result' %}", {
             method: 'POST',
@@ -131,6 +132,7 @@
             },
             body: JSON.stringify({
                 tournament_id: "{{ tournament.id }}",
+                game_id: gameId,
                 player1_wins: player1Wins,
                 player2_wins: player2Wins
             })
@@ -166,22 +168,22 @@
     <div id="game-info">
         {% csrf_token %}
         <div id="game-details"></div>
-        <form id="report-result-form" style="display:none;" onsubmit="submitResult(event)">
+        <form name="report-result-form" id="{{ game.id }}" style="display:none;" onsubmit="submitResult(event)">
             <label for="player1-wins">Player 1 Wins:</label>
-            <select id="player1-wins" name="player1_wins">
+            <select name="player1-wins" id="{{ game.id }}">
                 <option value="0">0</option>
                 <option value="1">1</option>
                 <option value="2">2</option>
             </select>
             <label for="player2-wins">Player 2 Wins:</label>
-            <select id="player2-wins" name="player2_wins">
+            <select name="player2-wins" id="{{ game.id }}">
                 <option value="0">0</option>
                 <option value="1">1</option>
                 <option value="2">2</option>
             </select>
             <button type="submit">Submit Result</button>
         </form>
-        <button id="confirm-result" style="display:none;">Confirm result</button>
+        <button name="confirm-result" id="{{ game.id }}" style="display:none;">Confirm result</button>
     </div>
 
 {% endblock %}

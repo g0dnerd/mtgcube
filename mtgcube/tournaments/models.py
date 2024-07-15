@@ -38,6 +38,7 @@ class Draft(models.Model):
     cube = models.ForeignKey("Cube", on_delete=models.CASCADE)
     enrollments = models.ManyToManyField("Enrollment")
     round_number = models.IntegerField("Amount of rounds", default=3)
+    seated = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ["phase", "cube"]
@@ -50,8 +51,7 @@ class Round(models.Model):
     id = models.AutoField(primary_key=True)
     draft = models.ForeignKey("Draft", on_delete=models.CASCADE)
     round_idx = models.IntegerField("Round number", default=1)
-    round_length = models.IntegerField("Round length in minutes", default=50)
-    round_timer_start = models.DateTimeField(null=True, blank=True)
+    started = models.BooleanField(default=False)
     finished = models.BooleanField(default=False)
 
     class Meta:
@@ -59,29 +59,6 @@ class Round(models.Model):
 
     def __str__(self):
         return f"{self.draft} - Round {self.round_idx}"
-
-    def timer_active(self):
-        if self.round_timer_start:
-            elapsed_time = timezone.now() - self.round_timer_start
-            return (
-                elapsed_time.total_seconds() < self.round_length * 60
-            )  # 50 minutes in seconds
-        return False
-
-    def time_remaining_seconds(self):
-        if self.timer_active():
-            elapsed_time = timezone.now() - self.round_timer_start
-            return max(
-                0, self.round_length * 60 - elapsed_time.total_seconds()
-            )  # Remaining time in seconds
-        return 0
-
-    def time_remaining_formatted(self):
-        remaining_seconds = self.time_remaining_seconds()
-        minutes = int(remaining_seconds // 60)
-        seconds = int(remaining_seconds % 60)
-        return f"{minutes}:{seconds:02}"
-
 
 class Player(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -105,6 +82,7 @@ class Enrollment(models.Model):
     pairings = models.ManyToManyField(
         "self", blank=True
     )  # needs to be reset after a draft finishes
+    seat = models.IntegerField(default=0)
     paired = models.BooleanField(default=False)
     had_bye = models.BooleanField(default=False)
     judge_note = models.CharField(max_length=450, blank=True)

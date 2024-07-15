@@ -1,4 +1,18 @@
 {% extends "base.html" %}
 
-<h1>My Dashboard</h1>
-
+{% block content %}
+<div class="container">
+    <h1>My Dashboard</h1>
+    
+    {% if request.user.is_authenticated %}
+        <ul>    
+            <li>
+                <a href="{% url 'tournaments:my_events' %}">My Events</a>
+            </li>
+            <li>
+                <a href="{% url 'users:detail' request.user.username %}">Profile Settings</a>
+            </li>
+        </ul>
+    {% endif %}
+</div>
+{% endblock %}

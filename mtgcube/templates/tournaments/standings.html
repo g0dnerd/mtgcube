@@ -5,25 +5,25 @@
 <h2>Phase {{ draft.phase.phase_idx }} - Draft {{ draft.id }} (Cube: {{ draft.cube }}) </h2>
 <h3>Standings after round {{ round.round_idx }} </h3>
 <table>
-    <thead>
-      <tr>
-        <th style="text-align: center; padding-right: 40px;">Player</th>
-        <th style="text-align: center; padding-right: 40px;">Points</th>
-        <th style="text-align: center; padding-right: 40px;">OMW</th>
-        <th style="text-align: center; padding-right: 40px;">PGW</th>
-        <th style="text-align: center; padding-right: 40px;">OGW</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for player in players %}
-      <tr>
-        <td style="text-align: center; padding-right: 40px;">{{ player.player.user.name }}</a></td>
-        <td style="text-align: center; padding-right: 40px;">{{ player.score }}</td>
-        <td style="text-align: center; padding-right: 40px;">{{ player.omw }}</td>
-        <td style="text-align: center; padding-right: 40px;">{{ player.pgw }}</td>
-        <td style="text-align: center; padding-right: 40px;">{{ player.ogw }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <thead>
+    <tr>
+      <th style="text-align: center; padding-right: 40px;">Player</th>
+      <th style="text-align: center; padding-right: 40px;">Points</th>
+      <th style="text-align: center; padding-right: 40px;">OMW</th>
+      <th style="text-align: center; padding-right: 40px;">PGW</th>
+      <th style="text-align: center; padding-right: 40px;">OGW</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for player in players %}
+    <tr>
+      <td style="text-align: center; padding-right: 40px;">{{ player.player.user.name }}</td>
+      <td style="text-align: center; padding-right: 40px;">{{ player.score }}</td>
+      <td style="text-align: center; padding-right: 40px;">{{ player.omw }}</td>
+      <td style="text-align: center; padding-right: 40px;">{{ player.pgw }}</td>
+      <td style="text-align: center; padding-right: 40px;">{{ player.ogw }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
 {% endblock %}

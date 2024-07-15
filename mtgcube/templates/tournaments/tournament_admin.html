@@ -3,88 +3,66 @@
 
 {% block javascript %}
     <script>
-    function formatTime(seconds) {
-        const minutes = Math.floor(seconds / 60);
-        const remainingSeconds = seconds % 60;
-        return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
-    }
 
-    function updateTimer() {
-        const x = document.getElementsByName('round_timer');
-        for (const timeRemainingElement of x) {
-            if (timeRemainingElement) {
-                let timeRemaining = parseInt(timeRemainingElement.getAttribute('data-seconds'));
-                if (timeRemaining > 0) {
-                    timeRemaining -= 1;
-                    timeRemainingElement.setAttribute('data-seconds', timeRemaining);
-                    timeRemainingElement.textContent = formatTime(timeRemaining);
-                }
-            }
-        }
-    }
-
-    function fetchGameResults() {
-    fetch("{% url 'tournaments:game_results' %}")
-        .then(response => response.json())
-        .then(data => {
-            data.games.forEach(game => {
-                const resultElement = document.getElementById(`game-result-${game.id}`);
-                if (resultElement) {
-                    resultElement.textContent = game.result;
-                }
-            });
-        })
-        .catch(error => console.error('Error fetching game results:', error));
-    }
-
-    function checkRoundComplete() {
-        const finishButtons = document.getElementsByName('finish-btn');
-        for (const btn of finishButtons) {
-            if (btn) {
-                const draftId = btn.id;
-                const url = `{% url 'tournaments:games_for_draft' tournament.id 0 %}`.replace('0', draftId);
-                btn.style.display = btn.style.display;
-                let roundOngoing = false;
+        function fetchGameResults() {
+            const matchInfoElements = document.getElementsByClassName('match-info');
+            for (const e of matchInfoElements) {
+                const gameId = e.id;
+                console.log(`Retrieving game with ID ${gameId}`);
+                const url = `{% url 'tournaments:game_by_id' 0 %}`.replace('0', gameId);
                 fetch(url)
                 .then(response => response.json())
                 .then(data => {
-                    data.games.forEach(game => {
-                        if (game.result == 'Pending') {
-                            roundOngoing = true;
+                    e.textContent = `${data.result}`;
+                })
+                .catch(error => console.error('Error fetching match information:', error));
+            }
+        }
+
+        function checkRoundStatus() {
+            const finishButtons = document.getElementsByName('finish-btn');
+            for (const btn of finishButtons) {
+                if (btn) {
+                    const draftId = btn.id.slice(1);
+                    const startButton = document.getElementById(`s${draftId}`);
+                    const url = `{% url 'tournaments:round_status' tournament.id 0 %}`.replace('0', draftId);
+                    btn.style.display = btn.style.display;
+                    fetch(url)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.finished) {
+                            btn.style.display = 'block';
                         } else {
-                            if (!game.result_confirmed) {
-                                roundOngoing = true;
+                            btn.style.display = 'none';
+                        }
+                        if (data.started) {
+                            if (startButton) {
+                                startButton.style.display = 'none';
+                            } else {
+                                startButton.style.display = 'block';
                             }
                         }
-                    });
-                    if (!roundOngoing) {
-                        btn.style.display = 'block';
-                    } else {
-                        btn.style.display = 'none';
-                    }
-                })
-                .catch(error => console.error('Error fetching game results:', error));
+                    })
+                    .catch(error => console.error('Error fetching game results:', error));
+                }
             }
         }
-    }
 
-    // Initial formatting
-    document.addEventListener('DOMContentLoaded', () => {
-        const roundTimers = document.getElementsByName('round_timer');
-        for (const timeRemainingElement of roundTimers) {
-            if (timeRemainingElement) {
-                let timeRemaining = parseInt(timeRemainingElement.getAttribute('data-seconds'));
-                timeRemainingElement.textContent = formatTime(timeRemaining);
+        // Initial formatting
+        document.addEventListener('DOMContentLoaded', () => {
+            const finishButtons = document.getElementsByName('finish-btn');
+            for (const btn of finishButtons) {
+                if (btn) {
+                    btn.style.display = 'none';
+                }
             }
-        }
-        const finishButtons = document.getElementsByName('finish-btn');
-        fetchGameResults();
-        checkRoundComplete();
-    });
-    
-    setInterval(updateTimer, 1000);
-    setInterval(fetchGameResults, 10000);
-    setInterval(checkRoundComplete, 10000);
+
+            fetchGameResults();
+            checkRoundStatus();
+        });
+
+        setInterval(fetchGameResults, 10000);
+        setInterval(checkRoundStatus, 10000);
 
     </script>
 {% endblock %}
@@ -94,15 +72,16 @@
     <h1>Tournament Overview Page - Admin</h1>
     <h2> {{ tournament.name }} </h2>
     
-    <h4> Drafts: </h4>
+    <h3> Drafts: </h3>
     {% for draft in drafts %}
         <ul>
-            <h5>Phase {{ draft.phase.id }} - {{ draft.cube }}</h5>
-            <h6> Pairings: </h6>
+            <h4>Phase {{ draft.phase.id }} - {{ draft.cube }}</h4>
+            <h4> Pairings: </h4>
             {% with games=draft_games|get_item:draft.id %}
                 {% for game in games %}
                     <li>Table {{ game.table }}: {{ game.player1 }} vs {{ game.player2 }} - Result: 
-                        <span id="game-result-{{ game.id }}">
+                        <span class="match-info"
+                            id="{{ game.id }}">
                             {{ game.result_formatted }}
                         </span>
                     </li>
@@ -110,49 +89,40 @@
                     <div class="row">
                         <div class="col-sm-12">
                             <a class="btn btn-primary"
+                                id="pair-btn"
                                 href="{% url 'tournaments:pair_round_view' tournament.id draft.id %}"
                                 role="button">Pair Round
+                            </a>
+                        </div>
+                        <div class="col-sm-12">
+                            <a class="btn btn-primary"
+                                id="seat-btn"
+                                href="{% url 'tournaments:seat_draft' tournament.id draft.id %}"
+                                role="button">Make Seatings
                             </a>
                         </div>
                     </div>
                 {% endfor %}
                 {% if games %}
-                    {% with round=rounds|get_item:draft.id %}
-                        <div class="row">
-                            <div class="col-sm-12">
-                                {% if round.timer_active %}
-                                    <p>Timer is running. Time remaining:
-                                        <span id="time-remaining" name="round_timer" data-seconds="{{ round.time_remaining_seconds }}">
-                                            {{ round.time_remaining_formatted }}
-                                        </span></p>
-                                    <form method="post"
-                                        action="{% url 'tournaments:stop_round_view' tournament.id round.id %}"
-                                        style="display:inline;">
-                                        {% csrf_token %}
-                                        <button type="submit" class="btn btn-primary">Stop round timer</button>
-                                    </form>
-                                {% else %}
-                                    <form method="post"
-                                        action="{% url 'tournaments:start_round_view' tournament.id round.id %}"
-                                        style="display:inline;">
-                                        {% csrf_token %}
-                                        <button type="submit" class="btn btn-primary">Start round timer</button>
-                                    </form>
-                                {% endif %}
-                            </div>
-                        </div>
-                    {% endwith %}
                     <div class="row">
                         <div class="col-sm-12">
                             <form method="post"
-                                action="{% url 'tournaments:clear_history_view' tournament.id draft.id %}"
+                                action="{% url 'tournaments:clear_history' tournament.id draft.id %}"
                                 style="display:inline;">
                                 {% csrf_token %}
                                 <button type="submit" class="btn btn-primary">Clear pairing history</button>
                             </form>
                             <form method="post"
+                                name="start-btn"
+                                id="s{{draft.id}}"
+                                action="{% url 'tournaments:start_round' tournament.id draft.id %}"
+                                style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-primary">Start round</button>
+                            </form>
+                            <form method="post"
                                 name="finish-btn"
-                                id="{{draft.id}}"
+                                id="f{{draft.id}}"
                                 action="{% url 'tournaments:finish_round' tournament.id draft.id %}"
                                 style="display:inline;">
                                 {% csrf_token %}
