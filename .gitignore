@@ -5,7 +5,6 @@ __pycache__/
 
 staticfiles/
 cloud-sql-proxy
-logfile
 *.yaml
 
 # C extensions
