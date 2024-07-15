@@ -57,8 +57,6 @@ ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
 # https://django-extensions.readthedocs.io/en/latest/installation_instructions.html#configuration
 INSTALLED_APPS += ["django_extensions"]  # noqa F405
 
-SECURE_REFERRER_POLICY= "strict-origin-when-cross-origin"
-
 # Your stuff...
 # ------------------------------------------------------------------------------Masterpassword
 

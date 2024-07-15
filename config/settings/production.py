@@ -44,7 +44,6 @@ elif os.getenv("TRAMPOLINE_CI", None):
     env.read_env(io.StringIO(placeholder))
 # [END_EXCLUDE]
 elif os.environ.get("GOOGLE_CLOUD_PROJECT", None):
-    print('Working with gcloud project')
     # Pull secrets from Secret Manager
     project_id = os.environ.get("GOOGLE_CLOUD_PROJECT")
 
@@ -99,33 +98,32 @@ SOCIALACCOUNT_STORE_TOKENS = True
 
 CSRF_TRUSTED_ORIGINS = [
     "https://*.paulkukowski.de",
-    "http://*.paulkukowski.de",
     "https://cube.paulkukowski.de",
+    "https://*.paulkukowski.de/",
+    "https://cube.paulkukowski.de/",
     "https://mtgcubeoauth.de",
     "https://mtgcube.ew.r.appspot.com"
 ]
-SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-CSRF_COOKIE_DOMAIN = '*.paulkukowski.de'
 
+# CSRF_COOKIE_DOMAIN = 'https://*.paulkukowski.de'
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SECURE_HSTS_SECONDS = 60
 # https://docs.djangoproject.com/en/dev/ref/settings/#secure-hsts-include-subdomains
 SECURE_HSTS_INCLUDE_SUBDOMAINS = env.bool(
     "DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS", default=True
 )
+# 
+# # https://docs.djangoproject.com/en/dev/ref/settings/#secure-hsts-preload
+# SECURE_HSTS_PRELOAD = env.bool("DJANGO_SECURE_HSTS_PRELOAD", default=True)
+# # https://docs.djangoproject.com/en/dev/ref/middleware/#x-content-type-options-nosniff
+# SECURE_CONTENT_TYPE_NOSNIFF = env.bool(
+#     "DJANGO_SECURE_CONTENT_TYPE_NOSNIFF", default=True
+# )
+# 
+# SESSION_COOKIE_DOMAIN = "https://cube.paulkukowski.de"
 
-# https://docs.djangoproject.com/en/dev/ref/settings/#secure-hsts-preload
-SECURE_HSTS_PRELOAD = env.bool("DJANGO_SECURE_HSTS_PRELOAD", default=True)
-# https://docs.djangoproject.com/en/dev/ref/middleware/#x-content-type-options-nosniff
-SECURE_CONTENT_TYPE_NOSNIFF = env.bool(
-    "DJANGO_SECURE_CONTENT_TYPE_NOSNIFF", default=True
-)
+SOCIALACCOUNT_STORE_TOKENS = True
 
-SESSION_COOKIE_DOMAIN = "https://cube.paulkukowski.de"
-
-SESSION_COOKIE_DOMAIN_DYNAMIC = [
-    ".paulkukowski.de",
-    "https://mtgcube.ew.r.appspot.com/"
-]
 # Static files (CSS, JavaScript, Images)
 # [START staticurl]
 # [START gaeflex_py_django_static_config]
