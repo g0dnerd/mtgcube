@@ -3,12 +3,20 @@ from django.db.models import CharField
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
+PRONOUNS_CHOICES = {
+    "m": "he/him",
+    "f": "she/her",
+    "x": "they/them",
+}
 
 class User(AbstractUser):
     """Default user."""
 
     #: First and last name do not cover name patterns around the globe
-    name = CharField(_("Name of User"), blank=True, max_length=255)
+    name = CharField(_("Display Name"), blank=True, max_length=255)
+
+
+    pronouns = CharField("My Pronouns", blank=True, max_length=255, choices=PRONOUNS_CHOICES)
     first_name = None  # type: ignore
     last_name = None  # type: ignore
 

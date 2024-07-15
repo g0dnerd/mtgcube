@@ -4,6 +4,9 @@ from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import DetailView, RedirectView, UpdateView
+from django.shortcuts import redirect
+from django.views.decorators.csrf import csrf_exempt
+
 
 User = get_user_model()
 
@@ -21,7 +24,7 @@ user_detail_view = UserDetailView.as_view()
 class UserUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
 
     model = User
-    fields = ["name"]
+    fields = ["name", "pronouns"]
     success_message = _("Information successfully updated")
 
     def get_success_url(self):
@@ -43,3 +46,14 @@ class UserRedirectView(LoginRequiredMixin, RedirectView):
 
 
 user_redirect_view = UserRedirectView.as_view()
+
+@csrf_exempt
+def google_login(request):
+    from django.contrib.sites.models import Site
+    current_site = Site.objects.get_current()
+    domain = current_site.domain
+    prefix = 'https://' if request.is_secure() else 'http://'
+    home_page = prefix + current_site.domain if prefix not in domain else domain
+    print(f'Home page: {home_page}')
+    login_url = '/accounts/google/login/'
+    return redirect(home_page + login_url)
