@@ -9,10 +9,18 @@ urlpatterns = [
     path("<int:game_id>/~match-info", views.game_by_id, name="game_by_id"),
     path("~report-result", views.report_result, name="report_result"),
     path("~confirm-result", views.confirm_result, name="confirm_result"),
-    path("dashboard/", views.dashboard, name="dashboard"),
-    path("<int:tournament_id>/", views.tournament_view, name="tournament_view"),
+    path("dashboard/", views.admin_overview, name="dashboard"),
+    path("event-dashboard/", views.event_dashboard, name="event_dashboard"),
     path("<int:tournament_id>/~current-match", views.current_match, name="current_match"),
+    path("<int:tournament_id>/~signup-status", views.signup_status, name="signup_status"),
     path("<int:tournament_id>/~other-pairings", views.other_pairings, name="other_pairings"),
+    path("<int:tournament_id>/~announcement", views.announcement, name="announcement"),
+    path(
+        "<int:tournament_id>/~draftinfo", views.current_draft, name="current_draft"
+    ),
+    path(
+        "<int:tournament_id>/~next-draft", views.next_draft, name="next_draft"
+    ),
     path(
         "<int:tournament_id>/admin/",
         views.tournament_admin_view,
@@ -49,7 +57,4 @@ urlpatterns = [
     ),
     path("<int:tournament_id>/draft/<int:draft_id>/~standings", views.draft_standings, name="draft_standings"),
     path("<int:tournament_id>/draft/<int:draft_id>/~seatings", views.seatings, name="seatings"),
-    path(
-        "<int:tournament_id>/draft/<int:draft_id>/~draftinfo", views.current_draft, name="current_draft"
-    ),
 ]

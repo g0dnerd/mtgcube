@@ -8,7 +8,6 @@
             const matchInfoElements = document.getElementsByClassName('match-info');
             for (const e of matchInfoElements) {
                 const gameId = e.id;
-                console.log(`Retrieving game with ID ${gameId}`);
                 const url = `{% url 'tournaments:game_by_id' 0 %}`.replace('0', gameId);
                 fetch(url)
                 .then(response => response.json())

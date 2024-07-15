@@ -8,6 +8,7 @@ class Tournament(models.Model):
     name = models.CharField(max_length=50, unique=True)
     start_datetime = models.DateTimeField(default=timezone.now)
     end_datetime = models.DateTimeField(default=timezone.now)
+    announcement = models.CharField(max_length=255, blank=True)
 
     def __str__(self):
         return self.name
@@ -39,6 +40,8 @@ class Draft(models.Model):
     enrollments = models.ManyToManyField("Enrollment")
     round_number = models.IntegerField("Amount of rounds", default=3)
     seated = models.BooleanField(default=False)
+    started = models.BooleanField(default=False)
+    finished = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ["phase", "cube"]
@@ -72,6 +75,7 @@ class Enrollment(models.Model):
     player = models.ForeignKey(Player, on_delete=models.CASCADE)
     tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
     enrolled_on = models.DateTimeField(auto_now_add=True)
+    registration_finished = models.BooleanField(default=False)
     score = models.IntegerField(default=0)
     games_played = models.IntegerField(default=0)
     games_won = models.IntegerField(default=0)

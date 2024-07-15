@@ -19,46 +19,30 @@ class IndexView(generic.ListView):
 
 
 @login_required
-def dashboard(request):
+def admin_overview(request):
     user = request.user
-    if user.is_superuser:
-        tournaments = Tournament.objects.all()
-        return render(
-            request, "tournaments/my_events.html", {"tournaments": tournaments}
-        )
-    try:
-        player = Player.objects.get(user=user)
-    except Player.DoesNotExist:
-        return render(
-            request, "tournaments/my_events.html", {"tournaments": []}
-        )  # Handle the case where the user is not a player
-    current_event = Enrollment.objects.filter(player=player).order_by("-enrolled_on").first().tournament.id
-    return redirect('tournaments:tournament_view', current_event)
+    if not user.is_superuser:
+        return redirect("pages/index.html")
+    tournaments = Tournament.objects.all()
+    return redirect('tournaments:tournament_view', tournaments)
 
 
 @login_required
-def tournament_view(request, tournament_id):
+def event_dashboard(request):
     user = request.user
     if user.is_superuser:
-        return redirect("tournaments:tournament_admin_view", tournament_id)
-    tournament = get_object_or_404(Tournament, pk=tournament_id)
-    player = Player.objects.get(user=user)
+        return redirect("tournaments:tournament_admin_view")
+    try:
+        player = Player.objects.get(user=user)
+    except Player.DoesNotExist:
+        return redirect("pages/home.html")
     try:
         enrollments = Enrollment.objects.filter(player=player)
-        enrollment = enrollments.get(tournament=tournament)
     except Enrollment.DoesNotExist:
-        return redirect("tournaments:my_events")
-    phase = Phase.objects.filter(tournament=tournament).order_by("-phase_idx").first()
-    draft = Draft.objects.get(phase=phase, enrollments__in=[enrollment])
-    draft_json = {
-        "id": draft.id,
-        "phase": draft.phase.phase_idx,
-        "cube": draft.cube.name,
-        "cube_url": draft.cube.url,
-    }
+        return redirect("pages/home.html")
+    latest_event = enrollments.order_by("-enrolled_on").first().tournament
     context = {
-        "tournament": tournament,
-        "draft": draft_json,
+        "tournament": latest_event,
     }
     if not user.is_superuser:
         return render(request, "tournaments/event_dashboard.html", context)
@@ -298,7 +282,7 @@ def current_draft(request, tournament_id):
             {"error": "Player is not enrolled in this tournament."}, status=404
         )
     try:
-        drafts = Draft.objects.filter(enrollments__in=[enrollment.id]).order_by(
+        drafts = Draft.objects.filter(started=True, enrollments__in=[enrollment.id]).order_by(
             "-phase"
         )
     except Draft.DoesNotExist:
@@ -320,6 +304,41 @@ def current_draft(request, tournament_id):
         return JsonResponse(
             {"error": "No drafts found for this player in the tournament."}, status=404
         )
+
+@login_required
+def next_draft(request, tournament_id):
+    tournament = get_object_or_404(Tournament, pk=tournament_id)
+    user = request.user
+    try:
+        player = Player.objects.get(user=user)
+    except Player.DoesNotExist:
+        return JsonResponse(
+            {"error": "No player exists for the current user."}, status=404
+        )
+
+    try:
+        enrollment = Enrollment.objects.get(player=player, tournament=tournament)
+    except Enrollment.DoesNotExist:
+        return JsonResponse(
+            {"error": "Player is not enrolled in this tournament."}, status=404
+        )
+    try:
+        drafts = Draft.objects.filter(started=False, enrollments__in=[enrollment.id]).order_by(
+            "-phase"
+        )
+    except Draft.DoesNotExist:
+        return JsonResponse(
+            {"error": "No upcoming draft found."}, status=200
+        )
+    
+    next_draft = drafts[0]
+    next_draft_data = {
+        "id": next_draft.id,
+        "cube": next_draft.cube.name,
+        "cube_url": next_draft.cube.url,
+        "round_number": next_draft.round_number,
+    }
+    return JsonResponse({"current_draft": next_draft_data})
 
 
 @csrf_exempt
@@ -478,3 +497,33 @@ def seatings(request, tournament_id, draft_id):
         for player in sorted_players
     ]
     return JsonResponse({"seatings": seatings_out})
+
+@login_required
+def announcement(request, tournament_id):
+    tournament = get_object_or_404(Tournament, pk=tournament_id)
+    if tournament.announcement:
+        return JsonResponse(
+            {
+                "announcement": tournament.announcement
+            }
+        )
+    return JsonResponse(
+        {
+            "error": "no announcement"
+        }
+    )
+
+@login_required
+def signup_status(request, tournament_id):
+    tournament = get_object_or_404(Tournament, pk=tournament_id)
+    user = request.user
+    player = Player.objects.get(user=user)
+    try:
+        enrollment = Enrollment.objects.get(player=player, tournament=tournament)
+    except Enrollment.DoesNotExist:
+        return redirect("pages/home.html")
+    return JsonResponse(
+        {
+            "status": enrollment.registration_finished
+        }
+    )
