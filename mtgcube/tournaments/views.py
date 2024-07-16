@@ -183,9 +183,9 @@ def other_pairings(request, tournament_id):
     tournament = get_object_or_404(Tournament, pk=tournament_id)
     player = get_object_or_404(Player, user=user)
     enrollment = get_object_or_404(Enrollment, player=player, tournament=tournament)
-    draft = get_object_or_404(Draft, enrollments__in=[enrollment])
+    drafts = Draft.objects.filter(enrollments__in=[enrollment])
 
-    round = Round.objects.filter(draft=draft).order_by("-round_idx").first()
+    round = Round.objects.filter(draft__in=[drafts]).order_by("-round_idx").first()
     games = Game.objects.filter(round=round)
     non_player_games = games.filter(~(Q(player1=enrollment) | Q(player2=enrollment)))
 
