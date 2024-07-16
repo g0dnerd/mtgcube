@@ -41,10 +41,12 @@
                 const player1WinForm = document.getElementById('player1-wins');
                 const reportFormElement = document.getElementById('report-result-form');
                 const gameDetailsElement = document.getElementById('match-details');
+                const standingsElement = document.getElementById('standings-info');
                 if (data.error) {
                     gameDetailsElement.textContent = `Current Match: Waiting for pairings`;
                     reportFormElement.style.display = 'none';
                     confirmButtonElement.style.display = 'none';
+                    standingsElement.style.display = 'none';
                 } else {
                     if (confirmButtonElement) {
                         confirmButtonElement.name = `${data.id}`;

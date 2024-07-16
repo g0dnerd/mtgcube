@@ -143,6 +143,7 @@ STATIC_URL = "/staticfiles/"
 DEFAULT_FILE_STORAGE = "storages.backends.gcloud.GoogleCloudStorage"
 STATICFILES_STORAGE = "storages.backends.gcloud.GoogleCloudStorage"
 GS_DEFAULT_ACL = "publicRead"
+# GS_QUERYSTRING_AUTH = False
 # [END gaeflex_py_django_static_config]
 # [END staticurl]
 
