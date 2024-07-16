@@ -1,0 +1,20 @@
+{% extends "tournaments/base.html" %}
+
+{% block content %}
+    <h1>
+        My Pool
+    </h1>
+    <div class="deck-image-list">
+        <ul>
+            {% for image in images %}
+                <li>
+                    <img src="{{ image.image.url }}" alt="{{ image }}">
+                    <a href="{% url 'tournaments:delete_image' tournament_id draft_id image.id %}">Delete</a>
+                    <a href="{% url 'tournaments:replace_image' tournament_id draft_id image.id %}">Replace</a>
+                </li>
+            {% empty %}
+                <a href="{% url 'tournaments:upload_deck' tournament_id draft_id %}">Upload my Deck</a>
+            {% endfor %}
+        </ul>
+    </div>
+{% endblock %}

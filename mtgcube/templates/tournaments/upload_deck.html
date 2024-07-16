@@ -1,0 +1,16 @@
+{% extends "tournaments/base.html" %}
+
+{% block content %}
+    <h1>
+        Upload deck images
+    </h1>
+    <p>
+        For check-in, please upload at least one image with your entire deck and one with your entire pool.
+        All cards need to be clearly visible.
+    </p>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Upload</button>
+    </form>
+{% endblock %}

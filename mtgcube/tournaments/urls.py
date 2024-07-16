@@ -57,4 +57,8 @@ urlpatterns = [
     ),
     path("<int:tournament_id>/draft/<int:draft_id>/~standings", views.draft_standings, name="draft_standings"),
     path("<int:tournament_id>/draft/<int:draft_id>/~seatings", views.seatings, name="seatings"),
+    path("<int:tournament_id>/draft/<int:draft_id>/upload", views.upload_deck, name="upload_deck"),
+    path("<int:tournament_id>/draft/<int:draft_id>/my-pool", views.image_list, name="image_list"),
+    path("<int:tournament_id>/draft/<int:draft_id>/delete/<int:image_id>", views.delete_image, name="delete_image"),
+    path("<int:tournament_id>/draft/<int:draft_id>/replace/<int:image_id>", views.replace_image, name="replace_image"),
 ]

@@ -4,9 +4,11 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.views import generic
 from django.http import JsonResponse
+from django.core.files.storage import default_storage
 from django.views.decorators.csrf import csrf_exempt
 
-from .models import Tournament, Enrollment, Player, Game, Draft, Phase, Round
+from .forms import ImageForm
+from .models import Tournament, Enrollment, Player, Game, Draft, Phase, Round, Image
 from . import services as services
 
 
@@ -24,7 +26,7 @@ def admin_overview(request):
     if not user.is_superuser:
         return redirect("pages/index.html")
     tournaments = Tournament.objects.all()
-    return redirect('tournaments:tournament_view', tournaments)
+    return redirect("tournaments:tournament_view", tournaments)
 
 
 @login_required
@@ -161,6 +163,8 @@ def game_by_id(request, game_id):
     else:
         player_role = 0
 
+    pronoun_choices = {"x": "they/them", "m": "he/him", "f": "she/her"}
+
     return JsonResponse(
         {
             "id": game.id,
@@ -171,6 +175,8 @@ def game_by_id(request, game_id):
             "result_confirmed": game.result_confirmed,
             "player1_wins": game.player1_wins,
             "player2_wins": game.player2_wins,
+            "player1_pronouns": pronoun_choices[game.player1.player.user.pronouns],
+            "player2_pronouns": pronoun_choices[game.player2.player.user.pronouns],
             "reported_by": game.result_reported_by,
             "player_role": player_role,
         }
@@ -185,22 +191,26 @@ def other_pairings(request, tournament_id):
     enrollment = get_object_or_404(Enrollment, player=player, tournament=tournament)
     drafts = Draft.objects.filter(enrollments__in=[enrollment])
 
-    round = Round.objects.filter(draft__in=[drafts]).order_by("-round_idx").first()
+    round = Round.objects.filter(draft__in=drafts).order_by("-round_idx").first()
     games = Game.objects.filter(round=round)
     non_player_games = games.filter(~(Q(player1=enrollment) | Q(player2=enrollment)))
 
-    return JsonResponse({"pairings": [
+    return JsonResponse(
         {
-            "id": game.id,
-            "table": game.table,
-            "player1": game.player1.player.user.name,
-            "player2": game.player2.player.user.name,
-            "result": game.result,
-            "player1_wins": game.player1_wins,
-            "player2_wins": game.player2_wins,
+            "pairings": [
+                {
+                    "id": game.id,
+                    "table": game.table,
+                    "player1": game.player1.player.user.name,
+                    "player2": game.player2.player.user.name,
+                    "result": game.result,
+                    "player1_wins": game.player1_wins,
+                    "player2_wins": game.player2_wins,
+                }
+                for game in non_player_games
+            ]
         }
-        for game in non_player_games
-    ]})
+    )
 
 
 @login_required
@@ -282,9 +292,9 @@ def current_draft(request, tournament_id):
             {"error": "Player is not enrolled in this tournament."}, status=404
         )
     try:
-        drafts = Draft.objects.filter(started=True, enrollments__in=[enrollment.id]).order_by(
-            "-phase"
-        )
+        drafts = Draft.objects.filter(
+            started=True, enrollments__in=[enrollment.id]
+        ).order_by("-phase")
     except Draft.DoesNotExist:
         return JsonResponse(
             {"error": "Player can't be found in any drafts."}, status=404
@@ -305,6 +315,7 @@ def current_draft(request, tournament_id):
             {"error": "No drafts found for this player in the tournament."}, status=404
         )
 
+
 @login_required
 def next_draft(request, tournament_id):
     tournament = get_object_or_404(Tournament, pk=tournament_id)
@@ -323,14 +334,12 @@ def next_draft(request, tournament_id):
             {"error": "Player is not enrolled in this tournament."}, status=404
         )
     try:
-        drafts = Draft.objects.filter(started=False, enrollments__in=[enrollment.id]).order_by(
-            "-phase"
-        )
+        drafts = Draft.objects.filter(
+            started=False, enrollments__in=[enrollment.id]
+        ).order_by("-phase")
     except Draft.DoesNotExist:
-        return JsonResponse(
-            {"error": "No upcoming draft found."}, status=200
-        )
-    
+        return JsonResponse({"error": "No upcoming draft found."}, status=200)
+
     next_draft = drafts[0]
     next_draft_data = {
         "id": next_draft.id,
@@ -498,20 +507,14 @@ def seatings(request, tournament_id, draft_id):
     ]
     return JsonResponse({"seatings": seatings_out})
 
+
 @login_required
 def announcement(request, tournament_id):
     tournament = get_object_or_404(Tournament, pk=tournament_id)
     if tournament.announcement:
-        return JsonResponse(
-            {
-                "announcement": tournament.announcement
-            }
-        )
-    return JsonResponse(
-        {
-            "error": "no announcement"
-        }
-    )
+        return JsonResponse({"announcement": tournament.announcement})
+    return JsonResponse({"error": "no announcement"})
+
 
 @login_required
 def signup_status(request, tournament_id):
@@ -522,8 +525,67 @@ def signup_status(request, tournament_id):
         enrollment = Enrollment.objects.get(player=player, tournament=tournament)
     except Enrollment.DoesNotExist:
         return redirect("pages/home.html")
-    return JsonResponse(
+    return JsonResponse({"status": enrollment.registration_finished})
+
+
+@login_required
+def upload_deck(request, tournament_id, draft_id):
+    if request.method == "POST":
+        form = ImageForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.instance.user = request.user
+            form.instance.draft_idx = draft_id
+            form.save()
+            return redirect("tournaments:image_list", tournament_id, draft_id)
+    else:
+        form = ImageForm()
+    return render(
+        request,
+        "tournaments/upload_deck.html",
+        {"form": form, "tournament_id": tournament_id, "draft_id": draft_id},
+    )
+
+
+@login_required
+def image_list(request, tournament_id, draft_id):
+    images = Image.objects.filter(user=request.user)
+    return render(
+        request,
+        "tournaments/my_pool.html",
+        {"images": images, "tournament_id": tournament_id, "draft_id": draft_id},
+    )
+
+
+@login_required
+def delete_image(request, tournament_id, draft_id, image_id):
+    image = get_object_or_404(Image, id=image_id, user=request.user)
+    default_storage.delete(image.image.name)
+    image.delete()
+    return redirect("tournaments:image_list", tournament_id, draft_id)
+
+
+@login_required
+def replace_image(request, tournament_id, draft_id, image_id):
+    image = get_object_or_404(Image, id=image_id, user=request.user)
+    if request.method == 'POST':
+        form = ImageForm(request.POST, request.FILES)
+        if form.is_valid():
+            # Delete the old image
+            default_storage.delete(image.image.name)
+            image.image.delete()
+            # Update with new image
+            image.image = request.FILES['image']
+            image.save()
+            return redirect("tournaments:image_list", tournament_id, draft_id)
+    else:
+        form = ImageForm()
+    return render(
+        request,
+        "replace_image.html",
         {
-            "status": enrollment.registration_finished
-        }
+            "form": form,
+            "image": image,
+            "tournament_id": tournament_id,
+            "draft_id": draft_id,
+        },
     )

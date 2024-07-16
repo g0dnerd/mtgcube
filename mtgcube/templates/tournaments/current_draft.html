@@ -53,7 +53,7 @@
                         player1WinForm.name = `${data.id}`;
                     }
                     gameDetailsElement.innerHTML = `
-                        My Match: Table ${data.table}: ${data.player1} vs ${data.player2}. Result: <span id="game-result">${data.result}</span>`;
+                        My Match: Table ${data.table}: ${data.player1} (${data.player1_pronouns}) vs ${data.player2} (${data.player2_pronouns}). Result: <span id="game-result">${data.result}</span>`;
 
                     reportFormElement.innerHTML = `
                     <label for="player1-wins">${data.player1} Wins:</label>
@@ -243,57 +243,57 @@
 {% endblock %}
 
 {% block content %}
-    <div id="draft-info">
-        <h1>My Current Draft
-            {% with cube=draft|get_item:'cube' %}
-                {% with phase=draft|get_item:'phase' %}
-                    {% with cube_url=draft|get_item:'cube_url' %}
-                        {% with draftid=draft|get_item:'id' %}
+    {% with draftid=draft|get_item:'id' %}
+        <div id="draft-info">
+            <h1>My Current Draft
+                {% with cube=draft|get_item:'cube' %}
+                    {% with phase=draft|get_item:'phase' %}
+                        {% with cube_url=draft|get_item:'cube_url' %}
                             <h2>
                                 Phase {{ phase }} - Cube: <a href="{{ cube_url }}">{{ cube }}</a>
                             </h2>
                         {% endwith %}
                     {% endwith %}
                 {% endwith %}
-            {% endwith %}
-        </h1>
-        <div class="player-info-list">
-            <ul>
-                <li>
-                    <a href="{% url 'home' %}">My Decklist</a>
-                </li>
-                <li>
-                    <div id="match-info">
-                        {% csrf_token %}
-                        <div id="match-details"></div>
-                        <form id="report-result-form" style="display:none;" onsubmit="submitResult(event)">
-                            <label for="player1-wins">Player 1 Wins:</label>
-                            <select id="player1-wins">
-                                <option value="0">0</option>
-                                <option value="1">1</option>
-                                <option value="2">2</option>
-                            </select>
-                            <label for="player2-wins">Player 2 Wins:</label>
-                            <select id="player2-wins">
-                                <option value="0">0</option>
-                                <option value="1">1</option>
-                                <option value="2">2</option>
-                            </select>
-                            <button type="submit">Submit Result</button>
-                        </form>
-                        <button id="confirm-result" style="display:none;">Confirm result</button>
-                    </div>
-                </li>
-                <li>
-                    <div id="other-pairings"></div>
-                </li>
-                <li>
-                    <div id="standings-info">Standings:</div>
-                </li>
-                <li>
-                    <div id="seatings-info"></div>
-                </li>
-            </ul>
+            </h1>
+            <div class="player-info-list">
+                <ul>
+                    <li>
+                        <a href="{% url 'tournaments:upload_deck' tournament_id draftid %}">Upload Deck Photo</a>
+                    </li>
+                    <li>
+                        <div id="match-info">
+                            {% csrf_token %}
+                            <div id="match-details"></div>
+                            <form id="report-result-form" style="display:none;" onsubmit="submitResult(event)">
+                                <label for="player1-wins">Player 1 Wins:</label>
+                                <select id="player1-wins">
+                                    <option value="0">0</option>
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                </select>
+                                <label for="player2-wins">Player 2 Wins:</label>
+                                <select id="player2-wins">
+                                    <option value="0">0</option>
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                </select>
+                                <button type="submit">Submit Result</button>
+                            </form>
+                            <button id="confirm-result" style="display:none;">Confirm result</button>
+                        </div>
+                    </li>
+                    <li>
+                        <div id="other-pairings"></div>
+                    </li>
+                    <li>
+                        <div id="standings-info">Standings:</div>
+                    </li>
+                    <li>
+                        <div id="seatings-info"></div>
+                    </li>
+                </ul>
+            </div>
         </div>
-    </div>
+    {% endwith %}
 {% endblock %}

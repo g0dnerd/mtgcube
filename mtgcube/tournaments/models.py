@@ -83,6 +83,8 @@ class Enrollment(models.Model):
     omw = models.FloatField(default=0)
     pgw = models.FloatField(default=0)
     ogw = models.FloatField(default=0)
+    checked_in = models.BooleanField(default=False)
+    checked_out = models.BooleanField(default=False)
     pairings = models.ManyToManyField(
         "self", blank=True
     )  # needs to be reset after a draft finishes
@@ -141,3 +143,16 @@ class Cube(models.Model):
 
     def __str__(self):
         return self.name
+
+def user_directory_path(instance, filename):
+    return f'images/userupload/{instance.user.id}/{filename}'
+
+class Image(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    image = models.ImageField(upload_to=user_directory_path)
+    draft_idx = models.IntegerField("Draft ID", default=0)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        img_time_fstring = self.uploaded_at.time().strftime('%H:%M:%S')
+        return f'{self.user} - Draft {self.draft_idx} ({img_time_fstring})'

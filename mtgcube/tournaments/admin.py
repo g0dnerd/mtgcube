@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Tournament, Game, Enrollment, Player, Phase, Round, Draft, Cube
+from .models import Tournament, Game, Enrollment, Player, Phase, Round, Draft, Cube, Image
 
 
 # Register your models here.
@@ -89,6 +89,9 @@ class RoundAdmin(admin.ModelAdmin):
 class CubeAdmin(admin.ModelAdmin):
     fields = ["name", "description", "url"]
 
+class ImageAdmin(admin.ModelAdmin):
+    fields = ["user", "draft_idx", "image"]
+
 
 admin.site.register(Tournament, TournamentAdmin)
 admin.site.register(Phase, PhaseAdmin)
@@ -98,3 +101,4 @@ admin.site.register(Game, GameAdmin)
 admin.site.register(Draft, DraftAdmin)
 admin.site.register(Round, RoundAdmin)
 admin.site.register(Cube, CubeAdmin)
+admin.site.register(Image, ImageAdmin)
