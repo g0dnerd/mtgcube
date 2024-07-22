@@ -83,13 +83,13 @@
             let uploadHtml = '';
             if (!player.checked_in) {
                 uploadHtml = `
-                <div class="pool-info-checked-in">
+                <div class="pool-info-check-in-missing">
                     <h5>You are not yet checked in. Please <a href="{% url 'tournaments:checkin' %}">upload your pool</a> once you have finished drafting.</h5>
                 </div>
                 `;
             } else {
                 uploadHtml = `
-                <div class="pool-info-check-in-missing">
+                <div class="pool-info-checked-in">
                     <h5>You are checked in and good to go!</h5>
                     <a href="{% url 'tournaments:my_pool_checkin' %}">My Pool</a>
                 </div>
@@ -165,7 +165,7 @@
                     confirmButtonElement.style.display = 'none';
                 } else {
                     gameDetailsElement.innerHTML = `
-                        <h5>My opponent at table ${match.table}: ${match.opponent} (${match.opp_pronouns}).</h5>
+                        <h5>My opponent at table <span class="my-table">${match.table}</span>: <span class="my-opponent">${match.opponent} ${match.opp_pronouns}</span>.</h5>
                         ${match.result !== "Pending" ? `<h5>Result: ${match.result}</h5>` : ''}
                     `;
 
@@ -257,7 +257,7 @@
             .catch(error => console.error('Error reporting result:', error));
         }
 
-        const confirmButtonElement = document.getElementById('confirm-result');
+        const confirmButtonElement = document.getElementById('confirm-result-btn');
         if (confirmButtonElement) {
             confirmButtonElement.addEventListener('click', () => {
                 const gameId = confirmButtonElement.name;

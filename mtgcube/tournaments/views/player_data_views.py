@@ -152,9 +152,9 @@ class PlayerMatchInfoView(LoginRequiredMixin, View):
             opponent = current_match.player1
         else:
             opponent = current_match.player2
-            player_role = 0
 
-        pronoun_choices = {"x": "they/them", "m": "he/him", "f": "she/her"}
+        pronoun_choices = {"x": "(they/them)", "m": "(he/him)", "f": "(she/her)"}
+        opp_pronouns = pronoun_choices[opponent.player.user.pronouns] if opponent.player.user.pronouns else ''
         match_json = {
             "id": current_match.id,
             "table": current_match.table,
@@ -165,7 +165,7 @@ class PlayerMatchInfoView(LoginRequiredMixin, View):
             "result_confirmed": current_match.result_confirmed,
             "reported_by": current_match.result_reported_by,
             "opponent": opponent.player.user.name,
-            "opp_pronouns": pronoun_choices[opponent.player.user.pronouns],
+            "opp_pronouns": opp_pronouns,
             "player_role": player_role,
         }
         player_json = {
@@ -429,6 +429,76 @@ class PlayerStandingsView(LoginRequiredMixin, View):
             ]
 
         return JsonResponse({"standings": standings_out, "current_round": current_round.round_idx})
+    
+
+class PlayerEventStandingsView(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        player = cache.get(f"player_{user.id}")
+        if not player:
+            try:
+                player = Player.objects.get(user=user)
+                cache.set(
+                    f"player_{user.id}", player, 300
+                )  # Cache player object for 5 minutes
+            except Player.DoesNotExist:
+                return JsonResponse(
+                    {"error": "No player found for current user"}, status=404
+                )
+        
+        enrollments = cache.get(f"enrollments_{player.id}")
+        if not enrollments:
+            enrollments = Enrollment.objects.filter(player=player)
+            cache.set(
+                f"enrollments_{user.id}", enrollments, 300
+            )  # Cache draft object for 5 minutes
+
+        current_enroll = cache.get(f"current_enroll_{player.id}")
+        if not current_enroll:
+            current_enroll = enrollments.order_by("-enrolled_on").first()
+            cache.set(
+                f"current_enroll_{player.id}", current_enroll, 300
+            )  # Cache enrollments for 3 minutes
+
+        current_draft = cache.get(f"draft_{player.id}")
+        if not current_draft:
+            current_draft = (
+                Draft.objects.filter(
+                    ~Q(finished=True), enrollments__in=[current_enroll]
+                )
+                .order_by("phase__phase_idx")
+                .first()
+            )
+            cache.set(
+                f"draft_{user.id}", current_draft, 120
+            )  # Cache draft object for 2 minutes
+
+        current_round = (
+            Round.objects.filter(draft=current_draft).order_by("-round_idx").first()
+        )
+
+        tournament = current_enroll.tournament
+
+        if current_round.round_idx <= 1 and current_draft.phase.phase_idx <= 1:
+            return JsonResponse({"error": "No Event standings yet"})
+        
+        sorted_players = services.event_standings(tournament)
+
+        standings_out = [
+                {
+                    "name": enrollment.player.user.name,
+                    "score": enrollment.draft_score,
+                    "omw": enrollment.draft_omw,
+                    "pgw": enrollment.draft_pgw,
+                    "ogw": enrollment.draft_ogw,
+                }
+                for enrollment in sorted_players
+            ]
+
+        event_round = (current_draft.phase.phase_idx - 1) * current_draft.round_number + current_round.round_idx
+
+        return JsonResponse({"standings": standings_out, "current_round": event_round})
+        
 
 
 class ReportResultView(LoginRequiredMixin, View):

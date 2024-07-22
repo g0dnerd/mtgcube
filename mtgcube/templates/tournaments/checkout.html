@@ -1,5 +1,16 @@
 {% extends "tournaments/base.html" %}
+{% load static %}
 {% block title%}Check-out{% endblock %}
+
+{% block javascript %}
+{{ block.super }}
+<script>
+    document.getElementById('upload-form').addEventListener('submit', function() {
+        document.getElementById('loading-gif').style.display = 'block';
+    });
+</script>
+{% endblock %}
+
 {% block content %}
     <div class="check-in">
         <h1>
@@ -14,5 +25,9 @@
             {{ form.as_p }}
             <button type="submit">Upload</button>
         </form>
+        <div id="loading-gif" style="display:none;">
+            <p>Uploading, please wait...</p>
+            <img src="{% static 'loading.gif' %}" alt="Loading..."/>
+        </div>
     </div>
 {% endblock %}

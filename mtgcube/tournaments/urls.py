@@ -23,6 +23,7 @@ urlpatterns = [
     path("event-dashboard/~announcement/", player_data_views.AnnouncementView.as_view(), name="announcement"),
     path("event-dashboard/~next-draft/", player_data_views.UpcomingDraftView.as_view(), name="next_draft"),
     path("admin-dashboard/~drafts/", admin_data_views.AdminDraftsView.as_view(), name="admin_drafts"),
+    path("admin-dashboard/~standings/", player_data_views.PlayerEventStandingsView.as_view(), name="event_standings"),
     path("admin-dashboard/<int:draft_id>/~matches/", admin_data_views.AdminDraftInfoView.as_view(), name="admin_draft_info"),
     path("admin-dashboard/~pair/", admin_data_views.PairRoundView.as_view(), name="pair_round"),
     path("admin-dashboard/~reset/", admin_data_views.ClearHistoryView.as_view(), name="clear_history"),

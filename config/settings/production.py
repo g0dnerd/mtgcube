@@ -90,17 +90,17 @@ if os.getenv("TRAMPOLINE_CI", None):
         }
     }
 
-DEBUG = True
+DEBUG = False
 
 # email backend configuration
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_USE_TLS = False
-EMAIL_PORT = 465
 EMAIL_USE_SSL = True
 EMAIL_HOST = env("EMAIL_HOST")
 EMAIL_HOST_USER = env("EMAIL_HOST_USER")
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
+EMAIL_PORT = 465
 
 SECURE_SSL_REDIRECT = True
 SESSION_COOKIE_SECURE = True
