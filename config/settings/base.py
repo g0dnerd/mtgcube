@@ -28,7 +28,7 @@ TIME_ZONE = "Europe/Berlin"
 # https://docs.djangoproject.com/en/dev/ref/settings/#language-code
 LANGUAGE_CODE = "en-us"
 # https://docs.djangoproject.com/en/dev/ref/settings/#site-id
-SITE_ID = 1
+SITE_ID = 2
 # https://docs.djangoproject.com/en/dev/ref/settings/#use-i18n
 USE_I18N = True
 # https://docs.djangoproject.com/en/dev/ref/settings/#use-l10n
@@ -79,6 +79,7 @@ THIRD_PARTY_APPS = [
     "allauth.socialaccount",
     'allauth.socialaccount.providers.google',
     'allauth.socialaccount.providers.facebook',
+    'dynamic_breadcrumbs',
 ]
 
 LOCAL_APPS = [
@@ -193,6 +194,7 @@ TEMPLATES = [
                 "django.template.context_processors.tz",
                 "django.contrib.messages.context_processors.messages",
                 "mtgcube.utils.context_processors.settings_context",
+                "dynamic_breadcrumbs.context_processors.breadcrumbs",
             ],
         },
     }
@@ -275,8 +277,8 @@ SECURE_REFERRER_POLICY= "strict-origin-when-cross-origin"
 SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
 
 CORS_ALLOWED_ORIGINS = [
-    "https://cube.paulkukowski.de",
-    "https://*.paulkukowski.de",
+    "https://vault.mtg-cube.de",
+    "https://*.mtg-cube.de",
     "localhost"
     "http://localhost"
 ]

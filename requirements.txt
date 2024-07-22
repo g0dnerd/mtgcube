@@ -21,6 +21,7 @@ django-cors-headers==4.4.0
 django-crispy-bootstrap==0.1.1.1
 django-crispy-forms==2.2
 django-debug-toolbar==4.4.2
+django_dynamic_breadcrumbs @ git+https://github.com/g0dnerd/django-dynamic-breadcrumbs.git@main
 django-environ==0.11.2
 django-extensions==3.2.3
 django-google-auth==0.4.0

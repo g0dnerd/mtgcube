@@ -63,7 +63,7 @@ SECRET_KEY = env("SECRET_KEY")
 # have ALLOWED_HOSTS = ['*'] when the app is deployed. If you deploy a Django
 # app not on App Engine, make sure to set an appropriate host here.
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['*', 'https://vault.mtg-cube.de/', 'http://localhost:8080', 'localhost'] #, 'localhost']
 
 # Database
 
@@ -90,6 +90,8 @@ if os.getenv("TRAMPOLINE_CI", None):
         }
     }
 
+DEBUG = True
+
 # email backend configuration
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = 'smtp.strato.de'
@@ -107,12 +109,14 @@ CSRF_COOKIE_SECURE = True
 SOCIALACCOUNT_STORE_TOKENS = True
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://*.paulkukowski.de",
-    "https://cube.paulkukowski.de",
-    "https://*.paulkukowski.de/",
-    "https://cube.paulkukowski.de/",
-    "https://mtgcubeoauth.de",
-    "https://mtgcube.ew.r.appspot.com"
+    "https://*.mtg-cube.de",
+    "https://vault.mtg-cube.de",
+    "https://*.mtg-cube.de/",
+    "https://vault.mtg-cube.de/",
+    "https://*.mtg-cube.de",
+    "https://www.vault.mtg-cube.de",
+    "https://*.mtg-cube.de/",
+    "https://www.vault.mtg-cube.de/",
 ]
 
 # CSRF_COOKIE_DOMAIN = 'https://*.paulkukowski.de'
@@ -132,8 +136,6 @@ SECURE_HSTS_INCLUDE_SUBDOMAINS = env.bool(
 # 
 # SESSION_COOKIE_DOMAIN = "https://cube.paulkukowski.de"
 
-SOCIALACCOUNT_STORE_TOKENS = True
-
 # Static files (CSS, JavaScript, Images)
 # [START staticurl]
 # [START gaeflex_py_django_static_config]
@@ -142,8 +144,8 @@ GS_BUCKET_NAME = env("GS_BUCKET_NAME")
 STATIC_URL = "/staticfiles/"
 DEFAULT_FILE_STORAGE = "storages.backends.gcloud.GoogleCloudStorage"
 STATICFILES_STORAGE = "storages.backends.gcloud.GoogleCloudStorage"
-GS_DEFAULT_ACL = "publicRead"
-# GS_QUERYSTRING_AUTH = False
+GS_DEFAULT_ACL = None
+GS_QUERYSTRING_AUTH = False
 # [END gaeflex_py_django_static_config]
 # [END staticurl]
 

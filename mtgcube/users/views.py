@@ -49,11 +49,12 @@ user_redirect_view = UserRedirectView.as_view()
 
 @csrf_exempt
 def google_login(request):
-    from django.contrib.sites.models import Site
-    current_site = Site.objects.get_current()
-    domain = current_site.domain
+    from urllib.parse import urlparse
+    url = urlparse(request.headers.get('Origin'))
+    domain = url.hostname
+    if url.port:
+        domain += ':' + str(url.port)
     prefix = 'https://' if request.is_secure() else 'http://'
-    home_page = prefix + current_site.domain if prefix not in domain else domain
-    print(f'Home page: {home_page}')
+    home_page = prefix + domain if prefix not in domain else domain
     login_url = '/accounts/google/login/'
     return redirect(home_page + login_url)
