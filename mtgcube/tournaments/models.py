@@ -30,7 +30,7 @@ class Phase(models.Model):
         unique_together = ["tournament", "phase_idx"]
 
     def __str__(self):
-        return f"{self.tournament.name} - Phase {self.id}"
+        return f"{self.tournament.name} - Phase {self.phase_idx}"
 
 
 class Draft(models.Model):
@@ -39,9 +39,9 @@ class Draft(models.Model):
     cube = models.ForeignKey("Cube", on_delete=models.CASCADE)
     enrollments = models.ManyToManyField("Enrollment")
     round_number = models.IntegerField("Amount of rounds", default=3)
-    seated = models.BooleanField(default=False)
     started = models.BooleanField(default=False)
     finished = models.BooleanField(default=False)
+    seated = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ["phase", "cube"]
@@ -54,6 +54,7 @@ class Round(models.Model):
     id = models.AutoField(primary_key=True)
     draft = models.ForeignKey("Draft", on_delete=models.CASCADE)
     round_idx = models.IntegerField("Round number", default=1)
+    paired = models.BooleanField(default=False)
     started = models.BooleanField(default=False)
     finished = models.BooleanField(default=False)
 
@@ -68,7 +69,7 @@ class Player(models.Model):
     name = models.CharField(max_length=50, unique=True)
 
     def __str__(self):
-        return self.user.username
+        return self.user.name
 
 
 class Enrollment(models.Model):
@@ -83,6 +84,13 @@ class Enrollment(models.Model):
     omw = models.FloatField(default=0)
     pgw = models.FloatField(default=0)
     ogw = models.FloatField(default=0)
+    draft_score = models.IntegerField(default=0)
+    draft_games_played = models.IntegerField(default=0)
+    draft_games_won = models.IntegerField(default=0)
+    draft_pmw = models.FloatField(default=0)
+    draft_omw = models.FloatField(default=0)
+    draft_pgw = models.FloatField(default=0)
+    draft_ogw = models.FloatField(default=0)
     checked_in = models.BooleanField(default=False)
     checked_out = models.BooleanField(default=False)
     pairings = models.ManyToManyField(
@@ -91,6 +99,7 @@ class Enrollment(models.Model):
     seat = models.IntegerField(default=0)
     paired = models.BooleanField(default=False)
     had_bye = models.BooleanField(default=False)
+    bye_this_round = models.BooleanField(default=False)
     judge_note = models.CharField(max_length=450, blank=True)
 
     class Meta:
@@ -113,7 +122,7 @@ class Game(models.Model):
     player1_wins = models.IntegerField(default=0)
     player2_wins = models.IntegerField(default=0)
     result = models.CharField(max_length=200, blank=True, null=True)
-    result_reported_by = models.IntegerField(default=0)
+    result_reported_by = models.CharField(max_length=255, blank=True, null=True)
     result_confirmed = models.BooleanField(default=False)
 
     def __str__(self):
@@ -152,6 +161,7 @@ class Image(models.Model):
     image = models.ImageField(upload_to=user_directory_path)
     draft_idx = models.IntegerField("Draft ID", default=0)
     uploaded_at = models.DateTimeField(auto_now_add=True)
+    checkin = models.BooleanField(default=True)
 
     def __str__(self):
         img_time_fstring = self.uploaded_at.time().strftime('%H:%M:%S')

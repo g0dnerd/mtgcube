@@ -39,17 +39,26 @@ class EnrollmentAdmin(admin.ModelAdmin):
         "games_played",
         "games_won",
         "judge_note",
+        "draft_score",
+        "draft_games_played",
+        "draft_games_won",
     ]
     fields = [
         "tournament",
-        "registration_finished",
         "player",
+        "registration_finished",
+        "checked_in",
+        "checked_out",
         "score",
         "games_played",
         "games_won",
         "pairings",
         "paired",
+        "bye_this_round",
         "judge_note",
+        "draft_score",
+        "draft_games_played",
+        "draft_games_won",
     ]
 
 
@@ -79,11 +88,11 @@ class PhaseAdmin(admin.ModelAdmin):
 
 
 class DraftAdmin(admin.ModelAdmin):
-    fields = ["phase", "cube", "enrollments", "round_number", "started", "finished"]
+    fields = ["phase", "cube", "enrollments", "round_number", "seated", "started", "finished"]
 
 
 class RoundAdmin(admin.ModelAdmin):
-    fields = ["draft", "round_idx", "started", "finished"]
+    fields = ["draft", "round_idx", "paired", "started", "finished"]
 
 
 class CubeAdmin(admin.ModelAdmin):
