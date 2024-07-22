@@ -28,7 +28,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 env_file = os.path.abspath("config/settings/.env")
 
 if os.path.isfile(env_file):
-    print('using local .env file')
+    print("using local .env file")
     # Use a local secret file, if provided
 
     env.read_env(env_file)
@@ -63,7 +63,12 @@ SECRET_KEY = env("SECRET_KEY")
 # have ALLOWED_HOSTS = ['*'] when the app is deployed. If you deploy a Django
 # app not on App Engine, make sure to set an appropriate host here.
 
-ALLOWED_HOSTS = ['*', 'https://vault.mtg-cube.de/', 'http://localhost:8080', 'localhost'] #, 'localhost']
+ALLOWED_HOSTS = [
+    "*",
+    "https://vault.mtg-cube.de/",
+    "http://localhost:8080",
+    "localhost",
+]  # , 'localhost']
 
 # Database
 
@@ -90,7 +95,7 @@ if os.getenv("TRAMPOLINE_CI", None):
         }
     }
 
-DEBUG = False
+DEBUG = True
 
 # email backend configuration
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
@@ -126,14 +131,14 @@ SECURE_HSTS_SECONDS = 60
 SECURE_HSTS_INCLUDE_SUBDOMAINS = env.bool(
     "DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS", default=True
 )
-# 
+#
 # # https://docs.djangoproject.com/en/dev/ref/settings/#secure-hsts-preload
 # SECURE_HSTS_PRELOAD = env.bool("DJANGO_SECURE_HSTS_PRELOAD", default=True)
 # # https://docs.djangoproject.com/en/dev/ref/middleware/#x-content-type-options-nosniff
 # SECURE_CONTENT_TYPE_NOSNIFF = env.bool(
 #     "DJANGO_SECURE_CONTENT_TYPE_NOSNIFF", default=True
 # )
-# 
+#
 # SESSION_COOKIE_DOMAIN = "https://cube.paulkukowski.de"
 
 # Static files (CSS, JavaScript, Images)

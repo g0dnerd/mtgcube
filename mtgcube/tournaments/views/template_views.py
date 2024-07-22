@@ -7,6 +7,7 @@ from django.db.models import Q
 
 from ..models import Enrollment, Image, Player, Tournament, Draft
 
+
 class AdminDashboardView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         user = request.user
@@ -214,6 +215,7 @@ class MyPoolCheckinView(LoginRequiredMixin, View):
         images = Image.objects.filter(
             user=user, draft_idx=current_draft.id, checkin=True
         )
+        print(images)
         return render(
             request,
             "tournaments/my_pool_checkin.html",

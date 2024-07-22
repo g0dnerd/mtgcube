@@ -153,6 +153,7 @@
                     Event announcement: ${data.announcement}
                 </h5>
                 `;
+                announcementElement.style.display = 'block';
             }
         })
         .catch(error => console.error('Error fetching event information', error));
@@ -181,7 +182,7 @@
 <div class="event-dashboard">
     <h4>Event Dashboard</h4><div class="event-title" id="event-info-header"></div>
     <div class="signup-status" id="player-signup-status"></div>
-    <div class="event-announcement" id="announcement"></div>
+    <div class="event-announcement" id="announcement" style="display:none;"></div>
     <div class="player-info-list">
         <ul class="current-draft-info">
             <li class="draft-info" id="draft-info-header"></li>

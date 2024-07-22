@@ -1,6 +1,6 @@
 import random
 
-from .models import Game, Enrollment, Draft, Round, Player
+from .models import Game, Enrollment, Round
 
 
 def pair_round(rd: Round):
@@ -36,7 +36,9 @@ def pair_round(rd: Round):
         player.save()
 
     sorted_players = sorted(
-        players, key=lambda x: (x.draft_score, x.draft_omw, x.draft_pgw, x.draft_ogw), reverse=True
+        players,
+        key=lambda x: (x.draft_score, x.draft_omw, x.draft_pgw, x.draft_ogw),
+        reverse=True,
     )
     pairings = []
 
@@ -118,6 +120,7 @@ def update_result(game, player1_wins, player2_wins):
         game.player2.draft_score += 1
     game.player1.save()
     game.player2.save()
+
 
 def sync_round(matches):
     for m in matches:
@@ -267,37 +270,3 @@ def clear_histories(draft):
 
     for rd in rounds:
         rd.delete()
-
-
-def tournament_draft_ids(user):
-    from django.db.models import Q
-
-    try:
-        player = Player.objects.get(user=user)
-    except Player.DoesNotExist:
-        raise ValueError("No player found for current user")
-
-    try:
-        all_enrolls = Enrollment.objects.filter(player=player)
-    except Enrollment.DoesNotExist:
-        raise ValueError("Player is not enrolled in any tournaments")
-
-    tournament = all_enrolls.order_by("-enrolled_on").first().tournament
-
-    # Get the current tournament and the player's enrollment
-    try:
-        current_enroll = Enrollment.objects.get(player=player, tournament=tournament)
-    except Enrollment.DoesNotExist:
-        raise ValueError("Player is not enrolled in this tournament")
-
-    # Get the current draft
-    try:
-        current_draft = (
-            Draft.objects.filter(~Q(finished=True), enrollments__in=[current_enroll])
-            .order_by("-phase__phase_idx")
-            .first()
-        )
-    except Draft.DoesNotExist:
-        raise ValueError("No current draft found for player")
-
-    return tournament.id, current_draft.id
