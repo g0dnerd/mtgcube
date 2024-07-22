@@ -1,0 +1,344 @@
+{% extends "tournaments/base.html" %}
+{% load tournament_utils %}
+
+{% block javascript %}
+{{ block.super }}
+<script>
+    function getCsrfToken() {
+        return document.querySelector('[name=csrfmiddlewaretoken]').value;
+    }
+
+    function fetchDraftInfo() {
+        fetch("{% url 'tournaments:admin_draft_info' draft_id %}")
+        .then(response => response.json())
+        .then(data => {
+            const seatBtn = document.getElementById('seat-btn');
+            const pairBtn = document.getElementById('pair-btn');
+            const endBtn = document.getElementById('finish-btn');
+            const nextBtn = document.getElementById('next-btn');
+
+            if (seatBtn) { seatBtn.style.display = 'none'; }
+            if (pairBtn) { pairBtn.style.display = 'none'; }
+            if (endBtn) { endBtn.style.display = 'none'; }
+            if (nextBtn) { nextBtn.style.display = 'none'; }
+
+            const hInfo = document.getElementById("admin-draft-info-header");
+            const pInfo = document.getElementById("admin-draft-info-players");
+            const sInfo = document.getElementById("admin-draft-info-seatings");
+            const mInfo = document.getElementById("admin-draft-info-matches");
+            const stInfo = document.getElementById("admin-draft-info-standings");
+
+            hInfo.innerHTML = '';
+            pInfo.innerHTML = '';
+            sInfo.innerHTML = '';
+            mInfo.innerHTML = '';
+            stInfo.innerHTML = '';
+
+            updateDraftInformation(data.info, data.players);
+            
+
+            if (!data.standings.error) {
+                updateStandings(data.standings);
+            }
+            if (data.info.round_paired) {
+                updatePairings(data.matches, data.bye);
+
+                if (seatBtn) {
+                    seatBtn.style.display = 'none';   
+                }
+                if (pairBtn) {
+                    pairBtn.style.display = 'none';
+                }
+
+                if (!data.info.in_progress && !data.round_finished) {
+                    if (endBtn) {
+                        endBtn.style.display = 'block';
+                    }
+                } else if (data.round_finished) {
+                    if (nextBtn) {
+                        nextBtn.style.display = 'block';
+                    }
+                }
+            } else {
+                if (data.info.seated) {
+                    updateSeatings(data.seatings);
+                    if (pairBtn) {
+                        pairBtn.style.display = 'block';
+                    }
+                    if (seatBtn) {
+                        seatBtn.style.display = 'none';   
+                    }
+                } else {
+                    if (seatBtn) {
+                        seatBtn.style.display = 'block';   
+                    }
+                }
+            }
+        })
+        .catch(error => console.error('Error updating draft info:', error));
+    }
+
+    function updateDraftInformation(info, players) {
+        const infoHeader = document.getElementById('admin-draft-info-header');
+        let htmlOut = `
+        <h4>
+            Draft {{ draft_id }} playing <a href="${info.cube_url}">${info.cube}</a>
+        </h4>
+        <h5>Players:<h5><p>
+        `;
+        players.forEach(player => {
+            htmlOut += `${player}, `;
+        });
+        htmlOut = htmlOut.slice(0, -2);
+        htmlOut += `</p>`;
+        infoHeader.innerHTML = htmlOut;
+    }
+
+    function updateSeatings(seatings) {
+        const seatingsElement = document.getElementById('admin-draft-info-seatings');
+        let htmlOut = `
+        <h5>Seatings:</h5>
+        <ol>
+        `;
+        seatings.forEach(seat => {
+            htmlOut += `
+                <li>
+                    ${seat.name}
+                </li>
+            `;
+        });
+        htmlOut += `</ol>`;
+        seatingsElement.innerHTML = htmlOut;
+    }
+
+    function updatePairings(matches, bye) {
+        const pairingsElement = document.getElementById('admin-draft-info-matches');
+        let htmlOut = `
+        <h5>Pairings</h5>
+        <ul>
+        `;
+        matches.forEach(match => {
+            htmlOut += `
+                <li>
+                    Table ${match.table}: ${match.player1} vs ${match.player2}: ${match.result}`;
+            if (match.result !== 'Pending' && !match.result_confirmed) {
+                htmlOut += `(reported by ${match.reported_by})`;
+            }
+            htmlOut += `
+                </li>
+            `;
+        });
+        if (bye) {
+            htmlOut += `
+                <li> ${bye} - BYE </li>
+            `;
+        }
+        htmlOut += `
+        </ul>
+        `;
+        pairingsElement.innerHTML = htmlOut;
+    }
+
+    function updateStandings(standings) {
+        const standingsElement = document.getElementById('admin-draft-info-standings');
+        let htmlOut = `
+        <h5>Standings</h5>
+        <table>
+            <thead>
+                <tr>
+                <th style="text-align: center; padding-right: 40px;">Player</th>
+                <th style="text-align: center; padding-right: 40px;">Points</th>
+                <th style="text-align: center; padding-right: 40px;">OMW</th>
+                <th style="text-align: center; padding-right: 40px;">PGW</th>
+                <th style="text-align: center; padding-right: 40px;">OGW</th>
+                </tr>
+            </thead>
+            <tbody>
+        `;
+        standings.forEach(place => {
+            htmlOut += `
+                    <tr>
+                        <td style="text-align: center; padding-right: 40px;">${place.name}</td>
+                        <td style="text-align: center; padding-right: 40px;">${place.score}</td>
+                        <td style="text-align: center; padding-right: 40px;">${place.omw}</td>
+                        <td style="text-align: center; padding-right: 40px;">${place.pgw}</td>
+                        <td style="text-align: center; padding-right: 40px;">${place.ogw}</td>
+                    </tr>
+            `;
+        });
+        htmlOut += `
+            </tbody>
+        </table>
+        `;
+        standingsElement.innerHTML = htmlOut;
+    }
+
+    // Initial formatting
+    document.addEventListener('DOMContentLoaded', () => {
+        fetchDraftInfo();
+        setInterval(fetchDraftInfo, 60000);
+
+        const sBtn = document.getElementById('seat-btn');
+        if (sBtn) {
+            sBtn.addEventListener('click', () => {
+                fetch("{% url 'tournaments:seat_draft' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCsrfToken(),
+                    },
+                    body: JSON.stringify({
+                        draft_id: "{{ draft_id }}",
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        fetchDraftInfo(no_cache=true);
+                    } else {
+                        console.error('Error seating draft:', data.error);
+                    }
+                })
+                .catch(error => console.error('Error seating draft:', error));
+            });
+        } else {
+            console.error("Seat draft button not found in the document.");
+        }
+
+        const pBtn = document.getElementById('pair-btn');
+        if (pBtn) {
+            pBtn.addEventListener('click', () => {
+                fetch("{% url 'tournaments:pair_round' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCsrfToken()
+                    },
+                    body: JSON.stringify({
+                        draft_id: "{{ draft_id }}",
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        fetchDraftInfo();
+                    } else {
+                        console.error('Error pairing round:', data.error);
+                    }
+                })
+                .catch(error => console.error('Error pairing round:', error));
+            });
+        } else {
+            console.error("Pair round button not found in the document.");
+        }
+
+        const fBtn = document.getElementById('finish-btn');
+        if (fBtn) {
+            fBtn.addEventListener('click', () => {
+                fetch("{% url 'tournaments:finish_round' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCsrfToken()
+                    },
+                    body: JSON.stringify({
+                        draft_id: "{{ draft_id }}",
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        fetchDraftInfo();
+                    } else {
+                        console.error('Error ending round:', data.error);
+                    }
+                })
+                .catch(error => console.error('Error ending round:', error));
+            });
+        } else {
+            console.error("Finish round button not found in the document.");
+        }
+
+        const xBtn = document.getElementById('reset-btn');
+        if (xBtn) {
+            xBtn.addEventListener('click', () => {
+                fetch("{% url 'tournaments:clear_history' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCsrfToken()
+                    },
+                    body: JSON.stringify({
+                        draft_id: "{{ draft_id }}",
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        fetchDraftInfo();
+                    } else {
+                        console.error('Error clearing history:', data.error);
+                    }
+                })
+                .catch(error => console.error('Error clearing history:', error));
+            });
+        } else {
+            console.error("Clear draft history button not found in the document.");
+        }
+
+        const syncBtn = document.getElementById('sync-btn');
+        if (syncBtn) {
+            syncBtn.addEventListener('click', () => {
+                fetch("{% url 'tournaments:sync_round' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCsrfToken()
+                    },
+                    body: JSON.stringify({
+                        draft_id: "{{ draft_id }}",
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        fetchDraftInfo();
+                    } else {
+                        console.error('Error syncing round results:', data.error);
+                    }
+                })
+                .catch(error => console.error('Error syncing round results:', error));
+            });
+        } else {
+            console.error("Sync round button not found in the document.");
+        }
+
+    });
+</script>
+{% endblock %} 
+
+{% block title%}Admin Draft Dashboard{% endblock %}
+
+{% block content %}
+    <div class="tournament-admin">
+        <h3>Draft Dashboard - Admin</h3>
+        <div id="admin-draft-info">
+            <div id="admin-draft-info-header"></div>
+            <div id="admin-draft-info-players"></div>
+            <div id="admin-draft-info-seatings"></div>
+            <div id="admin-draft-info-matches"></div>
+            <div id="admin-draft-info-standings"></div>
+            <div class="row">
+                <div class="col-sm-12">
+                    {% csrf_token %}
+                    <button id="seat-btn" style="display:none;">Seat draft</button>
+                    <button id="pair-btn" style="display:none;">Pair round</button>
+                    <button id="finish-btn" style="display:none;">Finish round and make standings</button>
+                    <button id="sync-btn" style="display:block;">Sync results</button>
+                    <button id="reset-btn" style="display:block;">Hard reset draft history</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+

@@ -1,136 +1,217 @@
 {% extends "tournaments/base.html" %}
-
+{% block title %}My current draft{% endblock %}
 {% block javascript %}
-    <script>
-        function getCsrfToken() {
-            return document.querySelector('[name=csrfmiddlewaretoken]').value;
+{{ block.super }}
+<script defer>
+    document.addEventListener('DOMContentLoaded', () => {
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        function fetchData(url, callback) {
+            fetch(url)
+                .then(response => response.json())
+                .then(data => callback(data))
+                .catch(error => console.error('Error fetching data:', error));
         }
 
-        function fetchOtherPairings() {
-            fetch("{% url 'tournaments:other_pairings' tournament_id %}")
-            .then(response => response.json())
-            .then(data => {
-                const pairingsElement = document.getElementById('other-pairings');
-                pairingsElement.innerHTML = ``;
+        function updateBasicInfo() {
+            fetchData("{% url 'tournaments:player_basic_info' %}", data => {
                 if (!data.error) {
-                    let htmlOut = `
-                        Other Pairings:
-                        <ul>
-                    `;
-                    data.pairings.forEach(match => {
-                        htmlOut += `
-                            <li>
-                                Table ${match.table}: ${match.player1} vs ${match.player2}
-                            </li>
-                        `;
-                    });
-                    htmlOut += `
-                        </ul>
-                    `;
-                    pairingsElement.innerHTML = htmlOut;
+                    updatePlayerStatus(data.player);
+                } else {
+                    console.error('Error:', data.error);
                 }
-            })
-            .catch(error => console.error('Error fetching other pairings:', error));
+            });
         }
-        
-        function fetchGameDetails() {
-            fetch("{% url 'tournaments:current_match' tournament_id %}")
-            .then(response => response.json())
-            .then(data => {
-                const confirmButtonElement = document.getElementById('confirm-result');
-                const player1WinForm = document.getElementById('player1-wins');
-                const reportFormElement = document.getElementById('report-result-form');
-                const gameDetailsElement = document.getElementById('match-details');
-                const standingsElement = document.getElementById('standings-info');
-                if (data.error) {
-                    gameDetailsElement.textContent = `Current Match: Waiting for pairings`;
+
+        function updateDraftInfo() {
+            fetchData("{% url 'tournaments:player_draft_info' %}", data => {
+                if (!data.error) {
+                    const draft = data.draft;
+                    const draftInfoElement = document.getElementById('draft-info-header');
+                    draftInfoElement.innerHTML = `
+                        <h4>My Current Draft in round ${draft.current_round}:</h4>
+                        <h1>Cube: <a href="${draft.cube_url}">${draft.cube_name}</a></h1>
+                    `;
+                } else {
+                    console.error('Error:', data.error);
+                }
+            });
+        }
+
+        function updateMatchInfo() {
+            fetchData("{% url 'tournaments:player_match_info' %}", data => {
+                if (!data.error) {
+                    updateMatchDetails(data.match, data.player);
+                } else {
+                    updateMatchDetails(data, null);
+                }
+            });
+        }
+
+        function updateStandingsInfo() {
+            fetchData("{% url 'tournaments:player_standings_info' %}", data => {
+                if (!data.error) {
+                    updateStandings(data.standings, data.current_round);
+                } else {
+                    updateStandings(data);
+                }
+            });
+        }
+
+        function updateSeatingsInfo() {
+            fetchData("{% url 'tournaments:player_seatings_info' %}", data => {
+                if (!data.error) {
+                    updateSeatings(data.seatings);
+                } else {
+                    updateSeatings(data);
+                }
+            });
+        }
+
+        function updatePairingsInfo() {
+            fetchData("{% url 'tournaments:player_pairings_info' %}", data => {
+                if (!data.error) {
+                    updatePairings(data.other_pairings, data.bye);
+                } else {
+                    updatePairings(data);
+                }
+            });
+        }
+
+        function updatePlayerStatus(player) {
+            const uploadElement = document.getElementById('deck-upload');
+            let uploadHtml = '';
+            if (!player.checked_in) {
+                uploadHtml = `
+                <div class="pool-info-checked-in">
+                    <h5>You are not yet checked in. Please <a href="{% url 'tournaments:checkin' %}">upload your pool</a> once you have finished drafting.</h5>
+                </div>
+                `;
+            } else {
+                uploadHtml = `
+                <div class="pool-info-check-in-missing">
+                    <h5>You are checked in and good to go!</h5>
+                    <a href="{% url 'tournaments:my_pool_checkin' %}">My Pool</a>
+                </div>
+                `;
+                if (player.checked_out) {
+                    uploadHtml = `
+                    <div class="pool-info-checked-out">
+                        <h5>You have checked out and are good to go!</h5>
+                        <a href="{% url 'tournaments:my_pool_checkout' %}">My Pool</a>
+                    </div>
+                    `;
+                } else {
+                    uploadHtml += `
+                    <div class="pool-info-check-out-missing">
+                        <h5>To check out, please <a href="{% url 'tournaments:checkout' %}">upload your pool</a> after you have finished all your matches.</h5>
+                    </div>
+                    `;
+                }
+            }
+            uploadElement.innerHTML = uploadHtml;
+        }
+
+        function updatePairings(pairings, bye) {
+            const pairingsElement = document.getElementById('player-pairings');
+            if (pairings.error) {
+                pairingsElement.innerHTML = '<h5></h5>';
+            } else {
+                let pairingsHtml = pairings.map(match => `
+                    <li>Table ${match.table}: ${match.player1} vs ${match.player2}</li>
+                `).join('');
+
+                if (bye) {
+                    pairingsHtml += (`
+                    <li>${bye} - BYE</li>
+                    `);
+                }
+                pairingsElement.innerHTML = `<h5>Other pairings:</h5><ul>${pairingsHtml}</ul>`;
+            }
+        }
+
+        function updateSeatings(seatings) {
+            const seatingsElement = document.getElementById('player-seatings');
+            if (seatings.error) {
+                if (seatings.error === "Draft has not been seated yet") {
+                    seatingsElement.innerHTML = '<h5>Waiting for seatings...</h5>';
+                    seatingsElement.style.display = 'block';
+                } else {
+                    seatingsElement.style.display = 'none';
+                }
+            } else {
+                const seatingsHtml = seatings.map(player => `
+                    <li>${player.name}</li>
+                `).join('');
+                seatingsElement.innerHTML = `<h5>Seatings:</h5><ol>${seatingsHtml}</ol>`;
+                seatingsElement.style.display = 'block';
+            }
+        }
+
+        function updateMatchDetails(match, player) {
+            const gameDetailsElement = document.getElementById('match-details');
+            if (match.error) {
+                gameDetailsElement.innerHTML = `
+                    <h5>Waiting for pairings...</h5>
+                `;
+            } else {
+                if (match.bye) {
+                    gameDetailsElement.innerHTML = `
+                    <h5>You have the bye this round!</h5>
+                    `;
+                    const reportFormElement = document.getElementById('report-result-form');
+                    const confirmButtonElement = document.getElementById('confirm-result-btn');
                     reportFormElement.style.display = 'none';
                     confirmButtonElement.style.display = 'none';
-                    standingsElement.style.display = 'none';
                 } else {
-                    if (confirmButtonElement) {
-                        confirmButtonElement.name = `${data.id}`;
-                    }
-                    if (player1WinForm) {
-                        player1WinForm.name = `${data.id}`;
-                    }
                     gameDetailsElement.innerHTML = `
-                        My Match: Table ${data.table}: ${data.player1} (${data.player1_pronouns}) vs ${data.player2} (${data.player2_pronouns}). Result: <span id="game-result">${data.result}</span>`;
-
-                    reportFormElement.innerHTML = `
-                    <label for="player1-wins">${data.player1} Wins:</label>
-                        <select id="player1-wins" name="player1_wins">
-                            <option value="0">0</option>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                        </select>
-                        <label for="player2-wins">${data.player2} Wins:</label>
-                        <select id="player2-wins" name="player2_wins">
-                            <option value="0">0</option>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                        </select>
-                        <button type="submit">Submit Result</button>
+                        <h5>My opponent at table ${match.table}: ${match.opponent} (${match.opp_pronouns}).</h5>
+                        ${match.result !== "Pending" ? `<h5>Result: ${match.result}</h5>` : ''}
                     `;
 
-                    if (data.result === "Pending") {
+                    const reportFormElement = document.getElementById('report-result-form');
+                    const confirmButtonElement = document.getElementById('confirm-result-btn');
+                    reportFormElement.innerHTML = reportFormElement.innerHTML.replace('Player 1', match.player1);
+                    reportFormElement.innerHTML = reportFormElement.innerHTML.replace('Player 2', match.player2);
+                    if (match.result === "Pending") {
                         reportFormElement.style.display = 'block';
                         confirmButtonElement.style.display = 'none';
                     } else {
-                        if (!data.result_confirmed) {
-                            if (data.player_role != data.reported_by) {
-                                reportFormElement.style.display = 'none';
-                                confirmButtonElement.style.display = 'block';
-                            }
+                        reportFormElement.style.display = 'none';
+                        if (!match.result_confirmed && player.name !== match.reported_by) {
+                            confirmButtonElement.style.display = 'block';
+                            confirmButtonElement.setAttribute('name', match.id);
                         } else {
-                                reportFormElement.style.display = 'none';
-                                confirmButtonElement.style.display = 'none';
+                            confirmButtonElement.style.display = 'none';
                         }
                     }
+
+                    const player1WinForm = document.getElementById('player1-wins');
+                    player1WinForm.name = match.id;
+                    const player2WinForm = document.getElementById('player2-wins');
+                    player2WinForm.name = match.id;
                 }
-            })
-            .catch(error => console.error('Error fetching game result for user:', error));
+            }
         }
 
-        function fetchSeatings() {
-            fetch("{% url 'tournaments:seatings' tournament_id draft.id %}")
-            .then(response => response.json())
-            .then(data => {
-                const seatingsElement = document.getElementById('seatings-info');
-                if (data.error) {
-                    seatingsElement.innerHTML = `Seatings go here`;
-                } else {
-                    let htmlOut = `
-                    Seatings:
-                    <ol type="1">
-                    `
-                    data.seatings.forEach(function (player, i) {
-                        htmlOut += `
-                        <li>
-                            ${player.name}
-                        </li>
-                        `;
-                    });
-                    htmlOut += `
-                    </ol>
-                    `;
-                    seatingsElement.innerHTML = htmlOut;
-                }
-            })
-            .catch(error => console.error('Error fetching seatings:', error));
-        }
-
-        function fetchStandings() {
-            fetch("{% url 'tournaments:draft_standings' tournament_id draft.id %}")
-            .then(response => response.json())
-            .then(data => {
-                const standingsElement = document.getElementById('standings-info');
-                if (data.error) {
-                    standingsElement.innerHTML = `Standings: Waiting for round to finish`;
-                } else {
-                    let htmlOut = `
-                    Standings:
-                    <table>
+        function updateStandings(standings, current_round) {
+            const standingsElement = document.getElementById('player-draft-standings');
+            if (standings.error) {
+                standingsElement.innerHTML = '<h5>Waiting for standings...</h5>';
+            } else {
+                const standingsHtml = standings.map((player, i) => `
+                    <tr>
+                        <td style="text-align: center; padding-right: 40px;">${i + 1}</td>
+                        <td style="text-align: center; padding-right: 40px;">${player.name}</td>
+                        <td style="text-align: center; padding-right: 40px;">${player.score}</td>
+                        <td style="text-align: center; padding-right: 40px;">${player.omw}</td>
+                        <td style="text-align: center; padding-right: 40px;">${player.pgw}</td>
+                        <td style="text-align: center; padding-right: 40px;">${player.ogw}</td>
+                    </tr>
+                `).join('');
+                standingsElement.innerHTML = `
+                    <h5>Draft standings after round ${current_round}:</h5>
+                    <table class="standings-table" >
                         <thead>
                             <tr>
                                 <th style="text-align: center; padding-right: 40px;">Place</th>
@@ -141,47 +222,25 @@
                                 <th style="text-align: center; padding-right: 40px;">OGW</th>
                             </tr>
                         </thead>
-                        <tbody>
-                    `;
-
-                    data.standings.forEach(function (player, i) {
-                        htmlOut += `
-                        <tr>
-                            <td style="text-align: center; padding-right: 40px;">${i+1}</td>
-                            <td style="text-align: center; padding-right: 40px;">${player.name}</td>
-                            <td style="text-align: center; padding-right: 40px;">${player.score}</td>
-                            <td style="text-align: center; padding-right: 40px;">${player.omw}</td>
-                            <td style="text-align: center; padding-right: 40px;">${player.pgw}</td>
-                            <td style="text-align: center; padding-right: 40px;">${player.ogw}</td>
-                        </tr>
-                        `;
-                    });
-                    htmlOut += `
-                            </tbody>
-                        </table>
-                    `;
-                    standingsElement.innerHTML = htmlOut;
-                }
-            })
-            .catch(error => console.error('Error fetching draft standings:', error));
+                        <tbody>${standingsHtml}</tbody>
+                    </table>
+                `;
+            }
         }
 
         function submitResult(event) {
             event.preventDefault();
-            const player1WinForm = document.getElementById('player1-wins');
-            const player2WinForm = document.getElementById('player2-wins');
-            const gameId = player1WinForm.name;
-            const player1Wins = player1WinForm.value;
-            const player2Wins = player2WinForm.value;
-            
+            const gameId = document.getElementById('player1-wins').name;
+            const player1Wins = document.getElementById('player1-wins').value;
+            const player2Wins = document.getElementById('player2-wins').value;
+
             fetch("{% url 'tournaments:report_result' %}", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': getCsrfToken()
+                    'X-CSRFToken': csrfToken
                 },
                 body: JSON.stringify({
-                    tournament_id: "{{ tournament_id }}",
                     game_id: gameId,
                     player1_wins: player1Wins,
                     player2_wins: player2Wins,
@@ -190,7 +249,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    fetchGameDetails();
+                    updateMatchInfo();
                 } else {
                     console.error('Error reporting result:', data.error);
                 }
@@ -198,104 +257,75 @@
             .catch(error => console.error('Error reporting result:', error));
         }
 
-        // Initial formatting
-        document.addEventListener('DOMContentLoaded', () => {
-            fetchGameDetails();
-            fetchOtherPairings();
-            fetchSeatings();
-            fetchStandings();
-            setInterval(fetchGameDetails, 60000);
-            setInterval(fetchStandings, 60000);
-            setInterval(fetchSeatings, 60000);
-            setInterval(fetchOtherPairings, 60000);
-
-            const confirmButtonElement = document.getElementById('confirm-result');
-            const gameId = confirmButtonElement.name;
-            if (confirmButtonElement) {
-                confirmButtonElement.addEventListener('click', () => {
-                    fetch("{% url 'tournaments:confirm_result' %}", {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRFToken': getCsrfToken()
-                        },
-                        body: JSON.stringify({
-                            tournament_id: "{{ tournament_id }}",
-                            game_id: gameId,
-                        })
+        const confirmButtonElement = document.getElementById('confirm-result');
+        if (confirmButtonElement) {
+            confirmButtonElement.addEventListener('click', () => {
+                const gameId = confirmButtonElement.name;
+                fetch("{% url 'tournaments:confirm_result' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: JSON.stringify({
+                        'game_id': gameId,
                     })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            fetchGameDetails();
-                        } else {
-                            console.error('Error confirming result:', data.error);
-                        }
-                    })
-                    .catch(error => console.error('Error confirming result:', error));
-                });
-            } else {
-                console.error("Confirm result button not found in the document.");
-            }
-        });
-        
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateMatchInfo();
+                    } else {
+                        console.error('Error confirming result:', data.error);
+                    }
+                })
+                .catch(error => console.error('Error confirming result:', error));
+            });
+        }
 
-    </script>
+        document.getElementById('report-result-form').addEventListener('submit', submitResult);
 
+        updateBasicInfo();
+        updateDraftInfo();
+        updateMatchInfo();
+        updateSeatingsInfo();
+        updateStandingsInfo();
+        updatePairingsInfo();
+        setInterval(updateBasicInfo, 60000);
+        setInterval(updateDraftInfo, 60000);
+        setInterval(updateMatchInfo, 60000);
+    });
+</script>
 {% endblock %}
 
 {% block content %}
-    {% with draftid=draft|get_item:'id' %}
-        <div id="draft-info">
-            <h1>My Current Draft
-                {% with cube=draft|get_item:'cube' %}
-                    {% with phase=draft|get_item:'phase' %}
-                        {% with cube_url=draft|get_item:'cube_url' %}
-                            <h2>
-                                Phase {{ phase }} - Cube: <a href="{{ cube_url }}">{{ cube }}</a>
-                            </h2>
-                        {% endwith %}
-                    {% endwith %}
-                {% endwith %}
-            </h1>
-            <div class="player-info-list">
-                <ul>
-                    <li>
-                        <a href="{% url 'tournaments:upload_deck' tournament_id draftid %}">Upload Deck Photo</a>
-                    </li>
-                    <li>
-                        <div id="match-info">
-                            {% csrf_token %}
-                            <div id="match-details"></div>
-                            <form id="report-result-form" style="display:none;" onsubmit="submitResult(event)">
-                                <label for="player1-wins">Player 1 Wins:</label>
-                                <select id="player1-wins">
-                                    <option value="0">0</option>
-                                    <option value="1">1</option>
-                                    <option value="2">2</option>
-                                </select>
-                                <label for="player2-wins">Player 2 Wins:</label>
-                                <select id="player2-wins">
-                                    <option value="0">0</option>
-                                    <option value="1">1</option>
-                                    <option value="2">2</option>
-                                </select>
-                                <button type="submit">Submit Result</button>
-                            </form>
-                            <button id="confirm-result" style="display:none;">Confirm result</button>
-                        </div>
-                    </li>
-                    <li>
-                        <div id="other-pairings"></div>
-                    </li>
-                    <li>
-                        <div id="standings-info">Standings:</div>
-                    </li>
-                    <li>
-                        <div id="seatings-info"></div>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    {% endwith %}
+<div id="draft-dashboard">
+    <div class="draft-title" id="draft-info-header"></div>
+    <ul class="player-info-list">
+        <li class="pool-info" id="deck-upload"></li>
+        <li class="match-info">
+            {% csrf_token %}
+            <div id="match-details"></div>
+            <form class="report-result" id="report-result-form" style="display:none;">
+                <label for="player1-wins">Match result: Player 1 wins</label>
+                <select id="player1-wins">
+                    <option value="0">0</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                </select>
+                <label for="player2-wins"> - Player 2 wins</label>
+                <select id="player2-wins">
+                    <option value="0">0</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                </select>
+                <button type="submit">Submit Result</button>
+            </form>
+            <button class="confirm-result" id="confirm-result-btn" style="display:none;">Confirm result</button>
+        </li>
+        <li class="seatings-info" id="player-seatings"></li>
+        <li class="pairings-info" id="player-pairings"></li>
+        <li class="standings-info" id="player-draft-standings"></li>
+    </ul>
+</div>
 {% endblock %}

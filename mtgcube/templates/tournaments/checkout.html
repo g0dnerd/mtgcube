@@ -1,0 +1,18 @@
+{% extends "tournaments/base.html" %}
+{% block title%}Check-out{% endblock %}
+{% block content %}
+    <div class="check-in">
+        <h1>
+            Check-out: Deck image upload
+        </h1>
+        <h5>
+            For check-out, please upload at least one image with your entire pool.
+            All cards need to be clearly visible.
+        </h5>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Upload</button>
+        </form>
+    </div>
+{% endblock %}

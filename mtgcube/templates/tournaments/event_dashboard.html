@@ -1,26 +1,62 @@
 {% extends "tournaments/base.html" %}
-{% load tournament_utils %}
+{% block title%}My event dashboard{% endblock %}
 
 {% block javascript %}
+{{ block.super }}
 <script>
-    function fetchDraftDetails() {
-        fetch("{% url 'tournaments:current_draft' tournament.id %}")
+    function fetchPlayerBasicInfo() {
+        fetch("{% url 'tournaments:player_basic_info' %}")
         .then(response => response.json())
         .then(data => {
-            const draftInfoElement = document.getElementById("draft-info");
-            const cubeInfoElement = document.getElementById("cube-info");
+            const statusElement = document.getElementById('player-signup-status');
             if (!data.error) {
-                const currentDraftUrl = "{% url 'tournaments:current_draft_view' tournament.id 0 %}".replace('0', data.current_draft.id);
-                draftInfoElement.innerHTML = `
-                <h3>
-                    My Current Draft: (<a href="${currentDraftUrl}">Go to Draft Dashboard</a>)
-                </h3>
-                `;
-                cubeInfoElement.innerHTML = `
-                Format for this draft: <a href="${data.current_draft.cube_url}">
-                    ${data.current_draft.cube}
-                </a>
-                `;
+                if (data.player.signup_status) {
+                    statusElement.innerHTML = `
+                    <h5>
+                        Your registration is finished - you are good to go!
+                    </h5>
+                    `;
+                } else {
+                    statusElement.innerHTML = `
+                    <h5>
+                        Your registration is still pending. Please contact us to resolve this.
+                    </h5>
+                    `;
+                }
+                
+                const eventElement = document.getElementById('event-info-header');
+                eventElement.innerHTML = `<h1>${data.player.tournament_name}</h1>`;
+            } else {
+                console.log(data.error);
+            }
+        })
+        .catch(error => console.error('Error fetching player information:', error));
+    }
+
+    function fetchDraftDetails() {
+        fetch("{% url 'tournaments:player_draft_info' %}")
+        .then(response => response.json())
+        .then(data => {
+            const draftInfoElement = document.getElementById("draft-info-header");
+            const cubeInfoElement = document.getElementById("player-cube-info");
+            const statusElement = document.getElementById('player-signup-status');
+            if (!data.error) {
+                if (!data.draft.error) {
+                    const currentDraftUrl = "{% url 'tournaments:draft_dashboard' %}";
+                    draftInfoElement.innerHTML = `
+                    <h5>
+                        <a href="${currentDraftUrl}">My current draft</a>
+                    </h5>
+                    `;
+                    cubeInfoElement.innerHTML = `
+                    Cube list: <a href="${data.draft.cube_url}">
+                        ${data.draft.cube_name}
+                    </a>
+                    `;
+                    if (data.draft.current_round >= 1) {
+                        statusElement.style.display = 'none';
+                    } 
+                }
             } else {
                 console.log(data.error);
             }
@@ -28,18 +64,37 @@
         .catch(error => console.error('Error fetching draft information:', error));
     }
 
+    function fetchMatchDetails() {
+        fetch("{% url 'tournaments:player_match_info' %}")
+        .then(response => response.json())
+        .then(data => {
+            const gameDetailsElement = document.getElementById('player-match-info');
+            if (!data.error) {
+                if (!data.match.error) {
+                    if (data.match.bye) {
+                        gameDetailsElement.innerHTML = '<h5>You have the bye this round.</h5>';
+                    } else {
+                        gameDetailsElement.innerHTML = `My current match in round ${data.match.current_round}: Playing vs ${data.match.opponent} at table ${data.match.table}
+                        `;
+                    }
+                }
+            } else {
+                console.log(data.error);
+            }
+        })
+        .catch(error => console.error('Error fetching match information:', error));
+    }
+
     function fetchNextDraft() {
-        fetch("{% url 'tournaments:next_draft' tournament.id %}")
+        fetch("{% url 'tournaments:next_draft' %}")
         .then(response => response.json())
         .then(data => {
             const nextDraftElement = document.getElementById("next-draft");
             if (!data.error) {
                 nextDraftElement.innerHTML = `
-                <h3>
-                    My Next Draft:  <a href="${data.current_draft.cube_url}">
-                        ${data.current_draft.cube}
-                    </a>
-                </h3>
+                <p>
+                    My next draft: <a href="${data.upcoming_draft.cube_url}">${data.upcoming_draft.cube}</a>
+                </p>
                 `;
             }
         })
@@ -47,67 +102,34 @@
     }
 
     function fetchAnnouncement() {
-        fetch("{% url 'tournaments:announcement' tournament.id %}")
+        fetch("{% url 'tournaments:announcement' %}")
         .then(response => response.json())
         .then(data => {
-            const announcementElement = document.getElementById('event-announcement');
+            const announcementElement = document.getElementById('announcement');
             if (data.error) {
                 announcementElement.textContent = ``;
             } else {
                 announcementElement.innerHTML = `
-                <h3>
-                    Event announcement:
-                </h3> ${data.announcement}
+                <h5>
+                    Event announcement: ${data.announcement}
+                </h5>
                 `;
             }
         })
         .catch(error => console.error('Error fetching event information', error));
     }
 
-    function fetchSignupStatus() {
-        fetch("{% url 'tournaments:signup_status' tournament.id %}")
-        .then(response => response.json())
-        .then(data => {
-            const statusElement = document.getElementById('signup-status');
-            if (data.error) {
-                statusElement.textContent = ``;
-            } else {
-                if (data.status) {
-                    statusElement.textContent = `Your registration is finished - you are good to go!`;
-                } else {
-                    statusElement.textContent = `Your registration is still pending. Please contact us to resolve this.`;
-                }
-            }
-        })
-        .catch(error => console.error('Error fetching event information', error));
-    }
-
-    function fetchGameDetails() {
-        fetch("{% url 'tournaments:current_match' tournament.id %}")
-        .then(response => response.json())
-        .then(data => {
-            const gameDetailsElement = document.getElementById('match-info');
-            if (data.error) {
-                gameDetailsElement.textContent = `Could not retrieve game`;
-            } else {
-                gameDetailsElement.innerHTML = `
-                    My Current Match: Table ${data.table}: ${data.player1} vs ${data.player2}</a>`;
-            }
-        })
-        .catch(error => console.error('Error fetching game result for user:', error));
-    }
-
     // Initial formatting
     document.addEventListener('DOMContentLoaded', () => {
+        fetchPlayerBasicInfo();
         fetchDraftDetails();
-        fetchNextDraft()
-        fetchGameDetails();
+        fetchMatchDetails();
+        fetchNextDraft();
         fetchAnnouncement();
-        fetchSignupStatus();
-        setInterval(fetchAnnouncement, 60000);
-        setInterval(fetchSignupStatus, 120000);
-        setInterval(fetchGameDetails, 60000);
+        setInterval(fetchPlayerBasicInfo, 60000);
         setInterval(fetchDraftDetails, 60000);
+        setInterval(fetchMatchDetails, 60000);
+        setInterval(fetchAnnouncement, 120000);
         setInterval(fetchNextDraft, 240000);
     });
 </script>
@@ -116,20 +138,16 @@
 
 {% block content %}
 <div class="event-dashboard">
-    <h1>Event Dashboard - {{ tournament.name }}</h1>
-    <div id="signup-status"></div>
-    <div id="draft-info"></div>
-    <ul>
-        <li>
-            <div id="cube-info"></div>
-        </li>
-        <li>
-            <div id="match-info">
-                My Current Match:
-            </div>
-        </li>
-    </ul>
-    <div id="next-draft"></div>
-    <div id="event-announcement"></div>
+    <h4>Event Dashboard</h4><div class="event-title" id="event-info-header"></div>
+    <div class="signup-status" id="player-signup-status"></div>
+    <div class="event-announcement" id="announcement"></div>
+    <div class="player-info-list">
+        <ul class="current-draft-info">
+            <li class="draft-info" id="draft-info-header"></li>
+            <li class="cube-info" id="player-cube-info"></li>
+            <li class="match-info" id="player-match-info"></li>
+        </ul>
+        <div class="next-draft-info" id="next-draft"></div>
+    </div>
 </div>
 {% endblock %}
