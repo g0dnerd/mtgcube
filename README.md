@@ -1,3 +1,3 @@
 # Cube Open Web App
 
-foo
+Bring back Wizards Event Reporter! But do it better.
