@@ -8,12 +8,9 @@
     </h4>
     {% if request.user.is_authenticated %}
         <p>Once you are signed up for an event, you can take a look at your
-        <a href="{% url 'tournaments:event_dashboard' %}">
-            event dashboard</a>.
-        </p>
-        <p>Before playing in your first event, please
-        <a href="{% url 'users:detail' request.user.username  %}">
-            customize your user profile</a>.
+            <a href="{% url 'tournaments:event_dashboard' %}">
+                event dashboard</a>.
+            </p>
         </p>
     {% else %}
         <p>To access the vault, please <a href="{% url 'account_login' %}">sign in</a>.</p>

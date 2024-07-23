@@ -122,7 +122,6 @@ class DraftDashboardView(LoginRequiredMixin, View):
             return redirect("tournaments:index")
         return render(request, "tournaments/current_draft.html")
 
-
 class EventDashboardView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         user = request.user
@@ -234,12 +233,6 @@ class MyPoolCheckinView(LoginRequiredMixin, View):
             "tournaments/my_pool_checkin.html",
             {"images": images},
         )
-
-
-class TestView(LoginRequiredMixin, View):
-    def get(self, request, *args, **kwargs):
-        return render(request, "tournaments/font_test.html")
-
 
 class MyPoolCheckoutView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):

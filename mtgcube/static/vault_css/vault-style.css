@@ -1,0 +1,250 @@
+html {
+  --flow-small: 10px;
+  --flow-medium: 20px;
+  --black: #161b27;
+  --true-black: #111;
+  --main-color: #00a5d6;
+  --secondary-color: #273582;
+  --text-gray: #4a5056;
+  --gray: #9da4b2;
+  --yellow: #ffce00;
+  --border: 1px solid RGBA(0, 0, 0, 0.2);
+  --radius: 5px;
+  --inner-padding: 5px; }
+
+@font-face {
+  font-family: 'GeneralSans-Variable';
+  src: url("https://mtg-cube.de/wp-content/themes/mtg-cube/library/fonts/GeneralSans-Variable.woff2") format("woff2"), url("https://mtg-cube.de/wp-content/themes/mtg-cube/library/fonts/GeneralSans-Variable.woff") format("woff"), url("https://mtg-cube.de/wp-content/themes/mtg-cube/library/fonts/GeneralSans-Variable.ttf") format("truetype");
+  font-weight: 200 700;
+  font-display: swap;
+  font-style: normal; }
+
+/* Base */
+body.vault-app {
+  color: var(--black);
+  font-family: 'GeneralSans-Variable', "Helvetica Neue", Helvetica, Arial, sans-serif; }
+
+.vault-app {
+  /* navbar */ }
+
+.box, .vault-app ul .draft-info a, .event-announcement, .checkin-status {
+  border: var(--border);
+  border-radius: var(--radius);
+  padding: var(--inner-padding); }
+
+.vault-app .mb-1 .navbar {
+  background-color: var(--yellow) !important;
+  padding-left: 10px;
+  padding-right: 10px; }
+
+.vault-app .mb-1 .navbar-brand {
+  font-weight: 600;
+  color: var(--black); }
+
+.vault-app .mb-1 .navbar li a {
+  color: var(--black); }
+
+.vault-app ul {
+  list-style: none;
+  padding-left: 0; }
+
+.vault-app ul > li {
+  border-bottom: var(--border);
+  padding: 5px 0; }
+  .vault-app ul > li:last-child {
+    border: none; }
+
+.vault-app li ul li {
+  border: none; }
+
+.checkin-status {
+  background-color: lightgreen; }
+
+/* GLOBAL */
+/* TYPO */
+h1 {
+  font-size: 2em;
+  border-bottom: 2px solid var(--black);
+  padding-bottom: 5px;
+  margin-top: 0.3em;
+  font-weight: 600; }
+
+h2 {
+  font-size: 1.6em; }
+
+h3 {
+  font-size: 1.4em; }
+
+h4 {
+  font-size: 0.8em;
+  text-transform: uppercase;
+  color: var(--gray);
+  font-weight: 400; }
+
+h5 {
+  margin-top: 0.3em; }
+
+.checkin-status h5,
+.checkout-status h5,
+.checkin-status a,
+.checkout-status a {
+  font-size: 1em;
+  display: inline-block; }
+
+a {
+  color: var(--main-color); }
+
+select {
+  padding: 4px; }
+
+/* button:not(.navbar-toggler){
+    border: none;
+    border-radius: 5px;
+    border: var(--border);
+    padding: 10px 5px;
+    margin: 10px 0;
+    background: var(--yellow);
+    font-weight: 600;
+    color: var(--black);
+    font-size: 1.25em;
+    width: 100%;
+} */
+button:not(.navbar-toggler, .btn-close) {
+  font-weight: 600;
+  border: var(--border);
+  border-color: var(--main-color);
+  padding: 5px 10px;
+  text-decoration: none;
+  color: black;
+  display: inline-block;
+  margin: 3px 0;
+  width: 100%;
+  text-align: center;
+  border-radius: var(--radius);
+  background: none; }
+
+.mb-1,
+.my-1 {
+  margin-bottom: 0 !important; }
+
+.breadcrumb,
+.breadcrumb.alert {
+  border-radius: 0;
+  text-transform: uppercase;
+  font-size: 0.8em;
+  background: #e9ecef;
+  border: none; }
+
+/* Eventdashboard */
+.event-dashboard > div:not(.event-title) {
+  margin-top: 1em; }
+
+#signup-status {
+  padding-bottom: 5px;
+  color: var(--text-gray);
+  border-bottom: 1px solid RGBA(0, 0, 0, 0.2);
+  color: var(--gray); }
+  #signup-status h5 {
+    font-size: 1em;
+    margin-bottom: 0.3em; }
+
+.event-announcement {
+  background-color: lightgreen; }
+
+.draft-title h1 a {
+  text-decoration: none; }
+
+.vault-app ul .draft-info {
+  padding: 0;
+  border: none; }
+  .vault-app ul .draft-info h5 {
+    margin: 0; }
+  .vault-app ul .draft-info a {
+    text-align: center;
+    display: block;
+    text-decoration: none;
+    color: var(--black);
+    background-color: var(--yellow);
+    padding: 10px 5px; }
+  .vault-app ul .draft-info a:after {
+    content: '';
+    display: inline-block;
+    margin-left: 15px;
+    left: 0;
+    position: relative;
+    width: 25px;
+    height: 10px;
+    transform: translateX(0);
+    background: url("https://storage.googleapis.com/mtgcube-media-bucket/images/sprite-arrows.svg") 0 0px/25px no-repeat; }
+
+#match-details h5:first-of-type {
+  background-color: var(--yellow);
+  color: #000; }
+
+.my-opponent {
+  font-weight: 400; }
+
+/*  PAIRINGS */
+.pairings-info {
+  border: none; }
+
+.pairings-info ul li {
+  padding-left: 5px; }
+
+.pairings-info ul li:nth-child(odd) {
+  background-color: #e9ecef; }
+
+/*  Standings */
+.standings-info {
+  border: none; }
+
+.standings-table {
+  border-bottom: var(--border);
+  margin-bottom: 10px; }
+  .standings-table thead {
+    background-color: var(--main-color);
+    border-bottom: var(--border); }
+    .standings-table thead th {
+      padding: 5px;
+      color: white; }
+  .standings-table tbody tr:nth-child(odd) {
+    background-color: #e9ecef; }
+
+/* Check In & Out */
+.vault-app ul li.pool-info h5 {
+  font-size: 0.8em; }
+
+.vault-app ul li.pool-info h5 + a {
+  font-weight: 600;
+  border: var(--border);
+  border-color: var(--main-color);
+  padding: 5px 10px;
+  text-decoration: none;
+  color: black;
+  display: inline-block;
+  margin: 3px 0;
+  width: 100%;
+  text-align: center;
+  border-radius: var(--radius); }
+
+.pool-info-checked-in h5 {
+  color: green; }
+
+/* Upload */
+.upload-more a, #upload-form button {
+  font-weight: 600;
+  border: var(--border);
+  border-color: var(--main-color);
+  padding: 5px 10px;
+  text-decoration: none;
+  color: black;
+  display: inline-block;
+  margin: 3px 0;
+  width: 100%;
+  text-align: center;
+  border-radius: var(--radius);
+  background: none; }
+
+img {
+  max-width: 100%;
+  width: auto; }

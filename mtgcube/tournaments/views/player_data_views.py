@@ -132,11 +132,10 @@ class PlayerMatchInfoView(LoginRequiredMixin, View):
                 f"draft_{user.id}", current_draft, 120
             )  # Cache draft object for 2 minutes
 
-        try:
-            current_round = (
-                Round.objects.filter(draft=current_draft).order_by("-round_idx").first()
-            )
-        except Round.DoesNotExist:
+        current_round = (
+            Round.objects.filter(draft=current_draft).order_by("-round_idx").first()
+        )
+        if not current_round:
             return JsonResponse({"error": "Pairings will be shown here after the draft not yet been paired."}, status=200)
 
         try:
@@ -490,6 +489,8 @@ class PlayerEventStandingsView(LoginRequiredMixin, View):
         current_round = (
             Round.objects.filter(draft=current_draft).order_by("-round_idx").first()
         )
+        if not current_round:
+            return JsonResponse({"error": "No Event standings yet"})
 
         tournament = current_enroll.tournament
 

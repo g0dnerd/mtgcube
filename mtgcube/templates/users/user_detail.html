@@ -1,34 +1,19 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static i18n %}
 
 {% block title %}My Profile Settings{% endblock %}
 
 {% block content %}
-<div class="container">
-
-  <div class="row">
-    <div class="col-sm-12">
-
-      <h2>Display name: {{ object.username }}</h2>
-      {% if object.name %}
-        <p>Name: {{ object.name }}</p>
-      {% endif %}
-    </div>
-  </div>
-
-{% if object == request.user %}
-<!-- Action buttons -->
-<div class="row">
-
-  <div class="col-sm-12">
-    <a class="btn btn-primary" href="{% url 'users:update' %}" role="button">My Information</a>
-    <a class="btn btn-primary" href="{% url 'account_email' %}" role="button">E-Mail</a>
-  </div>
-
-</div>
-<!-- End Action buttons -->
-{% endif %}
-
-</div> 
+  <div class="container">
+    <h1>{{ object.username }} - {% trans 'My Profile Settings' %}</h1>
+    {% if object == request.user %}
+      <div class="row">
+        <div class="col-sm-12">
+          <a class="btn btn-primary" href="{% url 'users:update' %}" role="button">{% trans 'My Information' %}</a>
+          <a class="btn btn-primary" href="{% url 'account_email' %}" role="button">{% trans 'E-Mail Settings' %}</a>
+        </div>
+      </div>
+    {% endif %}
+  </div> 
 {% endblock content %}
 
