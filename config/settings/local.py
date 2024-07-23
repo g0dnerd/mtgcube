@@ -1,34 +1,26 @@
 from .base import *  # noqa
 from .base import env
 
-# GENERAL
-# ------------------------------------------------------------------------------
-# https://docs.djangoproject.com/en/dev/ref/settings/#debug
+import os
+
+# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
+ALLOWED_HOSTS = [
+    "*",
+    "https://vault.mtg-cube.de/",
+    "https://mtg-cube.de/",
+    "https://storage.googleapis.com/",
+    "http://localhost:8080",
+    "localhost",
+]
+
 DEBUG = True
-# https://docs.djangoproject.com/en/dev/ref/settings/#secret-key
+
 SECRET_KEY = env(
     "DJANGO_SECRET_KEY",
     default="AjNIClMIgFyRwJUO2jyRy1r97WipjVimYj0GMHzgyNSxF361leDFWduPbio1uJJc",
-)
-# https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1"]
-
-# CACHES
-# ------------------------------------------------------------------------------
-# https://docs.djangoproject.com/en/dev/ref/settings/#caches
-CACHES = {
-    "default": {
-        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-        "LOCATION": "",
-    }
-}
-
-
-# EMAIL
-# ------------------------------------------------------------------------------
-# https://docs.djangoproject.com/en/dev/ref/settings/#email-backend
-EMAIL_BACKEND = env(
-    "DJANGO_EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend"
 )
 
 # django-debug-toolbar
@@ -47,16 +39,30 @@ INTERNAL_IPS = ["127.0.0.1", "10.0.2.2"]
 
 
 SECURE_SSL_REDIRECT = False
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://*.mtg-cube.de",
+    "https://vault.mtg-cube.de",
+    "https://*.mtg-cube.de/",
+    "https://vault.mtg-cube.de/",
+    "https://*.mtg-cube.de",
+    "https://www.vault.mtg-cube.de",
+    "https://*.mtg-cube.de/",
+    "https://www.vault.mtg-cube.de/",
+]
+
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+SECURE_HSTS_SECONDS = 60
+# https://docs.djangoproject.com/en/dev/ref/settings/#secure-hsts-include-subdomains
+SECURE_HSTS_INCLUDE_SUBDOMAINS = env.bool(
+    "DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS", default=True
+)
 
 SOCIALACCOUNT_STORE_TOKENS = True
-
-ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
 
 # django-extensions
 # ------------------------------------------------------------------------------
 # https://django-extensions.readthedocs.io/en/latest/installation_instructions.html#configuration
 INSTALLED_APPS += ["django_extensions"]  # noqa F405
-
-# Your stuff...
-# ------------------------------------------------------------------------------Masterpassword
-

@@ -58,6 +58,10 @@ ROOT_URLCONF = "config.urls"
 # https://docs.djangoproject.com/en/dev/ref/settings/#wsgi-application
 WSGI_APPLICATION = "config.wsgi.application"
 
+ACCOUNT_FORMS = {
+    'signup': 'mtgcube.users.forms.CustomSignupForm',
+}
+
 # APPS
 # ------------------------------------------------------------------------------
 DJANGO_APPS = [
@@ -80,6 +84,7 @@ THIRD_PARTY_APPS = [
     'allauth.socialaccount.providers.google',
     'allauth.socialaccount.providers.facebook',
     'dynamic_breadcrumbs',
+    'termsandconditions',
 ]
 
 LOCAL_APPS = [
@@ -132,13 +137,14 @@ AUTH_PASSWORD_VALIDATORS = [
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#middleware
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "termsandconditions.middleware.TermsAndConditionsRedirectMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.common.BrokenLinkEmailsMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -276,14 +282,20 @@ SOCIALACCOUNT_ADAPTER = "users.adapters.SocialAccountAdapter"
 SECURE_REFERRER_POLICY= "strict-origin-when-cross-origin"
 SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
 
-CORS_ALLOWED_ORIGINS = [
+CORS_ALLOW_ALL_ORIGINS = True
+""" CORS_ALLOWED_ORIGINS = [
     "https://vault.mtg-cube.de",
     "https://*.mtg-cube.de",
-    "localhost"
-    "http://localhost"
-]
+    "https://mtg-cube.de",
+    "https://storage.googleapis.com",
+    "http://localhost",
+    "http://localhost:8080"
+] """
 
 SOCIALACCOUNT_LOGIN_ON_GET = True
+
+CACHE_MIDDLEWARE_ANONYMOUS_ONLY = True
+CACHE_MIDDLEWARE_KEY_PREFIX = "mtg"
 
 
 # Your stuff...
@@ -300,22 +312,19 @@ SOCIALACCOUNT_PROVIDERS = {
         'OAUTH_PKCE_ENABLED': True,
         'FETCH_USERINFO': True
 
-    },
-    'facebook': {
-        'METHOD': 'oauth2',
-        'SDK_URL': '//connect.facebook.net/{locale}/sdk.js',
-        'SCOPE': ['email', 'public_profile'],
-        'AUTH_PARAMS': {'auth_type': 'reauthenticate'},
-        'INIT_PARAMS': {'cookie': True},
-        'FIELDS': [
-            'id',
-            'email',
-            'name',
-            'first_name',
-            'last_name',
-        ],
-        'EXCHANGE_TOKEN': True,
-        'VERIFIED_EMAIL': False,
-        'VERSION': 'v7.0',
     }
 }
+
+# Terms & Conditions (termsandconditions) Settings #######
+DEFAULT_TERMS_SLUG = "privacy-policy"
+ACCEPT_TERMS_PATH = "/terms/accept/"
+TERMS_BASE_TEMPLATE = 'terms_base.html'
+TERMS_EXCLUDE_URL_PREFIX_LIST = {"/admin", "/terms"}
+TERMS_EXCLUDE_URL_LIST = {"/termsrequired/", "/accounts/logout/", "/securetoo/"}
+TERMS_EXCLUDE_URL_CONTAINS_LIST = (
+    {}
+)  # Useful if you are using internationalization and your URLs could change per language
+TERMS_CACHE_SECONDS = 30
+# TERMS_EXCLUDE_USERS_WITH_PERM = "auth.can_skip_t&c"
+TERMS_IP_HEADER_NAME = "REMOTE_ADDR"
+TERMS_STORE_IP_ADDRESS = True

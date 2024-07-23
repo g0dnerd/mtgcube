@@ -66,9 +66,11 @@ SECRET_KEY = env("SECRET_KEY")
 ALLOWED_HOSTS = [
     "*",
     "https://vault.mtg-cube.de/",
+    "https://mtg-cube.de/",
+    "https://storage.googleapis.com/",
     "http://localhost:8080",
     "localhost",
-]  # , 'localhost']
+]
 
 # Database
 
