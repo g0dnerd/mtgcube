@@ -154,7 +154,7 @@ class AdminDraftInfoView(LoginRequiredMixin, View):
                 for enrollment in sorted_players
             ]
 
-        if current_round.started:
+        if current_round.started or current_round.paired or current_round.round_idx > 1:
             seatings_out = {
                 "error": f"Not returning seatings because draft is already in round {current_round.round_idx}"
             }
@@ -179,6 +179,7 @@ class AdminDraftInfoView(LoginRequiredMixin, View):
             "started": draft.started,
             "cube": draft.cube.name,
             "cube_url": draft.cube.url,
+            "current_round": current_round.round_idx,
             "finished": draft.finished,
             "in_progress": ongoing,
             "seated": draft.seated,
@@ -295,6 +296,7 @@ class FinishRoundView(LoginRequiredMixin, View):
             draft.save()
             services.reset_draft_scores(draft)
         else:
+            services.finish_round(current_rd)
             new_rd = Round(
                 draft = draft,
                 round_idx = current_rd.round_idx + 1
