@@ -1,6 +1,6 @@
 import random
 
-from .models import Game, Enrollment, Round
+from .models import Game, Enrollment, Round, Draft
 
 
 def pair_round(rd: Round):
@@ -65,15 +65,9 @@ def pair_round(rd: Round):
 
 
 def assign_bye(rd: Round, player):
-    player.had_bye = True
     player.paired = True
+    player.had_bye = True
     player.bye_this_round = True
-    player.draft_score += 3
-    player.score += 3
-    player.games_played += 2
-    player.draft_games_played += 2
-    player.games_won += 2
-    player.draft_games_won += 2
     player.save()
 
 
@@ -133,6 +127,14 @@ def update_tiebreakers(draft):
         Round.objects.filter(draft=draft).order_by("-round_idx").first().round_idx
     )
     for player in players:
+        if player.bye_this_round:
+            player.draft_score += 3
+            player.score += 3
+            player.games_played += 2
+            player.draft_games_played += 2
+            player.games_won += 2
+            player.draft_games_won += 2
+            player.save()
         player.pmw = max(round((player.score // 3) / round_num, 2), 0.33)
         player.draft_pmw = max(round((player.draft_score // 3) / round_num, 2), 0.33)
         try:
@@ -227,6 +229,17 @@ def seatings(draft):
         paired=False,
     )
     new_round.save()
+
+
+def finish_round(current_round: Round):
+    draft: Draft = current_round.draft
+    
+    try:
+        bye = draft.enrollments.get(bye_this_round=True)
+        bye.bye_this_round = False
+        bye.save()
+    except Enrollment.DoesNotExist:
+        return
 
 
 def clear_histories(draft):
