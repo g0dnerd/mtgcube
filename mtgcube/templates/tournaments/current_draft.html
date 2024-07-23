@@ -30,7 +30,7 @@
                     const draftInfoElement = document.getElementById('draft-info-header');
                     draftInfoElement.innerHTML = `
                         <h4>My Current Draft in round ${draft.current_round}:</h4>
-                        <h1>Cube: <a href="${draft.cube_url}">${draft.cube_name}</a></h1>
+                        <h1>Cube: <a href="${draft.cube_url}" target="_blank">${draft.cube_name}</a></h1>
                     `;
                 } else {
                     console.error('Error:', data.error);
@@ -152,7 +152,7 @@
             const gameDetailsElement = document.getElementById('match-details');
             if (match.error) {
                 gameDetailsElement.innerHTML = `
-                    <h5>Waiting for pairings...</h5>
+                    <h5 class="waiting-for-pairings">${match.error}</h5>
                 `;
             } else {
                 if (match.bye) {
@@ -166,7 +166,7 @@
                 } else {
                     gameDetailsElement.innerHTML = `
                         <h5>My opponent at table <span class="my-table">${match.table}</span>: <span class="my-opponent">${match.opponent} ${match.opp_pronouns}</span>.</h5>
-                        ${match.result !== "Pending" ? `<h5>Result: ${match.result}</h5>` : ''}
+                        ${match.result !== "Pending" ? `<p class="match-result">Result: ${match.result}</p>` : ''}
                     `;
 
                     const reportFormElement = document.getElementById('report-result-form');
@@ -214,12 +214,12 @@
                     <table class="standings-table" >
                         <thead>
                             <tr>
-                                <th style="text-align: center; padding-right: 40px;">Place</th>
-                                <th style="text-align: center; padding-right: 40px;">Player</th>
-                                <th style="text-align: center; padding-right: 40px;">Points</th>
-                                <th style="text-align: center; padding-right: 40px;">OMW</th>
-                                <th style="text-align: center; padding-right: 40px;">PGW</th>
-                                <th style="text-align: center; padding-right: 40px;">OGW</th>
+                                <th style="text-align: center; padding-right: 40px;">#</th>
+                                <th style="text-align: center; padding-right: 40px;">Name</th>
+                                <th style="text-align: center; padding-right: 40px;">Pts</th>
+                                <th style="text-align: center; padding-right: 40px;">OMW%</th>
+                                <th style="text-align: center; padding-right: 40px;">PGW%</th>
+                                <th style="text-align: center; padding-right: 40px;">OGW%</th>
                             </tr>
                         </thead>
                         <tbody>${standingsHtml}</tbody>
@@ -246,13 +246,18 @@
                     player2_wins: player2Wins,
                 })
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    updateMatchInfo();
-                } else {
-                    console.error('Error reporting result:', data.error);
+            .then(response => {
+                if (response.status === 403) {
+                    window.location.reload();
                 }
+                return response.json();
+            })
+            .then(data => {
+                if (!data.success) {
+                    console.error('Error reporting result:', data.error);
+
+                }
+                updateMatchInfo();
             })
             .catch(error => console.error('Error reporting result:', error));
         }
@@ -307,7 +312,7 @@
             {% csrf_token %}
             <div id="match-details"></div>
             <form class="report-result" id="report-result-form" style="display:none;">
-                <label for="player1-wins">Match result: Player 1 wins</label>
+                <label for="player1-wins"><p class="match-result">Match result:</p> Player 1 wins</label>
                 <select id="player1-wins">
                     <option value="0">0</option>
                     <option value="1">1</option>
