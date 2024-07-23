@@ -64,18 +64,18 @@ class EnrollmentAdmin(admin.ModelAdmin):
 
 class PlayerInline(admin.TabularInline):
     model = Player
-    fields = ["user", "name"]
+    fields = ["user"]
     extra = 3
 
 
 class PlayerAdmin(admin.ModelAdmin):
-    list_display = ["user", "name"]
-    fields = ["user", "name"]
+    list_display = ["user"]
+    fields = ["user"]
 
 
 class TournamentAdmin(admin.ModelAdmin):
     list_display = ["name"]
-    fields = ["name", "announcement", "start_datetime", "end_datetime"]
+    fields = ["name", "location", "announcement", "start_datetime", "end_datetime"]
 
 
 class PhaseAdmin(admin.ModelAdmin):

@@ -8,6 +8,7 @@ class Tournament(models.Model):
     name = models.CharField(max_length=50, unique=True)
     start_datetime = models.DateTimeField(default=timezone.now)
     end_datetime = models.DateTimeField(default=timezone.now)
+    location = models.CharField(max_length=255, blank=True)
     announcement = models.CharField(max_length=255, blank=True)
 
     def __str__(self):
@@ -66,7 +67,7 @@ class Round(models.Model):
 
 class Player(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    name = models.CharField(max_length=50, unique=True)
+    name = models.CharField(max_length=50, default="")
 
     def __str__(self):
         return self.user.name
@@ -106,7 +107,7 @@ class Enrollment(models.Model):
         unique_together = ("player", "tournament")
 
     def __str__(self):
-        return f"{self.player.user.username} in {self.tournament.name}"
+        return f"{self.player.user.name} in {self.tournament.name}"
 
 
 class Game(models.Model):
@@ -138,9 +139,9 @@ class Game(models.Model):
 
     def game_formatted(self):
         p1 = self.player1.player.user.name
-        p1name = p1 if p1 else self.player1.player.user.username
+        p1name = p1 if p1 else self.player1.player.user.name
         p2 = self.player2.player.user.name
-        p2name = p2 if p2 else self.player2.player.user.username
+        p2name = p2 if p2 else self.player2.player.user.name
         return f"Table {self.table}: {p1name} - {p2name}"
 
 

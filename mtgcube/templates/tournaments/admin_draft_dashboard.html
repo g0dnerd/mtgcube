@@ -36,9 +36,8 @@
 
             updateDraftInformation(data.info, data.players);
             
-
             if (!data.standings.error) {
-                updateStandings(data.standings);
+                updateStandings(data.standings, data.info.current_round);
             }
             if (data.info.round_paired) {
                 updatePairings(data.matches, data.bye);
@@ -61,12 +60,14 @@
                 }
             } else {
                 if (data.info.seated) {
-                    updateSeatings(data.seatings);
                     if (pairBtn) {
                         pairBtn.style.display = 'block';
                     }
                     if (seatBtn) {
                         seatBtn.style.display = 'none';   
+                    }
+                    if (!data.seatings.error ) {
+                        updateSeatings(data.seatings);
                     }
                 } else {
                     if (seatBtn) {
@@ -82,9 +83,9 @@
         const infoHeader = document.getElementById('admin-draft-info-header');
         let htmlOut = `
         <h4>
-            Draft {{ draft_id }} playing <a href="${info.cube_url}">${info.cube}</a>
+            Draft {{ draft_id }} playing <a href="${info.cube_url}" target="_blank">${info.cube}</a>
         </h4>
-        <h5>Players:<h5><p>
+        <h5>Players:</h5><p>
         `;
         players.forEach(player => {
             htmlOut += `${player}, `;
@@ -122,7 +123,7 @@
                 <li>
                     Table ${match.table}: ${match.player1} vs ${match.player2}: ${match.result}`;
             if (match.result !== 'Pending' && !match.result_confirmed) {
-                htmlOut += `(reported by ${match.reported_by})`;
+                htmlOut += ` (reported by ${match.reported_by})`;
             }
             htmlOut += `
                 </li>
@@ -139,38 +140,34 @@
         pairingsElement.innerHTML = htmlOut;
     }
 
-    function updateStandings(standings) {
+    function updateStandings(standings, current_round) {
         const standingsElement = document.getElementById('admin-draft-info-standings');
-        let htmlOut = `
-        <h5>Standings</h5>
-        <table>
-            <thead>
-                <tr>
-                <th style="text-align: center; padding-right: 40px;">Player</th>
-                <th style="text-align: center; padding-right: 40px;">Points</th>
-                <th style="text-align: center; padding-right: 40px;">OMW</th>
-                <th style="text-align: center; padding-right: 40px;">PGW</th>
-                <th style="text-align: center; padding-right: 40px;">OGW</th>
-                </tr>
-            </thead>
-            <tbody>
-        `;
-        standings.forEach(place => {
-            htmlOut += `
+        const standingsHtml = standings.map((player, i) => `
+            <tr>
+                <td style="text-align: center; padding-right: 40px;">${i + 1}</td>
+                <td style="text-align: center; padding-right: 40px;">${player.name}</td>
+                <td style="text-align: center; padding-right: 40px;">${player.score}</td>
+                <td style="text-align: center; padding-right: 40px;">${player.omw}</td>
+                <td style="text-align: center; padding-right: 40px;">${player.pgw}</td>
+                <td style="text-align: center; padding-right: 40px;">${player.ogw}</td>
+            </tr>
+        `).join('');
+        standingsElement.innerHTML = `
+            <h5>Draft standings after round ${current_round}:</h5>
+            <table class="standings-table" >
+                <thead>
                     <tr>
-                        <td style="text-align: center; padding-right: 40px;">${place.name}</td>
-                        <td style="text-align: center; padding-right: 40px;">${place.score}</td>
-                        <td style="text-align: center; padding-right: 40px;">${place.omw}</td>
-                        <td style="text-align: center; padding-right: 40px;">${place.pgw}</td>
-                        <td style="text-align: center; padding-right: 40px;">${place.ogw}</td>
+                        <th style="text-align: center; padding-right: 40px;">#</th>
+                        <th style="text-align: center; padding-right: 40px;">Name</th>
+                        <th style="text-align: center; padding-right: 40px;">Pts</th>
+                        <th style="text-align: center; padding-right: 40px;">OMW%</th>
+                        <th style="text-align: center; padding-right: 40px;">PGW%</th>
+                        <th style="text-align: center; padding-right: 40px;">OGW%</th>
                     </tr>
-            `;
-        });
-        htmlOut += `
-            </tbody>
-        </table>
+                </thead>
+                <tbody>${standingsHtml}</tbody>
+            </table>
         `;
-        standingsElement.innerHTML = htmlOut;
     }
 
     // Initial formatting
