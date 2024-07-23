@@ -16,16 +16,13 @@
                         Your registration is finished - you are good to go!
                     </h5>
                     `;
-                } else {
-                    statusElement.innerHTML = `
-                    <h5>
-                        Your registration is still pending. Please contact us to resolve this.
-                    </h5>
-                    `;
                 }
+                statusElement.style.display = 'none';
                 
                 const eventElement = document.getElementById('event-info-header');
-                eventElement.innerHTML = `<h1>${data.player.tournament_name}</h1>`;
+                eventElement.innerHTML = `
+                <h1 class="event-name">${data.player.tournament_name}</h1>
+                `;
             } else {
                 console.log(data.error);
             }
@@ -49,7 +46,7 @@
                     </h5>
                     `;
                     cubeInfoElement.innerHTML = `
-                    Cube list: <a href="${data.draft.cube_url}">
+                    Cube list: <a href="${data.draft.cube_url} target="_blank"">
                         ${data.draft.cube_name}
                     </a>
                     `;
@@ -85,12 +82,12 @@
                     <table class="standings-table" >
                         <thead>
                             <tr>
-                                <th style="text-align: center; padding-right: 40px;">Place</th>
-                                <th style="text-align: center; padding-right: 40px;">Player</th>
-                                <th style="text-align: center; padding-right: 40px;">Points</th>
-                                <th style="text-align: center; padding-right: 40px;">OMW</th>
-                                <th style="text-align: center; padding-right: 40px;">PGW</th>
-                                <th style="text-align: center; padding-right: 40px;">OGW</th>
+                                <th style="text-align: center; padding-right: 40px;">#</th>
+                                <th style="text-align: center; padding-right: 40px;">Name</th>
+                                <th style="text-align: center; padding-right: 40px;">Pts</th>
+                                <th style="text-align: center; padding-right: 40px;">OMW%</th>
+                                <th style="text-align: center; padding-right: 40px;">PGW%</th>
+                                <th style="text-align: center; padding-right: 40px;">OGW%</th>
                             </tr>
                         </thead>
                         <tbody>${standingsHtml}</tbody>
@@ -132,7 +129,7 @@
             if (!data.error) {
                 nextDraftElement.innerHTML = `
                 <p>
-                    My next draft: <a href="${data.upcoming_draft.cube_url}">${data.upcoming_draft.cube}</a>
+                    My next draft: <a href="${data.upcoming_draft.cube_url}" target="_blank">${data.upcoming_draft.cube}</a>
                 </p>
                 `;
             }
