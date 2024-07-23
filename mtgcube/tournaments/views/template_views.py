@@ -160,6 +160,13 @@ class EventDashboardView(LoginRequiredMixin, View):
         current_enrollment = cache.get(f"current_enroll_{player.id}")
         if not current_enrollment:
             current_enrollment = enrollments.order_by("-enrolled_on").first()
+            if not current_enrollment.registration_finished:
+                messages.error(
+                    request,
+                    "Your registration has been marked as incomplete by a tournament admin. If you believe this to be in error, please contact on of our staff members.",
+                )
+                return redirect("tournaments:index")
+
             cache.set(
                 f"current_enroll_{player.id}", current_enrollment, 300
             )  # Cache enrollments for 5 minutes
@@ -197,6 +204,12 @@ class MyPoolCheckinView(LoginRequiredMixin, View):
             current_enroll = cache.get(f"current_enroll_{player.id}")
             if not current_enroll:
                 current_enroll = enrollments.order_by("-enrolled_on").first()
+                if not current_enroll.registration_finished:
+                    messages.error(
+                        request,
+                        "Your registration has been marked as incomplete by a tournament admin. If you believe this to be in error, please contact on of our staff members.",
+                    )
+                    return redirect("tournaments:index")
                 cache.set(
                     f"current_enroll_{player.id}", current_enroll, 300
                 )  # Cache enrollments for 3 minutes
@@ -221,6 +234,11 @@ class MyPoolCheckinView(LoginRequiredMixin, View):
             "tournaments/my_pool_checkin.html",
             {"images": images},
         )
+
+
+class TestView(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        return render(request, "tournaments/font_test.html")
 
 
 class MyPoolCheckoutView(LoginRequiredMixin, View):
@@ -248,6 +266,12 @@ class MyPoolCheckoutView(LoginRequiredMixin, View):
             current_enroll = cache.get(f"current_enroll_{player.id}")
             if not current_enroll:
                 current_enroll = enrollments.order_by("-enrolled_on").first()
+                if not current_enroll.registration_finished:
+                    messages.error(
+                        request,
+                        "Your registration has been marked as incomplete by a tournament admin. If you believe this to be in error, please contact on of our staff members.",
+                    )
+                    return redirect("tournaments:index")
                 cache.set(
                     f"current_enroll_{player.id}", current_enroll, 300
                 )  # Cache enrollments for 3 minutes
