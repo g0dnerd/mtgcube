@@ -1,19 +1,22 @@
 {% extends "tournaments/base.html" %}
+{% load i18n %}
 {% block title%}My event dashboard{% endblock %}
 
 {% block javascript %}
 {{ block.super }}
 <script>
+    var checkin = false;
     function fetchPlayerBasicInfo() {
         fetch("{% url 'tournaments:player_basic_info' %}")
         .then(response => response.json())
         .then(data => {
             const statusElement = document.getElementById('player-signup-status');
             if (!data.error) {
+                checkin = data.player.checked_in;
                 if (data.player.signup_status) {
                     statusElement.innerHTML = `
                     <h5>
-                        Your registration is finished - you are good to go!
+                        {% trans 'Your registration is finished - you are good to go' %}!
                     </h5>
                     `;
                 }
@@ -42,11 +45,11 @@
                     const currentDraftUrl = "{% url 'tournaments:draft_dashboard' %}";
                     draftInfoElement.innerHTML = `
                     <h5>
-                        <a href="${currentDraftUrl}">My current draft</a>
+                        <a href="${currentDraftUrl}">{% trans 'My current draft' %}</a>
                     </h5>
                     `;
                     cubeInfoElement.innerHTML = `
-                    Cube list: <a href="${data.draft.cube_url} target="_blank"">
+                    {% trans 'Cube list' %}: <a href="${data.draft.cube_url}" target="_blank">
                         ${data.draft.cube_name}
                     </a>
                     `;
@@ -78,7 +81,7 @@
                     </tr>
                 `).join('');
                 standingsElement.innerHTML = `
-                    <h5>Overall event standings after round ${data.current_round}:</h5>
+                    <h5>{% trans 'Overall event standings after round' %} ${data.current_round}:</h5>
                     <table class="standings-table" >
                         <thead>
                             <tr>
@@ -106,11 +109,13 @@
         .then(data => {
             const gameDetailsElement = document.getElementById('player-match-info');
             if (!data.error) {
-                if (!data.match.error) {
+                if (!data.match.error && checkin) {
                     if (data.match.bye) {
-                        gameDetailsElement.innerHTML = '<h5>You have the bye this round.</h5>';
+                        gameDetailsElement.innerHTML = `<h5>{% trans 'You have the bye this round' %}.</h5>`;
                     } else {
-                        gameDetailsElement.innerHTML = `My current match in round ${data.match.current_round}: Playing vs ${data.match.opponent} at table ${data.match.table}
+                        gameDetailsElement.innerHTML = `
+                            {%trans 'My current match in round' %} ${data.match.current_round}: 
+                            {% trans 'Playing vs' %} ${data.match.opponent} {%trans 'at table' %} ${data.match.table}
                         `;
                     }
                 }
@@ -129,7 +134,7 @@
             if (!data.error) {
                 nextDraftElement.innerHTML = `
                 <p>
-                    My next draft: <a href="${data.upcoming_draft.cube_url}" target="_blank">${data.upcoming_draft.cube}</a>
+                    {% trans 'My next draft' %}: <a href="${data.upcoming_draft.cube_url}" target="_blank">${data.upcoming_draft.cube}</a>
                 </p>
                 `;
             }
@@ -147,7 +152,7 @@
             } else {
                 announcementElement.innerHTML = `
                 <h5>
-                    Event announcement: ${data.announcement}
+                    {% trans 'Event announcement' %}: ${data.announcement}
                 </h5>
                 `;
                 announcementElement.style.display = 'block';
@@ -177,7 +182,7 @@
 
 {% block content %}
 <div class="event-dashboard">
-    <h4>Event Dashboard</h4><div class="event-title" id="event-info-header"></div>
+    <h4>{% trans 'Event Dashboard' %}</h4><div class="event-title" id="event-info-header"></div>
     <div class="signup-status" id="player-signup-status"></div>
     <div class="event-announcement" id="announcement" style="display:none;"></div>
     <div class="player-info-list">

@@ -1,8 +1,10 @@
 {% extends "tournaments/base.html" %}
-{% block title %}My current draft{% endblock %}
+{% load i18n %}
+{% block title %}{% trans 'My current draft' %}{% endblock %}
 {% block javascript %}
 {{ block.super }}
 <script defer>
+    var checkin = true;
     document.addEventListener('DOMContentLoaded', () => {
         const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
@@ -28,8 +30,9 @@
                 if (!data.error) {
                     const draft = data.draft;
                     const draftInfoElement = document.getElementById('draft-info-header');
+                    const current_round = draft.current_round === '0' ? `:` : ` {% trans 'in round' %} ${draft.current_round}:`;
                     draftInfoElement.innerHTML = `
-                        <h4>My Current Draft in round ${draft.current_round}:</h4>
+                        <h4>{% trans 'My current draft' %}${current_round}</h4>
                         <h1>Cube: <a href="${draft.cube_url}" target="_blank">${draft.cube_name}</a></h1>
                     `;
                 } else {
@@ -81,30 +84,43 @@
         function updatePlayerStatus(player) {
             const uploadElement = document.getElementById('deck-upload');
             let uploadHtml = '';
+
             if (!player.checked_in) {
+                checkin = false;
                 uploadHtml = `
                 <div class="pool-info-check-in-missing">
-                    <h5>You are not yet checked in. Please <a href="{% url 'tournaments:checkin' %}">upload your pool</a> once you have finished drafting.</h5>
+                    {% url 'tournaments:checkin' as url %}
+                    <h5>{% trans "You are not yet checked in" %}. 
+                            {% blocktrans %}
+                            Please <a href="{{ url }}">upload your pool</a> once you have finished drafting.</h5>
+                        {% endblocktrans %}
                 </div>
                 `;
             } else {
+                checkin = true;
                 uploadHtml = `
                 <div class="pool-info-checked-in">
-                    <h5>You are checked in and good to go!</h5>
-                    <a href="{% url 'tournaments:my_pool_checkin' %}">My Pool</a>
+                    <h5>{%trans 'You are checked in and good to go' %}!</h5>
+                    <a href="{% url 'tournaments:my_pool_checkin' %}">{% trans 'My pool' %}</a>
                 </div>
                 `;
                 if (player.checked_out) {
                     uploadHtml = `
                     <div class="pool-info-checked-out">
-                        <h5>You have checked out and are good to go!</h5>
-                        <a href="{% url 'tournaments:my_pool_checkout' %}">My Pool</a>
+                        <h5>{%trans 'You have checked out and are good to go!' %}</h5>
+                        <a href="{% url 'tournaments:my_pool_checkout' %}">{% trans 'My pool' %}</a>
                     </div>
                     `;
                 } else {
                     uploadHtml += `
                     <div class="pool-info-check-out-missing">
-                        <h5>To check out, please <a href="{% url 'tournaments:checkout' %}">upload your pool</a> after you have finished all your matches.</h5>
+                        <h5>
+                            {% url 'tournaments:checkin' as url %}
+                            {% blocktrans %}
+                            To check out, please <a href="{{ url }}">upload your pool</a> after you have finished all your matches
+                            {% endblocktrans %}
+                            .
+                        </h5>
                     </div>
                     `;
                 }
@@ -117,16 +133,20 @@
             if (pairings.error) {
                 pairingsElement.innerHTML = '<h5></h5>';
             } else {
-                let pairingsHtml = pairings.map(match => `
-                    <li>Table ${match.table}: ${match.player1} vs ${match.player2}</li>
-                `).join('');
+                if (!checkin) {
+                    pairingsElement.innerHTML = `<h5>{% trans 'Pairings will be revealed once you have checked in your pool' %}.</h5>`;
+                } else {
+                    let pairingsHtml = pairings.map(match => `
+                        <li>{% trans 'Table' %} ${match.table}: ${match.player1} vs ${match.player2}</li>
+                    `).join('');
 
-                if (bye) {
-                    pairingsHtml += (`
-                    <li>${bye} - BYE</li>
-                    `);
+                    if (bye) {
+                        pairingsHtml += (`
+                        <li>${bye} - BYE</li>
+                        `);
+                    }
+                    pairingsElement.innerHTML = `<h5>{% trans 'Other pairings' %}:</h5><ul>${pairingsHtml}</ul>`;
                 }
-                pairingsElement.innerHTML = `<h5>Other pairings:</h5><ul>${pairingsHtml}</ul>`;
             }
         }
 
@@ -134,7 +154,7 @@
             const seatingsElement = document.getElementById('player-seatings');
             if (seatings.error) {
                 if (seatings.error === "Draft has not been seated yet") {
-                    seatingsElement.innerHTML = '<h5>Waiting for seatings...</h5>';
+                    seatingsElement.innerHTML = `<h5>{% trans 'Waiting for seatings' %}...</h5>`;
                     seatingsElement.style.display = 'block';
                 } else {
                     seatingsElement.style.display = 'none';
@@ -155,41 +175,50 @@
                     <h5 class="waiting-for-pairings">${match.error}</h5>
                 `;
             } else {
-                if (match.bye) {
-                    gameDetailsElement.innerHTML = `
-                    <h5>You have the bye this round!</h5>
-                    `;
-                    const reportFormElement = document.getElementById('report-result-form');
-                    const confirmButtonElement = document.getElementById('confirm-result-btn');
-                    reportFormElement.style.display = 'none';
-                    confirmButtonElement.style.display = 'none';
+                if (!checkin) {
+                    gameDetailsElement.innerHTML = `<h5>{% trans 'Your pairing will be revealed once you have checked in your pool' %}.</h5>`;
                 } else {
-                    gameDetailsElement.innerHTML = `
-                        <h5>My opponent at table <span class="my-table">${match.table}</span>: <span class="my-opponent">${match.opponent} ${match.opp_pronouns}</span>.</h5>
-                        ${match.result !== "Pending" ? `<p class="match-result">Result: ${match.result}</p>` : ''}
-                    `;
-
-                    const reportFormElement = document.getElementById('report-result-form');
-                    const confirmButtonElement = document.getElementById('confirm-result-btn');
-                    reportFormElement.innerHTML = reportFormElement.innerHTML.replace('Player 1', match.player1);
-                    reportFormElement.innerHTML = reportFormElement.innerHTML.replace('Player 2', match.player2);
-                    if (match.result === "Pending") {
-                        reportFormElement.style.display = 'block';
+                    if (match.bye) {
+                        gameDetailsElement.innerHTML = `
+                        <h5>{% trans "You have the bye this round" %}!</h5>
+                        `;
+                        const reportFormElement = document.getElementById('report-result-form');
+                        const confirmButtonElement = document.getElementById('confirm-result-btn');
+                        reportFormElement.style.display = 'none';
                         confirmButtonElement.style.display = 'none';
                     } else {
-                        reportFormElement.style.display = 'none';
-                        if (!match.result_confirmed && player.name !== match.reported_by) {
-                            confirmButtonElement.style.display = 'block';
-                            confirmButtonElement.setAttribute('name', match.id);
-                        } else {
-                            confirmButtonElement.style.display = 'none';
-                        }
-                    }
+                        const winner = match.winner ? `${match.winner} {% trans 'wins' %}` : '';
+                        gameDetailsElement.innerHTML = `
+                            <h5>
+                                {% trans 'My opponent at table' %} 
+                                <span class="my-table">${match.table}</span>: 
+                                <span class="my-opponent">${match.opponent} ${match.opp_pronouns}</span>.
+                            </h5>
+                            ${match.result !== "Pending" ? `<p class="match-result">{% trans 'Result' %}: ${winner} ${match.result}</p>` : ''}
+                        `;
 
-                    const player1WinForm = document.getElementById('player1-wins');
-                    player1WinForm.name = match.id;
-                    const player2WinForm = document.getElementById('player2-wins');
-                    player2WinForm.name = match.id;
+                        const reportFormElement = document.getElementById('report-result-form');
+                        const confirmButtonElement = document.getElementById('confirm-result-btn');
+                        reportFormElement.innerHTML = reportFormElement.innerHTML.replace('Player 1', match.player1);
+                        reportFormElement.innerHTML = reportFormElement.innerHTML.replace('Player 2', match.player2);
+                        if (match.result === "Pending") {
+                            reportFormElement.style.display = 'block';
+                            confirmButtonElement.style.display = 'none';
+                        } else {
+                            reportFormElement.style.display = 'none';
+                            if (!match.result_confirmed && player.name !== match.reported_by) {
+                                confirmButtonElement.style.display = 'block';
+                                confirmButtonElement.setAttribute('name', match.id);
+                            } else {
+                                confirmButtonElement.style.display = 'none';
+                            }
+                        }
+
+                        const player1WinForm = document.getElementById('player1-wins');
+                        player1WinForm.name = match.id;
+                        const player2WinForm = document.getElementById('player2-wins');
+                        player2WinForm.name = match.id;
+                    }
                 }
             }
         }
@@ -197,7 +226,7 @@
         function updateStandings(standings, current_round) {
             const standingsElement = document.getElementById('player-draft-standings');
             if (standings.error) {
-                standingsElement.innerHTML = '<h5>Waiting for standings...</h5>';
+                standingsElement.innerHTML = `<h5>{% trans 'Waiting for standings' %}...</h5>`;
             } else {
                 const standingsHtml = standings.map((player, i) => `
                     <tr>
@@ -210,7 +239,7 @@
                     </tr>
                 `).join('');
                 standingsElement.innerHTML = `
-                    <h5>Draft standings after round ${current_round}:</h5>
+                    <h5>{% trans 'Draft standings after round' %} ${current_round}:</h5>
                     <table class="standings-table" >
                         <thead>
                             <tr>
@@ -312,21 +341,21 @@
             {% csrf_token %}
             <div id="match-details"></div>
             <form class="report-result" id="report-result-form" style="display:none;">
-                <label for="player1-wins"><p class="match-result">Match result:</p> Player 1 wins</label>
+                <label for="player1-wins"><p class="match-result">{% trans 'Match result' %}:</p> Player 1 {% trans 'wins' %}</label>
                 <select id="player1-wins">
                     <option value="0">0</option>
                     <option value="1">1</option>
                     <option value="2">2</option>
                 </select>
-                <label for="player2-wins"> - Player 2 wins</label>
+                <label for="player2-wins"> - Player 2 {% trans 'wins' %}</label>
                 <select id="player2-wins">
                     <option value="0">0</option>
                     <option value="1">1</option>
                     <option value="2">2</option>
                 </select>
-                <button type="submit">Submit Result</button>
+                <button type="submit">{% trans 'Submit Result' %}</button>
             </form>
-            <button class="confirm-result" id="confirm-result-btn" style="display:none;">Confirm result</button>
+            <button class="confirm-result" id="confirm-result-btn" style="display:none;">{% trans 'Confirm result' %}</button>
         </li>
         <li class="seatings-info" id="player-seatings"></li>
         <li class="pairings-info" id="player-pairings"></li>

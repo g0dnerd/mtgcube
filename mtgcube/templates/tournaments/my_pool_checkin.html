@@ -1,20 +1,21 @@
 {% extends "tournaments/base.html" %}
-{% block title%}My check-in pool & decklist submissions{% endblock %}
+{% load i18n %}
+{% block title%}{% trans 'My check-in pool & decklist submissions' %}{% endblock %}
 
 {% block content %}
 <div class="pool-info-checkin">
     <h1>
-        My check-in pool & decklist submissions
+        {% trans 'My check-in pool & decklist submissions' %}
     </h1>
     <div class="upload-more">
-        <a href="{% url 'tournaments:checkin' %}">Upload additional images</a>
+        <a href="{% url 'tournaments:checkin' %}">{% trans 'Upload deck images' %}</a>
     </div>
     <ul>
         {% for image in images %}
             <li>
                 <img src="{{ image.image.url }}" alt="{{ image }}">
-                <a href="{% url 'tournaments:delete_image_checkin' image.id %}">Delete</a>
-                <a href="{% url 'tournaments:replace_image_checkin' image.id %}">Replace</a>
+                <a href="{% url 'tournaments:delete_image_checkin' image.id %}">{% trans 'Delete' %}</a>
+                <a href="{% url 'tournaments:replace_image_checkin' image.id %}">{% trans 'Replace' %}</a>
             </li>
         {% endfor %}
     </ul>

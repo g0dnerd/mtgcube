@@ -1,19 +1,27 @@
 {% extends "base.html" %}
-
+{% load i18n %}
 {% block content %}
 <h1>Home</h1>
 <div class="player-welcome">
     <h4>
-        Welcome to the tournament vault!
+        {% trans 'Welcome to the tournament vault' %}!
     </h4>
     {% if request.user.is_authenticated %}
-        <p>Once you are signed up for an event, you can take a look at your
-            <a href="{% url 'tournaments:event_dashboard' %}">
+        {% url 'tournaments:event_dashboard' as url %}
+        <p>
+            {% blocktrans %}
+            Once you are signed up for an event, you can take a look at your
+            <a href="{{ url }}">
                 event dashboard</a>.
-            </p>
+            {% endblocktrans %}
         </p>
     {% else %}
-        <p>To access the vault, please <a href="{% url 'account_login' %}">sign in</a>.</p>
+        {% url 'account_login' as url %}
+        <p>
+        {% blocktrans %}
+            To access the vault, please <a href="{{ url }}">sign in</a>.
+        {% endblocktrans %}
+        </p>
     {% endif %}
 </div>
 {% endblock %}

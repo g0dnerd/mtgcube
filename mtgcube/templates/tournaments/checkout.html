@@ -1,5 +1,5 @@
 {% extends "tournaments/base.html" %}
-{% load static %}
+{% load static i18n %}
 {% block title%}Check-out{% endblock %}
 
 {% block javascript %}
@@ -14,11 +14,11 @@
 {% block content %}
     <div class="check-in">
         <h1>
-            Check-out: Deck image upload
+            {% trans 'Check-out' %}: {% trans 'Deck image upload' %}
         </h1>
         <h5>
-            For check-out, please upload at least one image with your entire pool.
-            All cards need to be clearly visible.
+            {% trans 'For check-out, please upload at least one image with your entire pool.
+            All cards need to be clearly visible.' %}
         </h5>
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
@@ -26,7 +26,7 @@
             <button type="submit">Upload</button>
         </form>
         <div id="loading-gif" style="display:none;">
-            <p>Uploading, please wait...</p>
+            <p>{% trans 'Uploading, please wait %}...</p>
             <img src="{% static 'loading.gif' %}" alt="Loading..."/>
         </div>
     </div>
