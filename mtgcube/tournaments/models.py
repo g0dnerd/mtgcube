@@ -1,7 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from mtgcube.users.models import User
-
+from django.utils.translation import gettext_lazy as _
 
 class Tournament(models.Model):
     id = models.AutoField(primary_key=True)
@@ -16,7 +16,7 @@ class Tournament(models.Model):
 
     @classmethod
     def get_default_pk(cls):
-        tournament, _ = cls.objects.get_or_create(name="Cube Open Hamburg 2024")
+        tournament, __ = cls.objects.get_or_create(name="Cube Open Hamburg 2024")
         return tournament.pk
 
 
@@ -134,8 +134,10 @@ class Game(models.Model):
             return "Pending"
         else:
             if not self.result_confirmed:
-                return self.result + " (awaiting confirmation)"
-            return self.result + " (confirmed)"
+                trans = _('(awaiting confirmation)')
+                return self.result + f" {trans}"
+            trans = _('(confirmed)')
+            return self.result + f" {trans}"
 
     def game_formatted(self):
         p1 = self.player1.player.user.name

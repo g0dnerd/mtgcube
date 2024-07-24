@@ -3,15 +3,12 @@ from django.urls import path
 from .views import admin_data_views as admin_data_views
 from .views import player_data_views as player_data_views
 from .views import template_views as template_views
-from django.views.decorators.cache import never_cache
-from termsandconditions.decorators import terms_required
-from django.contrib.auth.decorators import login_required
 
 app_name = "tournaments"
 
 urlpatterns = [
     path("", template_views.IndexView.as_view(), name="index"),
-    path("event-dashboard/", never_cache(terms_required(login_required((template_views.EventDashboardView.as_view())))), name="event_dashboard"),
+    path("event-dashboard/", template_views.EventDashboardView.as_view(), name="event_dashboard"),
     path("admin-dashboard/", template_views.AdminDashboardView.as_view(), name="admin_dashboard"),
     path("admin-dashboard/<int:tournament_id>/draft/<int:draft_id>/", template_views.AdminDraftDashboardView.as_view(), name="admin_draft_dashboard"),
     path("event-dashboard/draft/", template_views.DraftDashboardView.as_view(), name="draft_dashboard"),

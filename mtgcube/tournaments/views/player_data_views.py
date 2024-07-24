@@ -7,6 +7,7 @@ from django.http import JsonResponse
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 import json
+from django.utils.translation import gettext as _
 
 from ..forms import ImageForm
 from .. import services
@@ -136,7 +137,14 @@ class PlayerMatchInfoView(LoginRequiredMixin, View):
             Round.objects.filter(draft=current_draft).order_by("-round_idx").first()
         )
         if not current_round:
-            return JsonResponse({"error": "Pairings will be shown here after the draft not yet been paired."}, status=200)
+            return JsonResponse(
+                {
+                    "error": _(
+                        "Pairings will be shown here after the draft has finished."
+                    )
+                },
+                status=200,
+            )
 
         try:
             current_match = Game.objects.get(
@@ -144,7 +152,12 @@ class PlayerMatchInfoView(LoginRequiredMixin, View):
                 round=current_round,
             )
         except Game.DoesNotExist:
-            return JsonResponse({"error": f"Waiting for pairings for round {current_round.round_idx}..."}, status=200)
+            return JsonResponse(
+                {
+                    "error": f"Waiting for pairings for round {current_round.round_idx}..."
+                },
+                status=200,
+            )
 
         player_role = 1
         if current_match.player2 == current_enroll:
@@ -159,6 +172,15 @@ class PlayerMatchInfoView(LoginRequiredMixin, View):
             if opponent.player.user.pronouns
             else ""
         )
+
+        winner = False
+        if current_match.player2_wins > current_match.player1_wins:
+            winner = current_match.player2.player.user.name
+            current_match.result = f'{current_match.player2_wins}-{current_match.player1_wins}'
+            current_match.save()
+        elif current_match.player1_wins > current_match.player2_wins:
+            winner = current_match.player1.player.user.name
+
         match_json = {
             "id": current_match.id,
             "table": current_match.table,
@@ -171,6 +193,7 @@ class PlayerMatchInfoView(LoginRequiredMixin, View):
             "opponent": opponent.player.user.name,
             "opp_pronouns": opp_pronouns,
             "player_role": player_role,
+            "winner": winner,
         }
         player_json = {
             "name": current_enroll.player.user.name,
@@ -201,18 +224,20 @@ class PlayerBasicInfoView(LoginRequiredMixin, View):
                 f"enrollments_{user.id}", enrollments, 300
             )  # Cache draft object for 5 minutes
 
-        current_enroll = cache.get(f"current_enroll_{player.id}")
-        if not current_enroll:
-            current_enroll = enrollments.order_by("-enrolled_on").first()
-            cache.set(
-                f"current_enroll_{player.id}", current_enroll, 300
-            )  # Cache enrollments for 5 minutes
+        current_enroll = enrollments.order_by("-enrolled_on").first()
+        cache.set(
+            f"current_enroll_{player.id}", current_enroll, 300
+        )  # Cache enrollments for 5 minutes
 
         player_json = {
             "name": player.user.name if player.user.name else player.user.username,
             "tournament_name": str(current_enroll.tournament),
-            "tournament_start": current_enroll.tournament.start_datetime.strftime('%d.%m.%y %H:%M'),
-            "tournament_end": current_enroll.tournament.start_datetime.strftime('%d.%m.%y %H:%M'),
+            "tournament_start": current_enroll.tournament.start_datetime.strftime(
+                "%d.%m.%y %H:%M"
+            ),
+            "tournament_end": current_enroll.tournament.start_datetime.strftime(
+                "%d.%m.%y %H:%M"
+            ),
             "tournament_location": current_enroll.tournament.location,
             "score": current_enroll.score,
             "signup_status": current_enroll.registration_finished,
@@ -496,7 +521,7 @@ class PlayerEventStandingsView(LoginRequiredMixin, View):
 
         if current_round.round_idx <= 1 and current_draft.phase.phase_idx <= 1:
             return JsonResponse({"error": "No Event standings yet"})
-        
+
         if current_round.round_idx == 2 and not current_round.finished:
             return JsonResponse({"error": "No Event standings yet"})
 
@@ -514,8 +539,10 @@ class PlayerEventStandingsView(LoginRequiredMixin, View):
         ]
 
         event_round = (
-            current_draft.phase.phase_idx - 1
-        ) * current_draft.round_number + current_round.round_idx - 1
+            (current_draft.phase.phase_idx - 1) * current_draft.round_number
+            + current_round.round_idx
+            - 1
+        )
 
         return JsonResponse({"standings": standings_out, "current_round": event_round})
 
@@ -528,10 +555,7 @@ class ReportResultView(LoginRequiredMixin, View):
         player2_wins = data.get("player2_wins")
 
         if int(player1_wins) + int(player2_wins) > 3:
-            messages.error(
-                request,
-                "Error: Please enter a valid game result."
-            )
+            messages.error(request, "Error: Please enter a valid game result.")
             return JsonResponse({"error": "Invalid game result"}, status=403)
 
         game = get_object_or_404(Game, pk=game_id)
@@ -838,9 +862,7 @@ def delete_image_checkin(request, image_id):
     current_draft = cache.get(f"draft_{player.id}")
     if not current_draft:
         current_draft = (
-            Draft.objects.filter(
-                ~Q(finished=True), enrollments__in=[current_enroll]
-            )
+            Draft.objects.filter(~Q(finished=True), enrollments__in=[current_enroll])
             .order_by("phase__phase_idx")
             .first()
         )
@@ -892,9 +914,7 @@ def delete_image_checkout(request, image_id):
     current_draft = cache.get(f"draft_{player.id}")
     if not current_draft:
         current_draft = (
-            Draft.objects.filter(
-                ~Q(finished=True), enrollments__in=[current_enroll]
-            )
+            Draft.objects.filter(~Q(finished=True), enrollments__in=[current_enroll])
             .order_by("phase__phase_idx")
             .first()
         )
