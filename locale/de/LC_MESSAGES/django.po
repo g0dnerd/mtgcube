@@ -1,0 +1,633 @@
+# Copyright (C) 2024 Paul Kukowski
+# This file is distributed under the same license as the mtgcube package.
+# <kukowskipaul@gmail.com>, 2024.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-07-24 14:52+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: mtgcube/templates/account/account_inactive.html:5
+#: mtgcube/templates/account/account_inactive.html:8
+msgid "Account Inactive"
+msgstr "Inaktives Benutzerkonto"
+
+#: mtgcube/templates/account/account_inactive.html:10
+msgid "This account is inactive."
+msgstr "Dieses Benutzerkonto ist deaktiviert."
+
+#: mtgcube/templates/account/email.html:7
+msgid "Account"
+msgstr "Benutzerkonto"
+
+#: mtgcube/templates/account/email.html:10
+msgid "E-mail Addresses"
+msgstr "Email-Adressen"
+
+#: mtgcube/templates/account/email.html:13
+msgid "The following e-mail addresses are associated with your account:"
+msgstr "Die folgenden Email-Adressen sind mit deinem Account verknüpft:"
+
+#: mtgcube/templates/account/email.html:27
+msgid "Verified"
+msgstr "Bestätigt"
+
+#: mtgcube/templates/account/email.html:29
+msgid "Unverified"
+msgstr "Nicht bestätigt"
+
+#: mtgcube/templates/account/email.html:31
+msgid "Primary"
+msgstr "Primäre"
+
+#: mtgcube/templates/account/email.html:37
+msgid "Make Primary"
+msgstr "Primär machen"
+
+#: mtgcube/templates/account/email.html:38
+msgid "Re-send Verification"
+msgstr "Bestätigung erneut senden"
+
+#: mtgcube/templates/account/email.html:39
+msgid "Remove"
+msgstr "Entfernen"
+
+#: mtgcube/templates/account/email.html:46
+msgid "Warning:"
+msgstr "Warnung:"
+
+#: mtgcube/templates/account/email.html:46
+msgid ""
+"You currently do not have any e-mail address set up. You should really add "
+"an e-mail address so you can receive notifications, reset your password, etc."
+msgstr ""
+"Du hast aktuell keine Email-Adresse mit deinem Benutzerkonto verknüpft.Bitte "
+"füge eine Email-Adresse hinzu, um Benachrichtigungen zu erhalten und dein "
+"Passwort zurücksetzen zu können."
+
+#: mtgcube/templates/account/email.html:51
+msgid "Add E-mail Address"
+msgstr "Email-Adresse hinzufügen"
+
+#: mtgcube/templates/account/email.html:56
+msgid "Add E-mail"
+msgstr "Email-Adresse hinzufügen"
+
+#: mtgcube/templates/account/email.html:66
+msgid "Do you really want to remove the selected e-mail address?"
+msgstr "Möchtest du die gewählte Email-Adresse wirklich entfernen?"
+
+#: mtgcube/templates/account/email_confirm.html:6
+#: mtgcube/templates/account/email_confirm.html:10
+msgid "Confirm E-mail Address"
+msgstr "Email-Adresse bestätigen"
+
+#: mtgcube/templates/account/email_confirm.html:16
+#, python-format
+msgid ""
+"Please confirm that <a href=\"mailto:%(email)s\">%(email)s</a> is an e-mail "
+"address for user %(user_display)s."
+msgstr ""
+"Bitte bestätige, dass <a href=\"mailto:%(email)s\">%(email)s</a> eine Email-"
+"Adressefür das Nutzerkonto %(user_display)s ist."
+
+#: mtgcube/templates/account/email_confirm.html:20
+msgid "Confirm"
+msgstr "Bestätigen"
+
+#: mtgcube/templates/account/email_confirm.html:27
+#, python-format
+msgid ""
+"This e-mail confirmation link expired or is invalid. Please <a "
+"href=\"%(email_url)s\">issue a new e-mail confirmation request</a>."
+msgstr ""
+
+#: mtgcube/templates/account/login.html:7
+#: mtgcube/templates/account/login.html:11
+#: mtgcube/templates/account/login.html:51 mtgcube/templates/base.html:50
+msgid "Sign In"
+msgstr "Anmelden"
+
+#: mtgcube/templates/account/login.html:16
+msgid ""
+"Please sign in with one\n"
+"of your existing third party accounts: "
+msgstr ""
+"Bitte melde dich mit einem\n"
+"deiner Third-Party-Benutzerkonten an: "
+
+#: mtgcube/templates/account/login.html:32
+#, python-format
+msgid ""
+"Or, <a href=\"%(signup_url)s\">sign up</a>\n"
+"for a %(site_name)s account and sign in below:"
+msgstr ""
+"Oder <a href=\"%(signup_url)s\">erstelle</a> dir\n"
+"ein %(site_name)s-Benutzerkonto und melde dich unten an:"
+
+#: mtgcube/templates/account/login.html:40
+#, python-format
+msgid ""
+"If you have not created an account yet, then please\n"
+"<a href=\"%(signup_url)s\">sign up</a> first."
+msgstr ""
+"Falls du noch kein Benutzerkonto hast,\n"
+"<a href=\"%(signup_url)s\">registriere</a> dich bitte zuerst."
+
+#: mtgcube/templates/account/login.html:50
+msgid "Forgot Password?"
+msgstr "Passwort vergessen?"
+
+#: mtgcube/templates/account/logout.html:5
+#: mtgcube/templates/account/logout.html:8
+#: mtgcube/templates/account/logout.html:17 mtgcube/templates/base.html:41
+msgid "Sign Out"
+msgstr "Abmelden"
+
+#: mtgcube/templates/account/logout.html:10
+msgid "Are you sure you want to sign out?"
+msgstr "Bist du dir sicher, dass du dich abmelden möchtest?"
+
+#: mtgcube/templates/account/password_change.html:6
+#: mtgcube/templates/account/password_change.html:9
+#: mtgcube/templates/account/password_change.html:14
+#: mtgcube/templates/account/password_reset_from_key.html:5
+#: mtgcube/templates/account/password_reset_from_key.html:8
+#: mtgcube/templates/account/password_reset_from_key_done.html:4
+#: mtgcube/templates/account/password_reset_from_key_done.html:7
+msgid "Change Password"
+msgstr "Passwort ändern"
+
+#: mtgcube/templates/account/password_reset.html:7
+#: mtgcube/templates/account/password_reset.html:11
+#: mtgcube/templates/account/password_reset_done.html:6
+#: mtgcube/templates/account/password_reset_done.html:9
+msgid "Password Reset"
+msgstr "Passwort zurücksetzen"
+
+#: mtgcube/templates/account/password_reset.html:16
+msgid ""
+"Forgotten your password? Enter your e-mail address below, and we'll send you "
+"an e-mail allowing you to reset it."
+msgstr ""
+"Hast du dein Passwort vergessen? Gib unten deine Email-Adresse ein und wir "
+"senden dir eine Email zum Zurücksetzen deines Passworts zu."
+
+#: mtgcube/templates/account/password_reset.html:21
+msgid "Reset My Password"
+msgstr "Mein Passwort zurücksetzen"
+
+#: mtgcube/templates/account/password_reset.html:24
+msgid "Please contact us if you have any trouble resetting your password."
+msgstr ""
+"Solltest du Probleme dabei haben, dein Passwort zurückzusetzen, kontaktiere "
+"uns bitte."
+
+#: mtgcube/templates/account/password_reset_done.html:15
+msgid ""
+"We have sent you an e-mail. Please contact us if you do not receive it "
+"within a few minutes."
+msgstr ""
+"Wir haben dir eine Email gesendet. Bitte kontaktiere uns, wenn du sie nicht "
+"innerhalb der nächsten paar Minuten erhalten hast."
+
+#: mtgcube/templates/account/password_reset_from_key.html:8
+msgid "Bad Token"
+msgstr "Bad Token"
+
+#: mtgcube/templates/account/password_reset_from_key.html:12
+#, python-format
+msgid ""
+"The password reset link was invalid, possibly because it has already been "
+"used.  Please request a <a href=\"%(passwd_reset_url)s\">new password reset</"
+"a>."
+msgstr ""
+
+#: mtgcube/templates/account/password_reset_from_key.html:18
+msgid "change password"
+msgstr "Passwort ändern"
+
+#: mtgcube/templates/account/password_reset_from_key.html:21
+#: mtgcube/templates/account/password_reset_from_key_done.html:8
+msgid "Your password is now changed."
+msgstr "Dein Passwort ist nun geändert."
+
+#: mtgcube/templates/account/password_set.html:6
+#: mtgcube/templates/account/password_set.html:9
+#: mtgcube/templates/account/password_set.html:14
+msgid "Set Password"
+msgstr "Passwort festlegen"
+
+#: mtgcube/templates/account/signup.html:6
+msgid "Signup"
+msgstr "Registrierung"
+
+#: mtgcube/templates/account/signup.html:9
+#: mtgcube/templates/account/signup.html:19 mtgcube/templates/base.html:46
+msgid "Sign Up"
+msgstr "Registrierung"
+
+#: mtgcube/templates/account/signup.html:11
+#, python-format
+msgid ""
+"Already have an account? Then please <a href=\"%(login_url)s\">sign in</a>."
+msgstr ""
+
+#: mtgcube/templates/account/signup_closed.html:5
+#: mtgcube/templates/account/signup_closed.html:8
+msgid "Sign Up Closed"
+msgstr ""
+
+#: mtgcube/templates/account/signup_closed.html:10
+msgid "We are sorry, but the sign up is currently closed."
+msgstr ""
+
+#: mtgcube/templates/account/verification_sent.html:5
+#: mtgcube/templates/account/verification_sent.html:8
+#: mtgcube/templates/account/verified_email_required.html:5
+#: mtgcube/templates/account/verified_email_required.html:8
+msgid "Verify Your E-mail Address"
+msgstr ""
+
+#: mtgcube/templates/account/verification_sent.html:10
+msgid ""
+"We have sent an e-mail to you for verification. Follow the link provided to "
+"finalize the signup process. Please contact us if you do not receive it "
+"within a few minutes."
+msgstr ""
+
+#: mtgcube/templates/account/verified_email_required.html:12
+msgid ""
+"This part of the site requires us to verify that\n"
+"you are who you claim to be. For this purpose, we require that you\n"
+"verify ownership of your e-mail address. "
+msgstr ""
+
+#: mtgcube/templates/account/verified_email_required.html:16
+msgid ""
+"We have sent an e-mail to you for\n"
+"verification. Please click on the link inside this e-mail. Please\n"
+"contact us if you do not receive it within a few minutes."
+msgstr ""
+"Wir haben dir eine Verifizierungs-Email gesendet.Bitte klicke auf den Link "
+"in dieser Email. Solltest du die Email nichterhalten, kontaktiere uns bitte."
+
+#: mtgcube/templates/account/verified_email_required.html:20
+#, python-format
+msgid ""
+"<strong>Note:</strong> you can still <a href=\"%(email_url)s\">change your e-"
+"mail address</a>."
+msgstr ""
+"<strong>Anmerkung:</strong> du kannst trotzdem <a "
+"href=\"%(email_url)s\">deineEmail-Adresse ändern</a>."
+
+#: mtgcube/templates/base.html:33
+#: mtgcube/templates/tournaments/event_dashboard.html:185
+msgid "Event Dashboard"
+msgstr "Turnier-Dashboard"
+
+#: mtgcube/templates/base.html:37
+msgid "My Profile"
+msgstr "Mein Profil"
+
+#: mtgcube/templates/pages/home.html:7
+msgid "Welcome to the tournament vault"
+msgstr "Willkommen im Vault"
+
+#: mtgcube/templates/pages/home.html:12
+#, python-format
+msgid ""
+"\n"
+"            Once you are signed up for an event, you can take a look at "
+"your\n"
+"            <a href=\"%(url)s\">\n"
+"                event dashboard</a>.\n"
+"            "
+msgstr ""
+"\n"
+"            Sobald du für ein Turnier angemeldet bist, kannst du dein\n"
+"            <a href=\"%(url)s\">\n"
+"                Event-Dashboard</a> anschauen.\n"
+"            "
+
+#: mtgcube/templates/pages/home.html:21
+#, python-format
+msgid ""
+"\n"
+"            To access the vault, please <a href=\"%(url)s\">sign in</a>.\n"
+"        "
+msgstr ""
+"\n"
+"            <a href=\"%(url)s\">Melde dich an</a>, um Zugang zum Vault zu "
+"erhalten.\n"
+"        "
+
+#: mtgcube/templates/tournaments/checkin.html:17
+msgid "Check-in: Deck image upload"
+msgstr "Check-in: Deckfoto hochladen"
+
+#: mtgcube/templates/tournaments/checkin.html:20
+msgid ""
+"For check-in, please upload at least one image with your entire deck and one "
+"with your entire pool. All cards need to be clearly visible."
+msgstr ""
+"Um einzuchecken, lade bitte mindestens ein Bild hoch. Auf dem Bild müssen "
+"alle Karten gut sichtbar sein, die du gedraftet hast."
+
+#: mtgcube/templates/tournaments/checkin.html:25
+msgid "Upload"
+msgstr "Hochladen"
+
+#: mtgcube/templates/tournaments/checkin.html:28
+msgid "Uploading, please wait"
+msgstr "Lädt hoch, bitte warten"
+
+#: mtgcube/templates/tournaments/checkout.html:17
+msgid "Check-out"
+msgstr "Check-out"
+
+#: mtgcube/templates/tournaments/checkout.html:17
+#, fuzzy
+#| msgid "Check-in: Deck image upload"
+msgid "Deck image upload"
+msgstr "Check-in: Deckfoto hochladen"
+
+#: mtgcube/templates/tournaments/current_draft.html:3
+#: mtgcube/templates/tournaments/current_draft.html:35
+#: mtgcube/templates/tournaments/event_dashboard.html:48
+msgid "My current draft"
+msgstr "Mein aktueller Draft"
+
+#: mtgcube/templates/tournaments/current_draft.html:33
+msgid "in round"
+msgstr "in Runde"
+
+#: mtgcube/templates/tournaments/current_draft.html:93
+msgid "You are not yet checked in"
+msgstr "Du hast noch nicht eingecheckt"
+
+#: mtgcube/templates/tournaments/current_draft.html:94
+#, fuzzy, python-format
+#| msgid ""
+#| "\n"
+#| "                            Please <a href=\"%(url)s\">upload your pool</"
+#| "a> once you have finished drafting\n"
+#| "                        "
+msgid ""
+"\n"
+"                            Please <a href=\"%(url)s\">upload your pool</a> "
+"once you have finished drafting.</h5>\n"
+"                        "
+msgstr ""
+"\n"
+"                            Bitte <a href=\"%(url)s\">lade</a> deinen Pool "
+"hoch, sobald du dein Deck fertig gebaut hast.</h5>\n"
+"                        "
+
+#: mtgcube/templates/tournaments/current_draft.html:103
+msgid "You are checked in and good to go"
+msgstr "Du hast erfolgreich eingecheckt!"
+
+#: mtgcube/templates/tournaments/current_draft.html:104
+#: mtgcube/templates/tournaments/current_draft.html:111
+msgid "My pool"
+msgstr "Mein Pool"
+
+#: mtgcube/templates/tournaments/current_draft.html:110
+msgid "You have checked out and are good to go!"
+msgstr "Du hast erfolgreich ausgecheckt!"
+
+#: mtgcube/templates/tournaments/current_draft.html:119
+#, python-format
+msgid ""
+"\n"
+"                            To check out, please <a href=\"%(url)s\">upload "
+"your pool</a> after you have finished all your matches\n"
+"                            "
+msgstr ""
+"\n"
+"                            Um auszuchecken, <a href=\"%(url)s\">lade</a> "
+"bitte deinen Pool hoch, sobald du dein letztes Match beendet hast\n"
+"                            "
+
+#: mtgcube/templates/tournaments/current_draft.html:137
+msgid "Pairings will be revealed once you have checked in your pool"
+msgstr ""
+"Die Matches werden angezeigt, sobald du den Check-in abgeschlossen hast"
+
+#: mtgcube/templates/tournaments/current_draft.html:140
+msgid "Table"
+msgstr "Tisch"
+
+#: mtgcube/templates/tournaments/current_draft.html:148
+msgid "Other pairings"
+msgstr "Andere Matches"
+
+#: mtgcube/templates/tournaments/current_draft.html:157
+msgid "Waiting for seatings"
+msgstr "Warten auf Seatings"
+
+#: mtgcube/templates/tournaments/current_draft.html:179
+msgid "Your pairing will be revealed once you have checked in your pool"
+msgstr ""
+"Dein:e Gegner:in wird dir angezeigt, sobald du den Check-in abgeschlossen "
+"hast"
+
+#: mtgcube/templates/tournaments/current_draft.html:183
+#: mtgcube/templates/tournaments/event_dashboard.html:114
+msgid "You have the bye this round"
+msgstr "Du hast diese Runden einen Bye"
+
+#: mtgcube/templates/tournaments/current_draft.html:190
+#: mtgcube/templates/tournaments/current_draft.html:344
+#: mtgcube/templates/tournaments/current_draft.html:350
+msgid "wins"
+msgstr "gewinnt"
+
+#: mtgcube/templates/tournaments/current_draft.html:193
+msgid "My opponent at table"
+msgstr "Mein:e Gegner:in an Tisch"
+
+#: mtgcube/templates/tournaments/current_draft.html:197
+#, fuzzy
+#| msgid "Submit Result"
+msgid "Result"
+msgstr "Ergebnis"
+
+#: mtgcube/templates/tournaments/current_draft.html:229
+#, fuzzy
+#| msgid "Waiting for seatings"
+msgid "Waiting for standings"
+msgstr "Warten auf Standings"
+
+#: mtgcube/templates/tournaments/current_draft.html:242
+msgid "Draft standings after round"
+msgstr "Draft-Standings nach Runde"
+
+#: mtgcube/templates/tournaments/current_draft.html:344
+msgid "Match result"
+msgstr "Ergebnis"
+
+#: mtgcube/templates/tournaments/current_draft.html:356
+msgid "Submit Result"
+msgstr "Ergebnis hochladen"
+
+#: mtgcube/templates/tournaments/current_draft.html:358
+#, fuzzy
+#| msgid "Confirm"
+msgid "Confirm result"
+msgstr "Ergebnis bestätigen"
+
+#: mtgcube/templates/tournaments/event_dashboard.html:19
+#, fuzzy
+#| msgid "You have checked out and are good to go!"
+msgid "Your registration is finished - you are good to go"
+msgstr "Du hast erfolgreich ausgecheckt!"
+
+#: mtgcube/templates/tournaments/event_dashboard.html:52
+msgid "Cube list"
+msgstr "Cube-Liste"
+
+#: mtgcube/templates/tournaments/event_dashboard.html:84
+#, fuzzy
+#| msgid "Draft standings after round"
+msgid "Overall event standings after round"
+msgstr "Draft-Standings nach Runde"
+
+#: mtgcube/templates/tournaments/event_dashboard.html:117
+#, fuzzy
+#| msgid "My current draft"
+msgid "My current match in round"
+msgstr "Mein aktuelles Match in Runde"
+
+#: mtgcube/templates/tournaments/event_dashboard.html:118
+msgid "Playing vs"
+msgstr "gegen"
+
+#: mtgcube/templates/tournaments/event_dashboard.html:118
+#, fuzzy
+#| msgid "Table"
+msgid "at table"
+msgstr "an Tisch"
+
+#: mtgcube/templates/tournaments/event_dashboard.html:137
+#, fuzzy
+#| msgid "My current draft"
+msgid "My next draft"
+msgstr "Mein nächster Draft"
+
+#: mtgcube/templates/tournaments/event_dashboard.html:155
+msgid "Event announcement"
+msgstr "Turnier-Benachrichtigung"
+
+#: mtgcube/templates/tournaments/my_pool_checkin.html:3
+#: mtgcube/templates/tournaments/my_pool_checkin.html:8
+msgid "My check-in pool & decklist submissions"
+msgstr "Mein Deck- & Pool-Checkin"
+
+#: mtgcube/templates/tournaments/my_pool_checkin.html:11
+msgid "Upload deck images"
+msgstr "Deckfoto hochladen"
+
+#: mtgcube/templates/tournaments/my_pool_checkin.html:17
+#: mtgcube/templates/tournaments/my_pool_checkout.html:14
+msgid "Delete"
+msgstr "Löschen"
+
+#: mtgcube/templates/tournaments/my_pool_checkin.html:18
+#: mtgcube/templates/tournaments/my_pool_checkout.html:15
+#: mtgcube/templates/tournaments/replace_image.html:7
+msgid "Replace"
+msgstr "Ersetzen"
+
+#: mtgcube/templates/tournaments/my_pool_checkout.html:3
+#: mtgcube/templates/tournaments/my_pool_checkout.html:7
+#, fuzzy
+#| msgid "My check-in pool & decklist submissions"
+msgid "My check-out pool & decklist submissions"
+msgstr "Mein Deck- & Pool-Checkout"
+
+#: mtgcube/templates/users/user_detail.html:8
+msgid "My Profile Settings"
+msgstr "Meine Kontoeinstellungen"
+
+#: mtgcube/templates/users/user_detail.html:12
+msgid "My Information"
+msgstr "Meine Daten"
+
+#: mtgcube/templates/users/user_detail.html:13
+msgid "E-Mail Settings"
+msgstr "Email-Einstellungen"
+
+#: mtgcube/tournaments/forms.py:9
+msgid "Image"
+msgstr "Foto"
+
+#: mtgcube/tournaments/models.py:137
+#, fuzzy
+#| msgid "Waiting for seatings"
+msgid "(awaiting confirmation)"
+msgstr "(Bestätigung ausstehend)"
+
+#: mtgcube/tournaments/models.py:139
+#, fuzzy
+#| msgid "Confirm"
+msgid "(confirmed)"
+msgstr "(bestätigt)"
+
+#: mtgcube/tournaments/views/player_data_views.py:143
+msgid "Pairings will be shown here after the draft has finished."
+msgstr "Hier werden alle Matches angezeigt, sobald der Draft beendet ist."
+
+#: mtgcube/users/admin.py:18
+msgid "Personal info"
+msgstr "Persönliche Daten"
+
+#: mtgcube/users/admin.py:20
+msgid "Permissions"
+msgstr "Berechtigungen"
+
+#: mtgcube/users/admin.py:31
+msgid "Important dates"
+msgstr "Wichtige Daten"
+
+#: mtgcube/users/apps.py:7
+msgid "Users"
+msgstr "Nutzer"
+
+#: mtgcube/users/forms.py:20
+msgid "This username has already been taken."
+msgstr "Dieser Nutzername ist bereits vergeben"
+
+#: mtgcube/users/forms.py:30
+msgid "The name you want other players to see"
+msgstr "Ein Name, den andere Spieler:innen sehen können"
+
+#: mtgcube/users/forms.py:36
+msgid "My Pronouns"
+msgstr "Meine Pronomen"
+
+#: mtgcube/users/forms.py:39
+msgid "Neither/don't want to say"
+msgstr "Weder noch/keine Angabe"
+
+#: mtgcube/users/models.py:10
+msgid "Display Name"
+msgstr "Anzeigename"
+
+#: mtgcube/users/views.py:28
+msgid "Information successfully updated"
+msgstr "Information erfolgreich angepasst"
+
+#~ msgid "Pending"
+#~ msgstr "Ausstehend"

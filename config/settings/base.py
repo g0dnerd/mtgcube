@@ -1,6 +1,7 @@
 """
 Base settings to build other settings files upon.
 """
+# from django.utils.translation import ugettext_lazy as _
 from pathlib import Path
 
 import environ
@@ -37,6 +38,11 @@ USE_L10N = True
 USE_TZ = True
 # https://docs.djangoproject.com/en/dev/ref/settings/#locale-paths
 LOCALE_PATHS = [str(ROOT_DIR / "locale")]
+
+LANGUAGES = (
+    ('en', ('English')),
+    ('de', ('German')),
+)
 
 # DATABASES
 # ------------------------------------------------------------------------------

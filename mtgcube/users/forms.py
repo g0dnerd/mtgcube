@@ -27,15 +27,16 @@ class CustomSignupForm(SignupForm):
         required=True,
         widget=d_forms.TextInput(attrs={
             'max_length': 255,
-            'placeholder': 'The name you want other players to see',
+            'placeholder': _('The name you want other players to see'),
         }),
     )
 
     pronouns = d_forms.CharField(
         required=True,
+        label = _("My Pronouns"),
         widget=d_forms.Select(
             choices=[
-                ("n", "Neither/don't want to say"),
+                ("n", _("Neither/don't want to say")),
                 ("m", "he/him"),
                 ("f", "she/her"),
                 ("x", "they/them"),
