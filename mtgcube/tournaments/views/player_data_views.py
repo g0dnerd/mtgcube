@@ -1,7 +1,5 @@
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.core.cache import cache
 from django.core.files.storage import default_storage
 from django.http import JsonResponse
 from django.db.models import Q
@@ -10,128 +8,83 @@ import json
 from django.utils.translation import gettext as _
 
 from ..forms import ImageForm
+from . import data_cache as cache
 from .. import services
-from ..models import (
-    Draft,
-    Enrollment,
-    Game,
-    Player,
-    Round,
-    Tournament,
-    Image,
-)
+from ..models import Game, Player, Round, Image
 
 from django.views import View
 
 
-class PlayerDraftInfoView(LoginRequiredMixin, View):
+PRONOUN_CHOICES = {"x": "(they/them)", "m": "(he/him)", "f": "(she/her)"}
+
+
+class PlayerBasicInfoView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         user = request.user
-        player = cache.get(f"player_{user.id}")
-        if not player:
-            try:
-                player = Player.objects.get(user=user)
-                cache.set(
-                    f"player_{user.id}", player, 60
-                )  # Cache player object for 1 minute
-            except Player.DoesNotExist:
-                return JsonResponse(
-                    {"error": "No player found for current user"}, status=404
-                )
 
-        enrollments = cache.get(f"enrollments_{player.id}")
-        if not enrollments:
-            enrollments = Enrollment.objects.filter(player=player).select_related(
-                "tournament"
+        try:
+            player = cache.player(user)
+            enrollments = cache.all_enrollments(player, user.id)
+            current_enroll = cache.current_enrollment(
+                enrollments, user.id, force_update=True
             )
-            cache.set(
-                f"enrollments_{user.id}", enrollments, 300
-            )  # Cache draft object for 5 minutes
+        except ValueError as e:
+            return JsonResponse({"error": str(e)}, status=400)
 
-        current_enroll = cache.get(f"current_enroll_{player.id}")
-        if not current_enroll:
-            current_enroll = enrollments.order_by("-enrolled_on").first()
-            cache.set(
-                f"current_enroll_{player.id}", current_enroll, 300
-            )  # Cache enrollments for 5 minute
+        player_json = {
+            "name": user.name if user.name else user.username,
+            "tournament_name": str(current_enroll.tournament),
+            "score": current_enroll.score,
+            "signup_status": current_enroll.registration_finished,
+            "checked_in": current_enroll.checked_in,
+            "checked_out": current_enroll.checked_out,
+        }
 
-        current_draft = cache.get(f"draft_{player.id}")
-        if not current_draft:
-            current_draft = (
-                Draft.objects.filter(
-                    ~Q(finished=True), enrollments__in=[current_enroll]
-                )
-                .order_by("phase__phase_idx")
-                .first()
-            )
-            cache.set(
-                f"draft_{user.id}", current_draft, 120
-            )  # Cache draft object for 2 minutes
+        return JsonResponse(player_json)
 
-        if not current_draft:
-            return JsonResponse({"error": "No active draft for current user"})
+
+class PlayerDraftInfoView(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        # Get user info from cache
+        user = request.user
+        try:
+            player = cache.player(user)
+            enrollments = cache.all_enrollments(player, user.id)
+            current_enroll = cache.current_enrollment(enrollments, user.id)
+            current_draft = cache.current_draft(current_enroll, user.id)
+        except ValueError as e:
+            return JsonResponse({"error": str(e)}, status=400)
 
         current_round = (
             Round.objects.filter(draft=current_draft).order_by("-round_idx").first()
         )
-
-        cridx = current_round.round_idx if current_round else 0
+        current_round_idx = current_round.round_idx if current_round else 0
 
         draft_json = {
             "id": current_draft.id,
-            "current_round": str(cridx),
+            "current_round": str(current_round_idx),
             "cube_name": current_draft.cube.name,
             "cube_url": current_draft.cube.url,
             "finished": current_draft.finished,
         }
 
-        return JsonResponse({"draft": draft_json})
+        return JsonResponse(draft_json)
 
 
 class PlayerMatchInfoView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         user = request.user
-        player = cache.get(f"player_{user.id}")
-        if not player:
-            try:
-                player = Player.objects.get(user=user)
-                cache.set(
-                    f"player_{user.id}", player, 300
-                )  # Cache player object for 5 minutes
-            except Player.DoesNotExist:
-                return JsonResponse(
-                    {"error": "No player found for current user"}, status=404
-                )
 
-        enrollments = cache.get(f"enrollments_{player.id}")
-        if not enrollments:
-            enrollments = Enrollment.objects.filter(player=player)
-            cache.set(
-                f"enrollments_{user.id}", enrollments, 300
-            )  # Cache draft object for 5 minutes
-
-        current_enroll = cache.get(f"current_enroll_{player.id}")
-        if not current_enroll:
-            current_enroll = enrollments.order_by("-enrolled_on").first()
-            cache.set(
-                f"current_enroll_{player.id}", current_enroll, 300
-            )  # Cache enrollments for 3 minutes
-
-        if current_enroll.bye_this_round:
-            return JsonResponse({"match": {"bye": True}}, status=200)
-
-        current_draft = cache.get(f"draft_{player.id}")
-        if not current_draft:
-            current_draft = (
-                Draft.objects.filter(
-                    ~Q(finished=True), enrollments__in=[current_enroll]
-                )
-                .order_by("phase__phase_idx")
-                .first()
-            )
-            cache.set(
-                f"draft_{user.id}", current_draft, 120
-            )  # Cache draft object for 2 minutes
+        try:
+            player = cache.player(user)
+            enrollments = cache.all_enrollments(player, user.id)
+            current_enroll = cache.current_enrollment(enrollments, user.id)
+            if current_enroll.bye_this_round:
+                return JsonResponse({"match": {"bye": True}}, status=200)
+            current_draft = cache.current_draft(current_enroll, user.id)
+        except ValueError as e:
+            print(e)
+            return JsonResponse({"error": str(e)}, status=400)
 
         current_round = (
             Round.objects.filter(draft=current_draft).order_by("-round_idx").first()
@@ -160,28 +113,31 @@ class PlayerMatchInfoView(LoginRequiredMixin, View):
             )
 
         player_role = 1
+        opponent = current_match.player2
         if current_match.player2 == current_enroll:
             player_role = 2
             opponent = current_match.player1
-        else:
-            opponent = current_match.player2
 
-        pronoun_choices = {"x": "(they/them)", "m": "(he/him)", "f": "(she/her)"}
         opp_pronouns = (
-            pronoun_choices[opponent.player.user.pronouns]
+            PRONOUN_CHOICES[opponent.player.user.pronouns]
             if opponent.player.user.pronouns
             else ""
         )
 
+        # Format the game result to the POV of the current user
         winner = False
-        if current_match.player2_wins > current_match.player1_wins:
-            winner = current_match.player2.player.user.name
-            current_match.result = f'{current_match.player2_wins}-{current_match.player1_wins}'
-            current_match.save()
-        elif current_match.player1_wins > current_match.player2_wins:
-            winner = current_match.player1.player.user.name
+        if current_match.result_reported_by:
+            if current_match.player2_wins > current_match.player1_wins:
+                winner = current_match.player2.player.user.name
+                current_match.result = (
+                    f"{current_match.player2_wins}-{current_match.player1_wins}"
+                )
+                current_match.save()
+            elif current_match.player1_wins > current_match.player2_wins:
+                winner = current_match.player1.player.user.name
 
         match_json = {
+            "name": current_enroll.player.user.name,
             "id": current_match.id,
             "table": current_match.table,
             "player1": current_match.player1.player.user.name,
@@ -195,100 +151,21 @@ class PlayerMatchInfoView(LoginRequiredMixin, View):
             "player_role": player_role,
             "winner": winner,
         }
-        player_json = {
-            "name": current_enroll.player.user.name,
-        }
 
-        return JsonResponse({"match": match_json, "player": player_json})
-
-
-class PlayerBasicInfoView(LoginRequiredMixin, View):
-    def get(self, request, *args, **kwargs):
-        user = request.user
-        player = cache.get(f"player_{user.id}")
-        if not player:
-            try:
-                player = Player.objects.get(user=user)
-                cache.set(
-                    f"player_{user.id}", player, 300
-                )  # Cache player object for 5 minutes
-            except Player.DoesNotExist:
-                return JsonResponse(
-                    {"error": "No player found for current user"}, status=404
-                )
-
-        enrollments = cache.get(f"enrollments_{player.id}")
-        if not enrollments:
-            enrollments = Enrollment.objects.filter(player=player)
-            cache.set(
-                f"enrollments_{user.id}", enrollments, 300
-            )  # Cache draft object for 5 minutes
-
-        current_enroll = enrollments.order_by("-enrolled_on").first()
-        cache.set(
-            f"current_enroll_{player.id}", current_enroll, 300
-        )  # Cache enrollments for 5 minutes
-
-        player_json = {
-            "name": player.user.name if player.user.name else player.user.username,
-            "tournament_name": str(current_enroll.tournament),
-            "tournament_start": current_enroll.tournament.start_datetime.strftime(
-                "%d.%m.%y %H:%M"
-            ),
-            "tournament_end": current_enroll.tournament.start_datetime.strftime(
-                "%d.%m.%y %H:%M"
-            ),
-            "tournament_location": current_enroll.tournament.location,
-            "score": current_enroll.score,
-            "signup_status": current_enroll.registration_finished,
-            "checked_in": current_enroll.checked_in,
-            "checked_out": current_enroll.checked_out,
-        }
-
-        return JsonResponse({"player": player_json})
+        return JsonResponse(match_json)
 
 
 class PlayerOtherPairingsInfoView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         user = request.user
-        player = cache.get(f"player_{user.id}")
-        if not player:
-            try:
-                player = Player.objects.get(user=user)
-                cache.set(
-                    f"player_{user.id}", player, 300
-                )  # Cache player object for 5 minutes
-            except Player.DoesNotExist:
-                return JsonResponse(
-                    {"error": "No player found for current user"}, status=404
-                )
 
-        enrollments = cache.get(f"enrollments_{player.id}")
-        if not enrollments:
-            enrollments = Enrollment.objects.filter(player=player)
-            cache.set(
-                f"enrollments_{user.id}", enrollments, 300
-            )  # Cache draft object for 5 minutes
-
-        current_enroll = cache.get(f"current_enroll_{player.id}")
-        if not current_enroll:
-            current_enroll = enrollments.order_by("-enrolled_on").first()
-            cache.set(
-                f"current_enroll_{player.id}", current_enroll, 300
-            )  # Cache enrollments for 3 minutes
-
-        current_draft = cache.get(f"draft_{player.id}")
-        if not current_draft:
-            current_draft = (
-                Draft.objects.filter(
-                    ~Q(finished=True), enrollments__in=[current_enroll]
-                )
-                .order_by("phase__phase_idx")
-                .first()
-            )
-            cache.set(
-                f"draft_{user.id}", current_draft, 120
-            )  # Cache draft object for 2 minutes
+        try:
+            player = cache.player(user)
+            enrollments = cache.all_enrollments(player, user.id)
+            current_enroll = cache.current_enrollment(enrollments, user.id)
+            current_draft = cache.current_draft(current_enroll, user.id)
+        except ValueError as e:
+            return JsonResponse({"error": str(e)}, status=400)
 
         current_round = (
             Round.objects.filter(draft=current_draft).order_by("-round_idx").first()
@@ -298,34 +175,25 @@ class PlayerOtherPairingsInfoView(LoginRequiredMixin, View):
             return JsonResponse({"error": "Round has not yet been paired."}, status=200)
 
         try:
-            non_player_games = Game.objects.filter(
-                ~(Q(player1=current_enroll) | Q(player2=current_enroll)),
-                round=current_round,
-            ).order_by("table")
-            other_pairings = [
-                {
-                    "id": game.id,
-                    "table": game.table,
-                    "player1": game.player1.player.user.name,
-                    "player2": game.player2.player.user.name,
-                    "result": game.result,
-                    "player1_wins": game.player1_wins,
-                    "player2_wins": game.player2_wins,
-                }
-                for game in non_player_games
-            ]
-
-            try:
-                bye_this_round = current_draft.enrollments.get(bye_this_round=True)
-                if bye_this_round == current_enroll:
-                    bye_this_round = False
-                else:
-                    bye_this_round = bye_this_round.player.user.name
-            except Enrollment.DoesNotExist:
-                bye_this_round = False
-
-        except Game.DoesNotExist:
+            non_player_games = cache.non_player_games(
+                current_enroll, current_round, user.id
+            )
+        except ValueError:
             return JsonResponse({"error": "No pairings yet."}, status=200)
+        other_pairings = [
+            {
+                "id": game.id,
+                "table": game.table,
+                "player1": game.player1.player.user.name,
+                "player2": game.player2.player.user.name,
+                "result": game.result,
+                "player1_wins": game.player1_wins,
+                "player2_wins": game.player2_wins,
+            }
+            for game in non_player_games
+        ]
+
+        bye_this_round = cache.bye_this_round(current_draft, user.id)
 
         return JsonResponse({"other_pairings": other_pairings, "bye": bye_this_round})
 
@@ -333,44 +201,14 @@ class PlayerOtherPairingsInfoView(LoginRequiredMixin, View):
 class PlayerSeatingsView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         user = request.user
-        player = cache.get(f"player_{user.id}")
-        if not player:
-            try:
-                player = Player.objects.get(user=user)
-                cache.set(
-                    f"player_{user.id}", player, 300
-                )  # Cache player object for 5 minutes
-            except Player.DoesNotExist:
-                return JsonResponse(
-                    {"error": "No player found for current user"}, status=404
-                )
 
-        enrollments = cache.get(f"enrollments_{player.id}")
-        if not enrollments:
-            enrollments = Enrollment.objects.filter(player=player)
-            cache.set(
-                f"enrollments_{user.id}", enrollments, 300
-            )  # Cache draft object for 5 minutes
-
-        current_enroll = cache.get(f"current_enroll_{player.id}")
-        if not current_enroll:
-            current_enroll = enrollments.order_by("-enrolled_on").first()
-            cache.set(
-                f"current_enroll_{player.id}", current_enroll, 300
-            )  # Cache enrollments for 3 minutes
-
-        current_draft = cache.get(f"draft_{player.id}")
-        if not current_draft:
-            current_draft = (
-                Draft.objects.filter(
-                    ~Q(finished=True), enrollments__in=[current_enroll]
-                )
-                .order_by("phase__phase_idx")
-                .first()
-            )
-            cache.set(
-                f"draft_{user.id}", current_draft, 120
-            )  # Cache draft object for 2 minutes
+        try:
+            player = cache.player(user)
+            enrollments = cache.all_enrollments(player, user.id)
+            current_enroll = cache.current_enrollment(enrollments, user.id)
+            current_draft = cache.current_draft(current_enroll, user.id)
+        except ValueError as e:
+            return JsonResponse({"error": str(e)}, status=400)
 
         if not current_draft.seated:
             return JsonResponse({"error": "Draft has not been seated yet"}, status=200)
@@ -401,44 +239,14 @@ class PlayerSeatingsView(LoginRequiredMixin, View):
 class PlayerStandingsView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         user = request.user
-        player = cache.get(f"player_{user.id}")
-        if not player:
-            try:
-                player = Player.objects.get(user=user)
-                cache.set(
-                    f"player_{user.id}", player, 300
-                )  # Cache player object for 5 minutes
-            except Player.DoesNotExist:
-                return JsonResponse(
-                    {"error": "No player found for current user"}, status=404
-                )
 
-        enrollments = cache.get(f"enrollments_{player.id}")
-        if not enrollments:
-            enrollments = Enrollment.objects.filter(player=player)
-            cache.set(
-                f"enrollments_{user.id}", enrollments, 300
-            )  # Cache draft object for 5 minutes
-
-        current_enroll = cache.get(f"current_enroll_{player.id}")
-        if not current_enroll:
-            current_enroll = enrollments.order_by("-enrolled_on").first()
-            cache.set(
-                f"current_enroll_{player.id}", current_enroll, 300
-            )  # Cache enrollments for 3 minutes
-
-        current_draft = cache.get(f"draft_{player.id}")
-        if not current_draft:
-            current_draft = (
-                Draft.objects.filter(
-                    ~Q(finished=True), enrollments__in=[current_enroll]
-                )
-                .order_by("phase__phase_idx")
-                .first()
-            )
-            cache.set(
-                f"draft_{user.id}", current_draft, 120
-            )  # Cache draft object for 2 minutes
+        try:
+            player = cache.player(user)
+            enrollments = cache.all_enrollments(player, user.id)
+            current_enroll = cache.current_enrollment(enrollments, user.id)
+            current_draft = cache.current_draft(current_enroll, user.id)
+        except ValueError as e:
+            return JsonResponse({"error": str(e)}, status=400)
 
         current_round = (
             Round.objects.filter(draft=current_draft).order_by("-round_idx").first()
@@ -472,44 +280,14 @@ class PlayerStandingsView(LoginRequiredMixin, View):
 class PlayerEventStandingsView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         user = request.user
-        player = cache.get(f"player_{user.id}")
-        if not player:
-            try:
-                player = Player.objects.get(user=user)
-                cache.set(
-                    f"player_{user.id}", player, 300
-                )  # Cache player object for 5 minutes
-            except Player.DoesNotExist:
-                return JsonResponse(
-                    {"error": "No player found for current user"}, status=404
-                )
 
-        enrollments = cache.get(f"enrollments_{player.id}")
-        if not enrollments:
-            enrollments = Enrollment.objects.filter(player=player)
-            cache.set(
-                f"enrollments_{user.id}", enrollments, 300
-            )  # Cache draft object for 5 minutes
-
-        current_enroll = cache.get(f"current_enroll_{player.id}")
-        if not current_enroll:
-            current_enroll = enrollments.order_by("-enrolled_on").first()
-            cache.set(
-                f"current_enroll_{player.id}", current_enroll, 300
-            )  # Cache enrollments for 3 minutes
-
-        current_draft = cache.get(f"draft_{player.id}")
-        if not current_draft:
-            current_draft = (
-                Draft.objects.filter(
-                    ~Q(finished=True), enrollments__in=[current_enroll]
-                )
-                .order_by("phase__phase_idx")
-                .first()
-            )
-            cache.set(
-                f"draft_{user.id}", current_draft, 120
-            )  # Cache draft object for 2 minutes
+        try:
+            player = cache.player(user)
+            enrollments = cache.all_enrollments(player, user.id)
+            current_enroll = cache.current_enrollment(enrollments, user.id)
+            current_draft = cache.current_draft(current_enroll, user.id)
+        except ValueError as e:
+            return JsonResponse({"error": str(e)}, status=400)
 
         current_round = (
             Round.objects.filter(draft=current_draft).order_by("-round_idx").first()
@@ -591,37 +369,15 @@ class ConfirmResultView(LoginRequiredMixin, View):
 
 class AnnouncementView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
-        tournament = cache.get("latest_event")
-        if not tournament:
-            user = request.user
-            player = cache.get(f"player_{user.id}")
-            if not player:
-                try:
-                    player = Player.objects.get(user=user)
-                    cache.set(
-                        f"player_{user.id}", player, 300
-                    )  # Cache player object for 5 minutes
-                except Player.DoesNotExist:
-                    return JsonResponse(
-                        {"error": "No player found for current user"}, status=404
-                    )
+        user = request.user
+        try:
+            player = cache.player(user)
+            enrollments = cache.all_enrollments(player, user.id)
+            current_enroll = cache.current_enrollment(enrollments, user.id)
+        except ValueError as e:
+            return JsonResponse({"error": str(e)}, status=400)
 
-            enrollments = cache.get(f"enrollments_{player.id}")
-            if not enrollments:
-                enrollments = Enrollment.objects.filter(player=player)
-                cache.set(
-                    f"enrollments_{user.id}", enrollments, 300
-                )  # Cache draft object for 5 minutes
-
-            current_enroll = cache.get(f"current_enroll_{player.id}")
-            if not current_enroll:
-                current_enroll = enrollments.order_by("-enrolled_on").first()
-                cache.set(
-                    f"current_enroll_{player.id}", current_enroll, 300
-                )  # Cache enrollments for 3 minutes
-            tournament = current_enroll.tournament
-            cache.set("current_event", tournament, 300)
-
+        tournament = current_enroll.tournament
         if tournament.announcement:
             return JsonResponse({"announcement": tournament.announcement})
         return JsonResponse({"error": "no announcement"})
@@ -630,436 +386,132 @@ class AnnouncementView(LoginRequiredMixin, View):
 class UpcomingDraftView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         user = request.user
-        player = cache.get(f"player_{user.id}")
-        if not player:
-            try:
-                player = Player.objects.get(user=user)
-                cache.set(
-                    f"player_{user.id}", player, 300
-                )  # Cache player object for 5 minutes
-            except Player.DoesNotExist:
-                return JsonResponse(
-                    {"error": "No player found for current user"}, status=404
-                )
-
-        enrollments = cache.get(f"enrollments_{player.id}")
-        if not enrollments:
-            enrollments = Enrollment.objects.filter(player=player)
-            cache.set(
-                f"enrollments_{user.id}", enrollments, 300
-            )  # Cache draft object for 5 minutes
-
-        current_enroll = cache.get(f"current_enroll_{player.id}")
-        if not current_enroll:
-            current_enroll = enrollments.order_by("-enrolled_on").first()
-            cache.set(
-                f"current_enroll_{player.id}", current_enroll, 300
-            )  # Cache enrollments for 3 minutes
-
         try:
-            drafts = Draft.objects.filter(
-                started=False, enrollments__in=[current_enroll]
-            ).order_by("-phase")
-            next_draft = drafts[0]
-        except IndexError:
-            return JsonResponse({"error": "No upcoming draft found."}, status=200)
+            player = cache.player(user)
+            enrollments = cache.all_enrollments(player, user.id)
+            current_enroll = cache.current_enrollment(enrollments, user.id)
+            next_draft = cache.next_draft(current_enroll, user.id)
+        except ValueError as e:
+            return JsonResponse({"error": str(e)}, status=400)
 
         return JsonResponse(
             {
-                "upcoming_draft": {
-                    "id": next_draft.id,
-                    "cube": next_draft.cube.name,
-                    "cube_url": next_draft.cube.url,
-                    "round_number": next_draft.round_number,
-                }
+                "id": next_draft.id,
+                "cube": next_draft.cube.name,
+                "cube_url": next_draft.cube.url,
+                "round_number": next_draft.round_number,
             }
         )
 
 
-@login_required
-def round_status(request, tournament_id, draft_id):
-    user = request.user
-    if not user.is_superuser:
-        return redirect("tournaments:tournament", tournament_id)
-
-    draft = get_object_or_404(Draft, pk=draft_id)
-    round = Round.objects.filter(draft=draft).order_by("-round_idx").first()
-    games = Game.objects.filter(round=round)
-    ongoing = False
-    for game in games:
-        if not game.result_confirmed:
-            ongoing = True
-            break
-
-    return JsonResponse({"ongoing": ongoing, "started": round.started})
-
-
-@login_required
-def checkin(request):
-    if request.method == "POST":
+class CheckinView(LoginRequiredMixin, View):
+    def post(self, request, *args, **kwargs):
         form = ImageForm(request.POST, request.FILES)
         if form.is_valid():
             user = request.user
-            player = cache.get(f"player_{user.id}")
-            if not player:
-                try:
-                    player = Player.objects.get(user=user)
-                    cache.set(
-                        f"player_{user.id}", player, 300
-                    )  # Cache player object for 5 minutes
-                except Player.DoesNotExist:
-                    return JsonResponse(
-                        {"error": "No player found for current user"}, status=404
-                    )
+            try:
+                player = cache.player(user)
+                enrollments = cache.all_enrollments(player, user.id)
+                current_enroll = cache.current_enrollment(enrollments, user.id, force_update=True)
+                current_draft = cache.current_draft(current_enroll, user.id, force_update=True)
+            except ValueError as e:
+                return JsonResponse({"error": str(e)}, status=400)
 
-            enrollments = cache.get(f"enrollments_{player.id}")
-            if not enrollments:
-                enrollments = Enrollment.objects.filter(player=player)
-                cache.set(
-                    f"enrollments_{user.id}", enrollments, 300
-                )  # Cache draft object for 5 minutes
-
-            current_enroll = cache.get(f"current_enroll_{player.id}")
-            if not current_enroll:
-                current_enroll = enrollments.order_by("-enrolled_on").first()
-                cache.set(
-                    f"current_enroll_{player.id}", current_enroll, 300
-                )  # Cache enrollments for 3 minutes
-
-            current_draft = cache.get(f"draft_{player.id}")
-            if not current_draft:
-                current_draft = (
-                    Draft.objects.filter(
-                        ~Q(finished=True), enrollments__in=[current_enroll]
-                    )
-                    .order_by("phase__phase_idx")
-                    .first()
-                )
-                cache.set(
-                    f"draft_{user.id}", current_draft, 120
-                )  # Cache draft object for 2 minutes
-
-            tournament_id = current_enroll.tournament.id
             draft_id = current_draft.id
 
             form.instance.user = request.user
             form.instance.draft_idx = draft_id
             form.save()
-            tournament = get_object_or_404(Tournament, pk=tournament_id)
-            player = Player.objects.get(user=request.user)
-            enrollment = Enrollment.objects.get(tournament=tournament, player=player)
-            enrollment.checked_in = True
-            enrollment.save()
+
+            current_enroll.checked_in = True
+            current_enroll.save()
+
             return redirect("tournaments:my_pool_checkin")
-    else:
+
+    def get(self, request, *args, **kwargs):
         form = ImageForm()
-    return render(
-        request,
-        "tournaments/checkin.html",
-        {"form": form},
-    )
+        return render(
+            request,
+            "tournaments/checkin.html",
+            {"form": form},
+        )
 
 
-@login_required
-def checkout(request):
-    if request.method == "POST":
+class CheckoutView(LoginRequiredMixin, View):
+    def post(self, request, *args, **kwargs):
         form = ImageForm(request.POST, request.FILES)
         if form.is_valid():
             user = request.user
-            player = cache.get(f"player_{user.id}")
-            if not player:
-                try:
-                    player = Player.objects.get(user=user)
-                    cache.set(
-                        f"player_{user.id}", player, 300
-                    )  # Cache player object for 5 minutes
-                except Player.DoesNotExist:
-                    return JsonResponse(
-                        {"error": "No player found for current user"}, status=404
-                    )
 
-            enrollments = cache.get(f"enrollments_{player.id}")
-            if not enrollments:
-                enrollments = Enrollment.objects.filter(player=player)
-                cache.set(
-                    f"enrollments_{user.id}", enrollments, 300
-                )  # Cache draft object for 5 minutes
+            try:
+                player = cache.player(user)
+                enrollments = cache.all_enrollments(player, user.id)
+                current_enroll = cache.current_enrollment(enrollments, user.id)
+                current_draft = cache.current_draft(current_enroll, user.id)
+            except ValueError as e:
+                return JsonResponse({"error": str(e)}, status=400)
 
-            current_enroll = cache.get(f"current_enroll_{player.id}")
-            if not current_enroll:
-                current_enroll = enrollments.order_by("-enrolled_on").first()
-                cache.set(
-                    f"current_enroll_{player.id}", current_enroll, 300
-                )  # Cache enrollments for 3 minutes
-
-            current_draft = cache.get(f"draft_{player.id}")
-            if not current_draft:
-                current_draft = (
-                    Draft.objects.filter(
-                        ~Q(finished=True), enrollments__in=[current_enroll]
-                    )
-                    .order_by("phase__phase_idx")
-                    .first()
-                )
-                cache.set(
-                    f"draft_{user.id}", current_draft, 120
-                )  # Cache draft object for 2 minutes
-
-            tournament_id = current_enroll.tournament.id
-            draft_id = current_draft.id
             form.instance.user = request.user
-            form.instance.draft_idx = draft_id
+            form.instance.draft_idx = current_draft.id
             form.instance.checkin = False
             form.save()
-            tournament = get_object_or_404(Tournament, pk=tournament_id)
-            player = Player.objects.get(user=request.user)
-            enrollment = Enrollment.objects.get(tournament=tournament, player=player)
-            enrollment.checked_out = True
-            enrollment.save()
+
+            current_enroll.checked_out = True
+            current_enroll.save()
             return redirect("tournaments:my_pool_checkout")
-    else:
+
+    def get(self, request, *args, **kwargs):
         form = ImageForm()
-    return render(
-        request,
-        "tournaments/checkin.html",
-        {"form": form},
-    )
-
-
-@login_required
-def delete_image_checkin(request, image_id):
-    image = get_object_or_404(Image, id=image_id, user=request.user)
-    default_storage.delete(image.image.name)
-    image.delete()
-
-    user = request.user
-    player = cache.get(f"player_{user.id}")
-    if not player:
-        try:
-            player = Player.objects.get(user=user)
-            cache.set(
-                f"player_{user.id}", player, 300
-            )  # Cache player object for 5 minutes
-        except Player.DoesNotExist:
-            return JsonResponse(
-                {"error": "No player found for current user"}, status=404
-            )
-
-    enrollments = cache.get(f"enrollments_{player.id}")
-    if not enrollments:
-        enrollments = Enrollment.objects.filter(player=player)
-        cache.set(
-            f"enrollments_{user.id}", enrollments, 300
-        )  # Cache draft object for 5 minutes
-
-    current_enroll = cache.get(f"current_enroll_{player.id}")
-    if not current_enroll:
-        current_enroll = enrollments.order_by("-enrolled_on").first()
-        cache.set(
-            f"current_enroll_{player.id}", current_enroll, 300
-        )  # Cache enrollments for 3 minutes
-
-    current_draft = cache.get(f"draft_{player.id}")
-    if not current_draft:
-        current_draft = (
-            Draft.objects.filter(~Q(finished=True), enrollments__in=[current_enroll])
-            .order_by("phase__phase_idx")
-            .first()
+        return render(
+            request,
+            "tournaments/checkin.html",
+            {"form": form},
         )
-        cache.set(
-            f"draft_{user.id}", current_draft, 120
-        )  # Cache draft object for 2 minutes
-
-    images = Image.objects.filter(draft_idx=current_draft.id, checkin=True)
-    if not images:
-        current_enroll.checked_in = False
-        current_enroll.save()
-
-    return redirect("tournaments:my_pool_checkin")
 
 
-@login_required
-def delete_image_checkout(request, image_id):
-    image = get_object_or_404(Image, id=image_id, user=request.user)
-    default_storage.delete(image.image.name)
-    image.delete()
+class DeleteImageCheckinView(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        image_id = kwargs.get("image_id")
+        image = get_object_or_404(Image, id=image_id, user=request.user)
+        default_storage.delete(image.image.name)
+        image.delete()
 
-    user = request.user
-    player = cache.get(f"player_{user.id}")
-    if not player:
+        user = request.user
         try:
-            player = Player.objects.get(user=user)
-            cache.set(
-                f"player_{user.id}", player, 300
-            )  # Cache player object for 5 minutes
-        except Player.DoesNotExist:
-            return JsonResponse(
-                {"error": "No player found for current user"}, status=404
-            )
+            player = cache.player(user)
+            enrollments = cache.all_enrollments(player, user.id)
+            current_enroll = cache.current_enrollment(enrollments, user.id)
+            current_draft = cache.current_draft(current_enroll, user.id)
+        except ValueError as e:
+            return JsonResponse({"error": str(e)}, status=400)
 
-    enrollments = cache.get(f"enrollments_{player.id}")
-    if not enrollments:
-        enrollments = Enrollment.objects.filter(player=player)
-        cache.set(
-            f"enrollments_{user.id}", enrollments, 300
-        )  # Cache draft object for 5 minutes
+        images = Image.objects.filter(draft_idx=current_draft.id, checkin=True)
+        if not images:
+            current_enroll.checked_in = False
+            current_enroll.save()
 
-    current_enroll = cache.get(f"current_enroll_{player.id}")
-    if not current_enroll:
-        current_enroll = enrollments.order_by("-enrolled_on").first()
-        cache.set(
-            f"current_enroll_{player.id}", current_enroll, 300
-        )  # Cache enrollments for 3 minutes
-
-    current_draft = cache.get(f"draft_{player.id}")
-    if not current_draft:
-        current_draft = (
-            Draft.objects.filter(~Q(finished=True), enrollments__in=[current_enroll])
-            .order_by("phase__phase_idx")
-            .first()
-        )
-        cache.set(
-            f"draft_{user.id}", current_draft, 120
-        )  # Cache draft object for 2 minutes
-
-    images = Image.objects.filter(draft_idx=current_draft.id, checkin=False)
-    if not images:
-        current_enroll.checked_out = False
-        current_enroll.save()
-
-    return redirect("tournaments:my_pool_checkout")
+        return redirect("tournaments:my_pool_checkin")
 
 
-@login_required
-def replace_image_checkin(request, image_id):
-    image = get_object_or_404(Image, id=image_id, user=request.user)
-    if request.method == "POST":
-        form = ImageForm(request.POST, request.FILES)
-        if form.is_valid():
-            user = request.user
-            player = cache.get(f"player_{user.id}")
-            if not player:
-                try:
-                    player = Player.objects.get(user=user)
-                    cache.set(
-                        f"player_{user.id}", player, 300
-                    )  # Cache player object for 5 minutes
-                except Player.DoesNotExist:
-                    return JsonResponse(
-                        {"error": "No player found for current user"}, status=404
-                    )
+class DeleteImageCheckoutView(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        image_id = kwargs.get("image_id")
+        image = get_object_or_404(Image, id=image_id, user=request.user)
+        default_storage.delete(image.image.name)
+        image.delete()
 
-            enrollments = cache.get(f"enrollments_{player.id}")
-            if not enrollments:
-                enrollments = Enrollment.objects.filter(player=player)
-                cache.set(
-                    f"enrollments_{user.id}", enrollments, 300
-                )  # Cache draft object for 5 minutes
+        user = request.user
+        try:
+            player = cache.player(user)
+            enrollments = cache.all_enrollments(player, user.id)
+            current_enroll = cache.current_enrollment(enrollments, user.id)
+            current_draft = cache.current_draft(current_enroll, user.id)
+        except ValueError as e:
+            return JsonResponse({"error": str(e)}, status=400)
 
-            current_enroll = cache.get(f"current_enroll_{player.id}")
-            if not current_enroll:
-                current_enroll = enrollments.order_by("-enrolled_on").first()
-                cache.set(
-                    f"current_enroll_{player.id}", current_enroll, 300
-                )  # Cache enrollments for 3 minutes
+        images = Image.objects.filter(draft_idx=current_draft.id, checkin=False)
+        if not images:
+            current_enroll.checked_out = False
+            current_enroll.save()
 
-            current_draft = cache.get(f"draft_{player.id}")
-            if not current_draft:
-                current_draft = (
-                    Draft.objects.filter(
-                        ~Q(finished=True), enrollments__in=[current_enroll]
-                    )
-                    .order_by("phase__phase_idx")
-                    .first()
-                )
-                cache.set(
-                    f"draft_{user.id}", current_draft, 120
-                )  # Cache draft object for 2 minutes
-
-            draft_id = current_draft.id
-            # Delete the old image
-            default_storage.delete(image.image.name)
-            image.image.delete()
-            # Update with new image
-            image.image = request.FILES["image"]
-            image.draft_idx = draft_id
-            image.save()
-            return redirect("tournaments:my_pool_checkin")
-    else:
-        form = ImageForm()
-    return render(
-        request,
-        "tournaments/replace_image.html",
-        {
-            "form": form,
-            "image": image,
-        },
-    )
-
-
-@login_required
-def replace_image_checkout(request, image_id):
-    image = get_object_or_404(Image, id=image_id, user=request.user)
-    if request.method == "POST":
-        form = ImageForm(request.POST, request.FILES)
-        if form.is_valid():
-            user = request.user
-            player = cache.get(f"player_{user.id}")
-            if not player:
-                try:
-                    player = Player.objects.get(user=user)
-                    cache.set(
-                        f"player_{user.id}", player, 300
-                    )  # Cache player object for 5 minutes
-                except Player.DoesNotExist:
-                    return JsonResponse(
-                        {"error": "No player found for current user"}, status=404
-                    )
-
-            enrollments = cache.get(f"enrollments_{player.id}")
-            if not enrollments:
-                enrollments = Enrollment.objects.filter(player=player)
-                cache.set(
-                    f"enrollments_{user.id}", enrollments, 300
-                )  # Cache draft object for 5 minutes
-
-            current_enroll = cache.get(f"current_enroll_{player.id}")
-            if not current_enroll:
-                current_enroll = enrollments.order_by("-enrolled_on").first()
-                cache.set(
-                    f"current_enroll_{player.id}", current_enroll, 300
-                )  # Cache enrollments for 3 minutes
-
-            current_draft = cache.get(f"draft_{player.id}")
-            if not current_draft:
-                current_draft = (
-                    Draft.objects.filter(
-                        ~Q(finished=True), enrollments__in=[current_enroll]
-                    )
-                    .order_by("phase__phase_idx")
-                    .first()
-                )
-                cache.set(
-                    f"draft_{user.id}", current_draft, 120
-                )  # Cache draft object for 2 minutes
-
-            draft_id = current_draft.id
-            # Delete the old image
-            default_storage.delete(image.image.name)
-            image.image.delete()
-            # Update with new image
-            image.image = request.FILES["image"]
-            image.draft_idx = draft_id
-            image.checkin = False
-            image.save()
-            return redirect("tournaments:my_pool_checkout")
-    else:
-        form = ImageForm()
-    return render(
-        request,
-        "tournaments/replace_image.html",
-        {
-            "form": form,
-            "image": image,
-        },
-    )
+        return redirect("tournaments:my_pool_checkout")

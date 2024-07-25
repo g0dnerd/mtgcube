@@ -18,7 +18,7 @@
         function updateBasicInfo() {
             fetchData("{% url 'tournaments:player_basic_info' %}", data => {
                 if (!data.error) {
-                    updatePlayerStatus(data.player);
+                    updatePlayerStatus(data);
                 } else {
                     console.error('Error:', data.error);
                 }
@@ -28,12 +28,11 @@
         function updateDraftInfo() {
             fetchData("{% url 'tournaments:player_draft_info' %}", data => {
                 if (!data.error) {
-                    const draft = data.draft;
                     const draftInfoElement = document.getElementById('draft-info-header');
-                    const current_round = draft.current_round === '0' ? `:` : ` {% trans 'in round' %} ${draft.current_round}:`;
+                    const current_round = data.current_round === '0' ? `:` : ` {% trans 'in round' %} ${data.current_round}:`;
                     draftInfoElement.innerHTML = `
                         <h4>{% trans 'My current draft' %}${current_round}</h4>
-                        <h1>Cube: <a href="${draft.cube_url}" target="_blank">${draft.cube_name}</a></h1>
+                        <h1>Cube: <a href="${data.cube_url}" target="_blank">${data.cube_name}</a></h1>
                     `;
                 } else {
                     console.error('Error:', data.error);
@@ -43,11 +42,7 @@
 
         function updateMatchInfo() {
             fetchData("{% url 'tournaments:player_match_info' %}", data => {
-                if (!data.error) {
-                    updateMatchDetails(data.match, data.player);
-                } else {
-                    updateMatchDetails(data, null);
-                }
+                updateMatchDetails(data);
             });
         }
 
@@ -168,7 +163,7 @@
             }
         }
 
-        function updateMatchDetails(match, player) {
+        function updateMatchDetails(match) {
             const gameDetailsElement = document.getElementById('match-details');
             if (match.error) {
                 gameDetailsElement.innerHTML = `
@@ -206,7 +201,7 @@
                             confirmButtonElement.style.display = 'none';
                         } else {
                             reportFormElement.style.display = 'none';
-                            if (!match.result_confirmed && player.name !== match.reported_by) {
+                            if (!match.result_confirmed && match.name !== match.reported_by) {
                                 confirmButtonElement.style.display = 'block';
                                 confirmButtonElement.setAttribute('name', match.id);
                             } else {

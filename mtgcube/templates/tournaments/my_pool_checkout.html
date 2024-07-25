@@ -12,7 +12,6 @@
                 <li>
                     <img src="{{ image.image.url }}" alt="{{ image }}">
                     <a href="{% url 'tournaments:delete_image_checkout' image.id %}">{% trans 'Delete' %}</a>
-                    <a href="{% url 'tournaments:replace_image_checkout' image.id %}">{% trans 'Replace' %}</a>
                 </li>
             {% endfor %}
         </ul>

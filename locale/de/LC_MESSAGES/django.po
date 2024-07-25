@@ -396,7 +396,7 @@ msgstr ""
 
 #: mtgcube/templates/tournaments/current_draft.html:103
 msgid "You are checked in and good to go"
-msgstr "Du hast erfolgreich eingecheckt!"
+msgstr "Du hast erfolgreich eingecheckt"
 
 #: mtgcube/templates/tournaments/current_draft.html:104
 #: mtgcube/templates/tournaments/current_draft.html:111

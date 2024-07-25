@@ -12,8 +12,8 @@
         .then(data => {
             const statusElement = document.getElementById('player-signup-status');
             if (!data.error) {
-                checkin = data.player.checked_in;
-                if (data.player.signup_status) {
+                checkin = data.checked_in;
+                if (data.signup_status) {
                     statusElement.innerHTML = `
                     <h5>
                         {% trans 'Your registration is finished - you are good to go' %}!
@@ -24,7 +24,7 @@
                 
                 const eventElement = document.getElementById('event-info-header');
                 eventElement.innerHTML = `
-                <h1 class="event-name">${data.player.tournament_name}</h1>
+                <h1 class="event-name">${data.tournament_name}</h1>
                 `;
             } else {
                 console.log(data.error);
@@ -41,21 +41,19 @@
             const cubeInfoElement = document.getElementById("player-cube-info");
             const statusElement = document.getElementById('player-signup-status');
             if (!data.error) {
-                if (!data.draft.error) {
-                    const currentDraftUrl = "{% url 'tournaments:draft_dashboard' %}";
-                    draftInfoElement.innerHTML = `
-                    <h5>
-                        <a href="${currentDraftUrl}">{% trans 'My current draft' %}</a>
-                    </h5>
-                    `;
-                    cubeInfoElement.innerHTML = `
-                    {% trans 'Cube list' %}: <a href="${data.draft.cube_url}" target="_blank">
-                        ${data.draft.cube_name}
-                    </a>
-                    `;
-                    if (data.draft.current_round >= 1) {
-                        statusElement.style.display = 'none';
-                    } 
+                const currentDraftUrl = "{% url 'tournaments:draft_dashboard' %}";
+                draftInfoElement.innerHTML = `
+                <h5>
+                    <a href="${currentDraftUrl}">{% trans 'My current draft' %}</a>
+                </h5>
+                `;
+                cubeInfoElement.innerHTML = `
+                {% trans 'Cube list' %}: <a href="${data.cube_url}" target="_blank">
+                    ${data.cube_name}
+                </a>
+                `;
+                if (data.draft.current_round >= 1) {
+                    statusElement.style.display = 'none';
                 }
             } else {
                 console.log(data.error);
@@ -109,13 +107,13 @@
         .then(data => {
             const gameDetailsElement = document.getElementById('player-match-info');
             if (!data.error) {
-                if (!data.match.error && checkin) {
-                    if (data.match.bye) {
+                if (checkin) {
+                    if (data.bye) {
                         gameDetailsElement.innerHTML = `<h5>{% trans 'You have the bye this round' %}.</h5>`;
                     } else {
                         gameDetailsElement.innerHTML = `
-                            {%trans 'My current match in round' %} ${data.match.current_round}: 
-                            {% trans 'Playing vs' %} ${data.match.opponent} {%trans 'at table' %} ${data.match.table}
+                            {%trans 'My current match in round' %} ${data.current_round}: 
+                            {% trans 'Playing vs' %} ${data.opponent} {%trans 'at table' %} ${data.table}
                         `;
                     }
                 }
@@ -134,7 +132,7 @@
             if (!data.error) {
                 nextDraftElement.innerHTML = `
                 <p>
-                    {% trans 'My next draft' %}: <a href="${data.upcoming_draft.cube_url}" target="_blank">${data.upcoming_draft.cube}</a>
+                    {% trans 'My next draft' %}: <a href="${data.cube_url}" target="_blank">${data.cube}</a>
                 </p>
                 `;
             }
