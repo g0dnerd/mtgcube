@@ -5,9 +5,9 @@
 document.addEventListener('DOMContentLoaded', function() {
     function updateTimetable(eventId) {
         var timetableElement = document.getElementById("timetable-" + eventId);
-        var url = "{% url 'tournaments:timetable' 0 %}".replace(0, eventId);
+        var url = "{% url 'tournaments:timetable' tournament_slug %}".replace(0, eventId);
         
-        fetch(url)
+        fetch("{% url 'tournaments:timetable' tournament_slug %}")
         .then(response => response.json())
         .then(data => {
             if (!data.error) {

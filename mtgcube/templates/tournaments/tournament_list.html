@@ -1,5 +1,5 @@
 {% extends 'tournaments/base.html' %}
-{% load i18n %}
+{% load i18n tournament_filter %}
 
 {% block title %}{% trans 'Tournament vault' %}{% endblock %}
 
@@ -14,7 +14,11 @@
                 <h5>{% trans 'My events' %}:</h5>
                 {% for tournament in tournaments %}
                     {% url 'tournaments:event_dashboard' tournament.slug as url %}
-                        <li><a href="{{ url }}">{{ tournament.name }}</a></li>
+                        {% if not tournament|is_side_event %}
+                        <li class="main-event-link"><a href="{{ url }}">{{ tournament.name }}</a></li>
+                        {% else %}
+                            <li class="side-event-link"><a href="{{ url }}">{{ tournament.name }}</a></li>
+                        {% endif %}
                 {% endfor %}
             </ul>
         {% else %}

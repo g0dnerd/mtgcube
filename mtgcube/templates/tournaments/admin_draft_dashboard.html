@@ -10,26 +10,24 @@
 <ul class="match-admin">
     <li class="player-list-embed">
         <h5>Players:</h5>
-        {% include 'tournaments/player_list_embed.html' with draft_id=draft_id %}
+        {% include 'tournaments/player_list_embed.html' with tournament_slug=tournament_slug draft_id=draft_id %}
     </li>
     <li class="seatings">
-        {% include 'tournaments/seatings_embed.html' with draft_id=draft_id %}
+        {% include 'tournaments/seatings_embed.html' with tournament_slug=tournament_slug draft_id=draft_id %}
     </li>
     <li class="admin-match-info">
         <h5>Matches:</h5>
         <ul>
             {% for match_id in match_ids %}
                 {% with form=forms|get_item:match_id %}
-                    {% include 'tournaments/admin_match_embed.html' with match_id=match_id form=form %}
+                    {% include 'tournaments/admin_match_embed.html' with tournament_slug=tournament_slug match_id=match_id form=form %}
                 {% endwith %}
             {% empty %}
                 <p>Round has not been paired yet.</p>
             {% endfor %}
         </ul>
     </li>
-    <li class="draft-standings">
-        {% include 'tournaments/draft_standings_embed.html' with draft_id=draft_id %}
-    </li>
+    {% include 'tournaments/draft_standings_embed.html' with tournament_slug=tournament_slug draft_id=draft_id %}
     <li class="admin-draft-buttons">
         <div class="row">
             <div class="col-sm-12">

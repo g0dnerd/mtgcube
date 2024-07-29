@@ -3,12 +3,12 @@
 {% block javascript %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        function updateStandings(eventId) {
-            var standingsElement = document.getElementById("event-standings-" + eventId);
-            var headerElement = document.getElementById("event-standings-header-" + eventId);
-            var infoElement = document.getElementById("event-standings-info-" + eventId);
-            var url = "{% url 'tournaments:event_standings' 0 %}".replace(0, eventId);
-            fetch(url)
+        function updateStandings(eventSlug) {
+            var standingsElement = document.getElementById("event-standings-" + eventSlug);
+            var headerElement = document.getElementById("event-standings-header-" + eventSlug);
+            var infoElement = document.getElementById("event-standings-info-" + eventSlug);
+            var url = "{% url 'tournaments:event_standings' 0 %}".replace(0, eventSlug);
+            fetch("{% url 'tournaments:event_standings' tournament_slug %}")
             .then(response => response.json())
             .then(data => {
                 if (!data.error) {
@@ -34,12 +34,12 @@
             .catch(error => console.error('Error updating event standings:', error));
         }
         
-        var eventId = "{{ tournament_id }}";
-        console.log(eventId);
-        updateStandings(eventId);
+        var eventSlug = "{{ tournament_slug }}";
+        console.log(eventSlug);
+        updateStandings(eventSlug);
     
         setInterval(function() {
-            updateStandings(eventId);
+            updateStandings(eventSlug);
         }, 120000); // 120 seconds
     });
     </script>
@@ -47,9 +47,9 @@
 
 {% block content %}
 <li class="standings">
-    <h5 id="event-standings-header-{{ tournament_id }}"></h5>
-    <p id="event-standings-info-{{ tournament_id }}"></p>
-    <table class="standings-table" id="event-standings-{{ tournament_id }}" style="display:none;">
+    <h5 id="event-standings-header-{{ tournament_slug }}"></h5>
+    <p id="event-standings-info-{{ tournament_slug }}"></p>
+    <table class="standings-table" id="event-standings-{{ tournament_slug }}" style="display:none;">
         <thead>
             <tr>
                 <th style="text-align: center; padding-right: 40px;">#</th>

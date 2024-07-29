@@ -16,7 +16,7 @@
         }
 
         function updateBasicInfo() {
-            fetchData("{% url 'tournaments:player_basic_info' tournament.id %}", data => {
+            fetchData("{% url 'tournaments:player_basic_info' tournament.slug %}", data => {
                 if (!data.error) {
                     updatePlayerStatus(data);
                 } else {
@@ -26,7 +26,7 @@
         }
 
         function updateDraftInfo() {
-            fetchData("{% url 'tournaments:player_draft_info' tournament.id %}", data => {
+            fetchData("{% url 'tournaments:player_draft_info' tournament.slug %}", data => {
                 if (!data.error) {
                     const draftInfoElement = document.getElementById('draft-info-header');
                     const current_round = data.current_round === '0' ? `:` : ` {% trans 'in round' %} ${data.current_round}:`;
@@ -41,7 +41,7 @@
         }
 
         function updateMatchInfo() {
-            fetchData("{% url 'tournaments:player_match_info' tournament.id %}", data => {
+            fetchData("{% url 'tournaments:player_match_info' tournament.slug %}", data => {
                 updateMatchDetails(data);
             });
         }
@@ -155,7 +155,7 @@
             const player1Wins = document.getElementById('player1-wins').value;
             const player2Wins = document.getElementById('player2-wins').value;
 
-            fetch("{% url 'tournaments:report_result' tournament.id %}", {
+            fetch("{% url 'tournaments:report_result' tournament.slug draft.id %}", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -187,7 +187,7 @@
         if (confirmButtonElement) {
             confirmButtonElement.addEventListener('click', () => {
                 const gameId = confirmButtonElement.name;
-                fetch("{% url 'tournaments:confirm_result' tournament.id %}", {
+                fetch("{% url 'tournaments:confirm_result' tournament.slug draft.id %}", {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -247,12 +247,12 @@
             <button class="confirm-result" id="confirm-result-btn" style="display:none;">{% trans 'Confirm result' %}</button>
         </li>
         <li class="seatings-info" id="player-seatings">
-            {% include 'tournaments/seatings_embed.html' with draft_id=draft.id %}
+            {% include 'tournaments/seatings_embed.html' with tournament_slug=tournament.slug draft_id=draft.id %}
         </li>
         <li class="pairings-info" id="player-pairings">
-            {% include 'tournaments/pairings_embed.html' with draft_id=draft.id %}
+            {% include 'tournaments/pairings_embed.html' with tournament_slug=tournament.slug draft_id=draft.id %}
         </li>
-        {% include 'tournaments/draft_standings_embed.html' with draft_id=draft.id %}
+        {% include 'tournaments/draft_standings_embed.html' with tournament_slug=tournament.slug draft_id=draft.id %}
     </ul>
 </div>
 {% endblock %}

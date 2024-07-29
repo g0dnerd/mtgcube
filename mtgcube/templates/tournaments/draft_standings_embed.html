@@ -7,7 +7,7 @@
             var standingsElement = document.getElementById("draft-standings-" + draftId);
             var headerElement = document.getElementById("draft-standings-header-" + draftId);
             var infoElement = document.getElementById("draft-standings-info-" + draftId);
-            var url = "{% url 'tournaments:draft_standings' 0 %}".replace(0, draftId);
+            var url = "{% url 'tournaments:draft_standings' tournament_slug 0 %}".replace(0, draftId);
             fetch(url)
             .then(response => response.json())
             .then(data => {

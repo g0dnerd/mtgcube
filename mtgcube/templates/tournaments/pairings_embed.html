@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function updatePairingsInfo(draftId) {
         var pairingsElement = document.getElementById("pairings-" + draftId);
         var headerElement = document.getElementById("pairings-header-" + draftId);
-        var url = "{% url 'tournaments:player_pairings_info' 0 %}".replace(0, draftId);
+        var url = "{% url 'tournaments:player_pairings_info' tournament_slug 0 %}".replace(0, draftId);
         fetch(url)
         .then(response => response.json())
         .then(data => {
@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 if (data.bye) {
                     pairingsHtml += (`
-                    <li>${bye} - BYE</li>
+                    <li>${data.bye} - BYE</li>
                     `);
                 }
                 headerElement.innerHTML = `<h5>{% trans 'Other pairings' %}:</h5>`;

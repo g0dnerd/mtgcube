@@ -11,13 +11,13 @@
         <ul>
             {% for draft_id in draft_ids %}
                 {% with slug=slugs|get_item:draft_id %}
-                    {% include 'tournaments/admin_draft_embed.html' with slug=slug draft_id=draft_id tournament_id=tournament.id %}
+                    {% include 'tournaments/admin_draft_embed.html' with slug=slug draft_id=draft_id tournament_slug=tournament.slug %}
                 {% endwith %}
             {% endfor %}
         </ul>
     </li>
     <div class="event-standings" id="admin-event-standings">
-        {% include 'tournaments/event_standings_embed.html' with tournament_id=tournament.id %}
+        {% include 'tournaments/event_standings_embed.html' with tournament_slug=tournament.slug %}
     </div>
     <li class="finish-event-rd">
         <form class="finish-event-round-form" method="post" enctype="multipart/form-data">

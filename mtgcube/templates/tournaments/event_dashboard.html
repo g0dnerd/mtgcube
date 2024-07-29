@@ -7,7 +7,7 @@
 <script>
     var checkin = false;
     function fetchPlayerBasicInfo() {
-        fetch("{% url 'tournaments:player_basic_info' tournament.id %}")
+        fetch("{% url 'tournaments:player_basic_info' tournament.slug %}")
         .then(response => response.json())
         .then(data => {
             const statusElement = document.getElementById('player-signup-status');
@@ -34,7 +34,7 @@
     }
 
     function fetchDraftDetails() {
-        fetch("{% url 'tournaments:player_draft_info' tournament.id %}")
+        fetch("{% url 'tournaments:player_draft_info' tournament.slug %}")
         .then(response => response.json())
         .then(data => {
             const draftInfoElement = document.getElementById("draft-info-header");
@@ -63,7 +63,7 @@
     }
 
     function fetchMatchDetails() {
-        fetch("{% url 'tournaments:player_match_info' tournament.id %}")
+        fetch("{% url 'tournaments:player_match_info' tournament.slug %}")
         .then(response => response.json())
         .then(data => {
             const gameDetailsElement = document.getElementById('player-match-info');
@@ -86,7 +86,7 @@
     }
 
     function fetchAnnouncement() {
-        fetch("{% url 'tournaments:announcement' tournament.id %}")
+        fetch("{% url 'tournaments:announcement' tournament.slug %}")
         .then(response => response.json())
         .then(data => {
             const announcementElement = document.getElementById('announcement');
@@ -128,8 +128,8 @@
         <li class="draft-info" id="draft-info-header"></li>
         <li class="cube-info" id="player-cube-info"></li>
         <li class="match-info" id="player-match-info"></li>
-        {% include 'tournaments/event_standings_embed.html' with tournament_id=tournament.id %}
-        {% include 'tournaments/timetable_embed.html' with tournament_id=tournament.id %}
+        {% include 'tournaments/event_standings_embed.html' with tournament_slug=tournament.slug %}
+        {% include 'tournaments/timetable_embed.html' with tournament_slug=tournament.slug %}
         {% if not is_side %}
             <li class="side-event-list">
                 <h5>{% trans 'Check out our side events' %}:</h5>

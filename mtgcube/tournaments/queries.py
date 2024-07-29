@@ -4,6 +4,8 @@ from django.utils import timezone
 from django.db.models import Prefetch
 from django.utils.translation import gettext as _
 
+from itertools import chain
+
 from .models import Player, Enrollment, Draft, Game, Tournament, SideEvent, Image, Round
 from . import services
 
@@ -50,7 +52,15 @@ def all_tournaments(player, uid, force_update=False):
         tournaments = cache.get(f"tournaments_{uid}")
         if tournaments:
             return tournaments
-    tournaments = Tournament.objects.filter(enrollment__player=player).distinct()
+        
+    if player:
+        mains = Tournament.objects.filter(sideevent__isnull=True, enrollment__player=player).distinct()
+        sides = SideEvent.objects.filter(enrollment__player=player).distinct()
+    else:
+        mains = Tournament.objects.filter(sideevent__isnull=True).distinct()
+        sides = SideEvent.objects.all().distinct()
+
+    tournaments = list(chain(mains, sides))
 
     if not tournaments:
         raise ValueError("No enrollments found for given player.")
@@ -62,12 +72,12 @@ def all_tournaments(player, uid, force_update=False):
 
 def enrollment_from_tournament(tournament, player, force_update=False):
     if not force_update:
-        current_enroll = cache.get(f"tournament_enroll_{player.user.id}")
+        current_enroll = cache.get(f"tournament_enroll_{player.user.id}_{tournament.id}")
         if current_enroll:
             return current_enroll
     current_enroll = Enrollment.objects.get(tournament=tournament, player=player)
     cache.set(
-        f"current_enroll_{player.user.id}", current_enroll, 300
+        f"current_enroll_{player.user.id}_{tournament.id}", current_enroll, 300
     )  # Cache enrollments for 5 minutes
     return current_enroll
 
@@ -87,7 +97,7 @@ def current_enrollment(enrollments, uid, force_update=False):
 
 def current_draft(current_enrollment, uid, force_update=False):
     if not force_update:
-        draft = cache.get(f"draft_{uid}")
+        draft = cache.get(f"draft_{current_enrollment.id}")
         if draft:
             return draft
     draft = (
@@ -100,7 +110,7 @@ def current_draft(current_enrollment, uid, force_update=False):
     if not draft:
         raise ValueError(_("As soon as one of your drafts starts, you will be able to see it here."))
 
-    cache.set(f"draft_{uid}", draft, 120)  # Cache draft object for 2 minutes
+    cache.set(f"draft_{current_enrollment.id}", draft, 120)  # Cache draft object for 2 minutes
     return draft
 
 
@@ -162,16 +172,16 @@ def latest_event(force_update=False, sideevent=True):
     return event
 
 
-def timetable(current_enrollment, uid, force_update=False):
+def timetable(tournament, current_enrollment, uid, force_update=False):
     if not force_update:
-        timetable = cache.get(f"timetable_{uid}")
+        timetable = cache.get(f"timetable_{uid}_{tournament.id}")
         if timetable:
             return timetable
 
-    timetable = Draft.objects.filter(enrollments=current_enrollment).order_by("phase")
+    timetable = Draft.objects.filter(phase__tournament=tournament, enrollments=current_enrollment).order_by("phase")
     if not timetable:
         raise ValueError("No upcoming drafts found for given player.")
-    cache.set(f"timetable_{uid}", timetable, 120)
+    cache.set(f"timetable_{uid}_{tournament.id}", timetable, 120)
     return timetable
 
 
@@ -339,7 +349,7 @@ def enrollments_for_tournament(tournament, force_update=False):
     return enrollments
 
 
-def current_round(current_draft, force_update=False):
+def current_round(current_draft, force_update=True):
     if not force_update:
         current_round = cache.get(f"current_round_{current_draft.id}")
         if current_round:

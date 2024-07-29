@@ -6,7 +6,7 @@
             var playersElement = document.getElementById("players-" + draftId);
             var statusElement = document.getElementById("draft-status-" + draftId);
             
-            var url = "{% url 'tournaments:admin_draft_embed' 0 %}".replace(0, draftId);
+            var url = "{% url 'tournaments:admin_draft_embed' tournament_slug 0 %}".replace(0, draftId);
             fetch(url)
             .then(response => response.json())
             .then(data => {
