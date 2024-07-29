@@ -1,86 +1,29 @@
 {% extends "tournaments/base.html" %}
-{% load tournament_utils %}
+{% load i18n tournament_utils %}
 
-{% block title%}Admin Tournament Dashboard{% endblock %}
-
-{% block javascript %}
-{{ block.super }}
-    <script>
-        function fetchDraftInfo() {
-        fetch("{% url 'tournaments:admin_drafts' %}")
-        .then(response => response.json())
-        .then(data => {
-            const draftInfoElement = document.getElementById('admin-draft-info');
-            let htmlOut = ``;
-            data.drafts.forEach(draft => {
-                const url = `{% url 'tournaments:admin_draft_dashboard' tournament_id 0 %}`.replace('0', draft.id);
-                htmlOut += `
-                <li>
-                    <h5>
-                        <a href="${url}">Draft ${draft.id}</a> (drafting <a href="${draft.cube_url}">${draft.cube_name}</a>)
-                    </h5>
-                <h5>Players:</h5>
-                <p>
-                `;
-                draft.players.forEach(player => {
-                    htmlOut += `${player}, `;
-                });
-                htmlOut = htmlOut.slice(0, -2);
-                htmlOut += `</p></li>`;
-            });
-            draftInfoElement.innerHTML = htmlOut;
-
-            eventStandingsElement = document.getElementById('admin-event-standings');
-            if (eventStandingsElement) {
-                htmlOut = `
-                <h5>Overall event standings</h5>
-                <table class="event-standings-table">
-                    <thead>
-                        <tr>
-                        <th style="text-align: center; padding-right: 40px;">Player</th>
-                        <th style="text-align: center; padding-right: 40px;">Points</th>
-                        <th style="text-align: center; padding-right: 40px;">OMW</th>
-                        <th style="text-align: center; padding-right: 40px;">PGW</th>
-                        <th style="text-align: center; padding-right: 40px;">OGW</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                `;
-                data.event_standings.forEach(place => {
-                    htmlOut += `
-                    <tr>
-                        <td style="text-align: center; padding-right: 40px;">${place.name}</td>
-                        <td style="text-align: center; padding-right: 40px;">${place.score}</td>
-                        <td style="text-align: center; padding-right: 40px;">${place.omw}</td>
-                        <td style="text-align: center; padding-right: 40px;">${place.pgw}</td>
-                        <td style="text-align: center; padding-right: 40px;">${place.ogw}</td>
-                    </tr>
-                    `;
-                });
-                htmlOut += `
-                    </tbody>
-                </table>
-                `;
-                eventStandingsElement.innerHTML = htmlOut;
-            }
-        })
-        .catch(error => console.error('Error updating draft info:', error));
-    }
-
-    // Initial formatting
-    document.addEventListener('DOMContentLoaded', () => {
-        fetchDraftInfo();
-        setInterval(fetchDraftInfo, 60000);
-    });
-</script>
-{% endblock %} 
+{% block title %}Admin Tournament Dashboard{% endblock %}
 
 {% block content %}
-    <div class="tournament-admin">
-        <h4>Tournament Overview Page - Admin</h4><div id="tournament-title"><h1>{{ tournament_name }}</h1></div>
-        <h4> Drafts: </h4>
-        <ul class="admin-draft-overview" id="admin-draft-info"></ul>
-        <div class="event-standings" id="admin-event-standings"></div>
+<h1>{{ tournament.name }} - Admin Event Overview</h1>
+<ul class="tournament-admin">
+    <li class="admin-draft-overview">
+        <h5>Drafts:</h5>
+        <ul>
+            {% for draft_id in draft_ids %}
+                {% with slug=slugs|get_item:draft_id %}
+                    {% include 'tournaments/admin_draft_embed.html' with slug=slug draft_id=draft_id tournament_id=tournament.id %}
+                {% endwith %}
+            {% endfor %}
+        </ul>
+    </li>
+    <div class="event-standings" id="admin-event-standings">
+        {% include 'tournaments/event_standings_embed.html' with tournament_id=tournament.id %}
     </div>
+    <li class="finish-event-rd">
+        <form class="finish-event-round-form" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <button type="submit" name="finish-event-round" value="{{ tournament.id }}">Finish event round</button>
+        </form>
+    </li>
+</ul>
 {% endblock %}
-

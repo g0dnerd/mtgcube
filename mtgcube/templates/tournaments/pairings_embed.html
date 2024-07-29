@@ -1,0 +1,45 @@
+{% load i18n %}
+
+{% block javascript %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    function updatePairingsInfo(draftId) {
+        var pairingsElement = document.getElementById("pairings-" + draftId);
+        var headerElement = document.getElementById("pairings-header-" + draftId);
+        var url = "{% url 'tournaments:player_pairings_info' 0 %}".replace(0, draftId);
+        fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                pairingsElement.innerHTML = `<h5>${data.error}</h5>`;
+            } else {
+                var pairingsHtml = data.other_pairings.map(match => `
+                    <li>{% trans 'Table' %} ${match.table}: ${match.player1} vs ${match.player2}</li>
+                `).join('');
+
+                if (data.bye) {
+                    pairingsHtml += (`
+                    <li>${bye} - BYE</li>
+                    `);
+                }
+                headerElement.innerHTML = `<h5>{% trans 'Other pairings' %}:</h5>`;
+                pairingsElement.innerHTML = pairingsHtml;
+            }
+        })
+        .catch(error => console.error('Error updating pairings info:', error));
+    }
+
+    var draftId = "{{ draft.id }}";
+    updatePairingsInfo(draftId);
+
+    setInterval(function() {
+        updatePairingsInfo(draftId);
+    }, 120000); // 120 seconds
+});
+</script>
+{% endblock %}
+
+{% block content %}
+<h5 id="pairings-header-{{ draft.id }}"></h5>
+<ul class="pairings-list" id="pairings-{{ draft.id }}"></ul>
+{% endblock %}

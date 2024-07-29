@@ -16,7 +16,7 @@
         }
 
         function updateBasicInfo() {
-            fetchData("{% url 'tournaments:player_basic_info' %}", data => {
+            fetchData("{% url 'tournaments:player_basic_info' tournament.id %}", data => {
                 if (!data.error) {
                     updatePlayerStatus(data);
                 } else {
@@ -26,7 +26,7 @@
         }
 
         function updateDraftInfo() {
-            fetchData("{% url 'tournaments:player_draft_info' %}", data => {
+            fetchData("{% url 'tournaments:player_draft_info' tournament.id %}", data => {
                 if (!data.error) {
                     const draftInfoElement = document.getElementById('draft-info-header');
                     const current_round = data.current_round === '0' ? `:` : ` {% trans 'in round' %} ${data.current_round}:`;
@@ -41,38 +41,8 @@
         }
 
         function updateMatchInfo() {
-            fetchData("{% url 'tournaments:player_match_info' %}", data => {
+            fetchData("{% url 'tournaments:player_match_info' tournament.id %}", data => {
                 updateMatchDetails(data);
-            });
-        }
-
-        function updateStandingsInfo() {
-            fetchData("{% url 'tournaments:player_standings_info' %}", data => {
-                if (!data.error) {
-                    updateStandings(data.standings, data.current_round);
-                } else {
-                    updateStandings(data);
-                }
-            });
-        }
-
-        function updateSeatingsInfo() {
-            fetchData("{% url 'tournaments:player_seatings_info' %}", data => {
-                if (!data.error) {
-                    updateSeatings(data.seatings);
-                } else {
-                    updateSeatings(data);
-                }
-            });
-        }
-
-        function updatePairingsInfo() {
-            fetchData("{% url 'tournaments:player_pairings_info' %}", data => {
-                if (!data.error) {
-                    updatePairings(data.other_pairings, data.bye);
-                } else {
-                    updatePairings(data);
-                }
             });
         }
 
@@ -84,7 +54,7 @@
                 checkin = false;
                 uploadHtml = `
                 <div class="pool-info-check-in-missing">
-                    {% url 'tournaments:checkin' as url %}
+                    {% url 'tournaments:checkin' tournament.slug as url %}
                     <h5>{% trans "You are not yet checked in" %}. 
                             {% blocktrans %}
                             Please <a href="{{ url }}">upload your pool</a> once you have finished drafting.</h5>
@@ -92,25 +62,24 @@
                 </div>
                 `;
             } else {
-                checkin = true;
                 uploadHtml = `
                 <div class="pool-info-checked-in">
                     <h5>{%trans 'You are checked in and good to go' %}!</h5>
-                    <a href="{% url 'tournaments:my_pool_checkin' %}">{% trans 'My pool' %}</a>
+                    <a href="{% url 'tournaments:my_pool_checkin' tournament.slug %}">{% trans 'My pool' %}</a>
                 </div>
                 `;
                 if (player.checked_out) {
                     uploadHtml = `
                     <div class="pool-info-checked-out">
                         <h5>{%trans 'You have checked out and are good to go!' %}</h5>
-                        <a href="{% url 'tournaments:my_pool_checkout' %}">{% trans 'My pool' %}</a>
+                        <a href="{% url 'tournaments:my_pool_checkout' tournament.slug %}">{% trans 'My pool' %}</a>
                     </div>
                     `;
                 } else {
                     uploadHtml += `
                     <div class="pool-info-check-out-missing">
                         <h5>
-                            {% url 'tournaments:checkin' as url %}
+                            {% url 'tournaments:checkin' tournament.slug as url %}
                             {% blocktrans %}
                             To check out, please <a href="{{ url }}">upload your pool</a> after you have finished all your matches
                             {% endblocktrans %}
@@ -123,45 +92,6 @@
             uploadElement.innerHTML = uploadHtml;
         }
 
-        function updatePairings(pairings, bye) {
-            const pairingsElement = document.getElementById('player-pairings');
-            if (pairings.error) {
-                pairingsElement.innerHTML = '<h5></h5>';
-            } else {
-                if (!checkin) {
-                    pairingsElement.innerHTML = `<h5>{% trans 'Pairings will be revealed once you have checked in your pool' %}.</h5>`;
-                } else {
-                    let pairingsHtml = pairings.map(match => `
-                        <li>{% trans 'Table' %} ${match.table}: ${match.player1} vs ${match.player2}</li>
-                    `).join('');
-
-                    if (bye) {
-                        pairingsHtml += (`
-                        <li>${bye} - BYE</li>
-                        `);
-                    }
-                    pairingsElement.innerHTML = `<h5>{% trans 'Other pairings' %}:</h5><ul>${pairingsHtml}</ul>`;
-                }
-            }
-        }
-
-        function updateSeatings(seatings) {
-            const seatingsElement = document.getElementById('player-seatings');
-            if (seatings.error) {
-                if (seatings.error === "Draft has not been seated yet") {
-                    seatingsElement.innerHTML = `<h5>{% trans 'Waiting for seatings' %}...</h5>`;
-                    seatingsElement.style.display = 'block';
-                } else {
-                    seatingsElement.style.display = 'none';
-                }
-            } else {
-                const seatingsHtml = seatings.map(player => `
-                    <li>${player.name}</li>
-                `).join('');
-                seatingsElement.innerHTML = `<h5>Seatings:</h5><ol>${seatingsHtml}</ol>`;
-                seatingsElement.style.display = 'block';
-            }
-        }
 
         function updateMatchDetails(match) {
             const gameDetailsElement = document.getElementById('match-details');
@@ -218,39 +148,6 @@
             }
         }
 
-        function updateStandings(standings, current_round) {
-            const standingsElement = document.getElementById('player-draft-standings');
-            if (standings.error) {
-                standingsElement.innerHTML = `<h5>{% trans 'Waiting for standings' %}...</h5>`;
-            } else {
-                const standingsHtml = standings.map((player, i) => `
-                    <tr>
-                        <td style="text-align: center; padding-right: 40px;">${i + 1}</td>
-                        <td style="text-align: center; padding-right: 40px;">${player.name}</td>
-                        <td style="text-align: center; padding-right: 40px;">${player.score}</td>
-                        <td style="text-align: center; padding-right: 40px;">${player.omw}</td>
-                        <td style="text-align: center; padding-right: 40px;">${player.pgw}</td>
-                        <td style="text-align: center; padding-right: 40px;">${player.ogw}</td>
-                    </tr>
-                `).join('');
-                standingsElement.innerHTML = `
-                    <h5>{% trans 'Draft standings after round' %} ${current_round}:</h5>
-                    <table class="standings-table" >
-                        <thead>
-                            <tr>
-                                <th style="text-align: center; padding-right: 40px;">#</th>
-                                <th style="text-align: center; padding-right: 40px;">Name</th>
-                                <th style="text-align: center; padding-right: 40px;">Pts</th>
-                                <th style="text-align: center; padding-right: 40px;">OMW%</th>
-                                <th style="text-align: center; padding-right: 40px;">PGW%</th>
-                                <th style="text-align: center; padding-right: 40px;">OGW%</th>
-                            </tr>
-                        </thead>
-                        <tbody>${standingsHtml}</tbody>
-                    </table>
-                `;
-            }
-        }
 
         function submitResult(event) {
             event.preventDefault();
@@ -258,7 +155,7 @@
             const player1Wins = document.getElementById('player1-wins').value;
             const player2Wins = document.getElementById('player2-wins').value;
 
-            fetch("{% url 'tournaments:report_result' %}", {
+            fetch("{% url 'tournaments:report_result' tournament.id %}", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -290,7 +187,7 @@
         if (confirmButtonElement) {
             confirmButtonElement.addEventListener('click', () => {
                 const gameId = confirmButtonElement.name;
-                fetch("{% url 'tournaments:confirm_result' %}", {
+                fetch("{% url 'tournaments:confirm_result' tournament.id %}", {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -317,9 +214,6 @@
         updateBasicInfo();
         updateDraftInfo();
         updateMatchInfo();
-        updateSeatingsInfo();
-        updateStandingsInfo();
-        updatePairingsInfo();
         setInterval(updateBasicInfo, 60000);
         setInterval(updateDraftInfo, 60000);
         setInterval(updateMatchInfo, 60000);
@@ -352,9 +246,13 @@
             </form>
             <button class="confirm-result" id="confirm-result-btn" style="display:none;">{% trans 'Confirm result' %}</button>
         </li>
-        <li class="seatings-info" id="player-seatings"></li>
-        <li class="pairings-info" id="player-pairings"></li>
-        <li class="standings-info" id="player-draft-standings"></li>
+        <li class="seatings-info" id="player-seatings">
+            {% include 'tournaments/seatings_embed.html' with draft_id=draft.id %}
+        </li>
+        <li class="pairings-info" id="player-pairings">
+            {% include 'tournaments/pairings_embed.html' with draft_id=draft.id %}
+        </li>
+        {% include 'tournaments/draft_standings_embed.html' with draft_id=draft.id %}
     </ul>
 </div>
 {% endblock %}

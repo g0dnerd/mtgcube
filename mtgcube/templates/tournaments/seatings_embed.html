@@ -1,0 +1,40 @@
+{% load i18n %}
+
+{% block javascript %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        function updateSeatings(draftId) {
+            var seatingsElement = document.getElementById("seatings-" + draftId);
+            var headerElement = document.getElementById("seatings-header-" + draftId);
+            var infoElement = document.getElementById("seatings-info-" + draftId);
+            var url = "{% url 'tournaments:seatings' 0 %}".replace(0, draftId);
+            fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                headerElement.innerHTML = 'Seatings:';
+                if (!data.error) {
+                    seatingsElement.innerHTML = data.seatings.map((player, i) => `
+                        <li>${player.name}</li>
+                    `).join('');
+                } else {
+                    infoElement.innerHTML = `${data.error}`;
+                }
+            })
+            .catch(error => console.error('Error updating match info:', error));
+        }
+        
+        var draftId = "{{ draft_id }}";
+        updateSeatings(draftId);
+    
+        setInterval(function() {
+            updateSeatings(draftId);
+        }, 600000); // 120 seconds
+    });
+    </script>
+{% endblock %}
+
+{% block content %}
+    <h5 class="seatings-header" id="seatings-header-{{ draft_id }}"></h5>
+    <p class="seatings-information" id="seatings-info-{{ draft_id }}"></p>
+    <ol class="seatings-table" id="seatings-{{ draft_id }}"></ol>
+{% endblock %}

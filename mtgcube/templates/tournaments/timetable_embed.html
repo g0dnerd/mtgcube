@@ -1,0 +1,38 @@
+{% load i18n %}
+
+{% block javascript %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    function updateTimetable(eventId) {
+        var timetableElement = document.getElementById("timetable-" + eventId);
+        var url = "{% url 'tournaments:timetable' 0 %}".replace(0, eventId);
+        
+        fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            if (!data.error) {
+                var htmlOut = `<h5>{% trans 'My timetable' %}:</h5><ul>`;
+                htmlOut += data.timetable.map((draft, i) =>
+                `
+                <li>{% trans 'Rounds' %} ${draft.first_round}-${draft.last_round}: <a href="${draft.cube_url}" target="_blank">${draft.cube}</a></li>
+                `).join('');
+                htmlOut += '</ul>';
+                timetableElement.innerHTML = htmlOut;
+            }
+        })
+        .catch(error => console.error('Error fetching upcoming draft information:', error));
+    }
+
+    var eventId = "{{ tournament_id }}";
+    updateTimetable(eventId);
+
+    setInterval(function() {
+        updateTimetable(eventId);
+    }, 120000); // 120 seconds
+});
+</script>
+{% endblock %}
+
+{% block content %}
+<li class="draft-timetable" id="timetable-{{ tournament_id }}"></li>
+{% endblock %}

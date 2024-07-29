@@ -1,0 +1,66 @@
+{% load i18n %}
+
+{% block javascript %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        function updateStandings(eventId) {
+            var standingsElement = document.getElementById("event-standings-" + eventId);
+            var headerElement = document.getElementById("event-standings-header-" + eventId);
+            var infoElement = document.getElementById("event-standings-info-" + eventId);
+            var url = "{% url 'tournaments:event_standings' 0 %}".replace(0, eventId);
+            fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (!data.error) {
+                    headerElement.innerHTML = `{% trans 'Event standings after round' %} ${data.current_round}:`;
+                    var standingsHtml = data.standings.map((player, i) => `
+                        <tr>
+                            <td style="text-align: center; padding-right: 40px;">${i + 1}</td>
+                            <td style="text-align: center; padding-right: 40px;">${player.name}</td>
+                            <td style="text-align: center; padding-right: 40px;">${player.score}</td>
+                            <td style="text-align: center; padding-right: 40px;">${player.omw}</td>
+                            <td style="text-align: center; padding-right: 40px;">${player.pgw}</td>
+                            <td style="text-align: center; padding-right: 40px;">${player.ogw}</td>
+                        </tr>
+                    `).join('');
+                    var tbody = standingsElement.querySelector('tbody');
+                    tbody.innerHTML = `${standingsHtml}`;
+                    standingsElement.style.display = 'block';
+                } else {
+                    headerElement.innerHTML = `{% trans 'Event standings' %}:`;
+                    infoElement.innerHTML = `${data.error}`;
+                }
+            })
+            .catch(error => console.error('Error updating event standings:', error));
+        }
+        
+        var eventId = "{{ tournament_id }}";
+        console.log(eventId);
+        updateStandings(eventId);
+    
+        setInterval(function() {
+            updateStandings(eventId);
+        }, 120000); // 120 seconds
+    });
+    </script>
+{% endblock %}
+
+{% block content %}
+<li class="standings">
+    <h5 id="event-standings-header-{{ tournament_id }}"></h5>
+    <p id="event-standings-info-{{ tournament_id }}"></p>
+    <table class="standings-table" id="event-standings-{{ tournament_id }}" style="display:none;">
+        <thead>
+            <tr>
+                <th style="text-align: center; padding-right: 40px;">#</th>
+                <th style="text-align: center; padding-right: 40px;">Name</th>
+                <th style="text-align: center; padding-right: 40px;">Pts</th>
+                <th style="text-align: center; padding-right: 40px;">OMW%</th>
+                <th style="text-align: center; padding-right: 40px;">PGW%</th>
+                <th style="text-align: center; padding-right: 40px;">OGW%</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</li>
+{% endblock %}

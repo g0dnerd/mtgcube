@@ -1,0 +1,65 @@
+{% load i18n %}
+
+{% block javascript %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        function updateStandings(draftId) {
+            var standingsElement = document.getElementById("draft-standings-" + draftId);
+            var headerElement = document.getElementById("draft-standings-header-" + draftId);
+            var infoElement = document.getElementById("draft-standings-info-" + draftId);
+            var url = "{% url 'tournaments:draft_standings' 0 %}".replace(0, draftId);
+            fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (!data.error) {
+                    headerElement.innerHTML = `{% trans 'Draft standings after round' %} ${data.current_round}:`;
+                    var standingsHtml = data.standings.map((player, i) => `
+                        <tr>
+                            <td style="text-align: center; padding-right: 40px;">${i + 1}</td>
+                            <td style="text-align: center; padding-right: 40px;">${player.name}</td>
+                            <td style="text-align: center; padding-right: 40px;">${player.score}</td>
+                            <td style="text-align: center; padding-right: 40px;">${player.omw}</td>
+                            <td style="text-align: center; padding-right: 40px;">${player.pgw}</td>
+                            <td style="text-align: center; padding-right: 40px;">${player.ogw}</td>
+                        </tr>
+                    `).join('');
+                    var tbody = standingsElement.querySelector('tbody');
+                    tbody.innerHTML = `${standingsHtml}`;
+                    standingsElement.style.display = 'block';
+                } else {
+                    headerElement.innerHTML = `{% trans 'Draft standings' %}:`;
+                    infoElement.innerHTML = `${data.error}`;
+                }
+            })
+            .catch(error => console.error('Error updating match info:', error));
+        }
+        
+        var draftId = "{{ draft_id }}";
+        updateStandings(draftId);
+    
+        setInterval(function() {
+            updateStandings(draftId);
+        }, 120000); // 120 seconds
+    });
+    </script>
+{% endblock %}
+
+{% block content %}
+<li class="standings">
+    <h5 id="draft-standings-header-{{ draft_id }}"></h5>
+    <p id="draft-standings-info-{{ draft_id }}"></p>
+    <table class="standings-table" id="draft-standings-{{ draft_id }}" style="display:none;">
+        <thead>
+            <tr>
+                <th style="text-align: center; padding-right: 40px;">#</th>
+                <th style="text-align: center; padding-right: 40px;">Name</th>
+                <th style="text-align: center; padding-right: 40px;">Pts</th>
+                <th style="text-align: center; padding-right: 40px;">OMW%</th>
+                <th style="text-align: center; padding-right: 40px;">PGW%</th>
+                <th style="text-align: center; padding-right: 40px;">OGW%</th>
+            </tr>
+            <tbody></tbody>
+        </thead>
+    </table>
+</li>
+{% endblock %}
