@@ -36,9 +36,10 @@ class EventListView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         user = self.request.user
         if user.is_superuser:
-            return Tournament.objects.all()
+            return queries.all_tournaments(None, user.id, force_update=True)
         player = queries.player(user)
-        return queries.all_tournaments(player, user.id)
+        queryset = queries.all_tournaments(player, user.id, force_update=True)
+        return queryset
 
 
 class AdminDraftDashboardView(AdminTemplateMixin, View):
@@ -63,7 +64,7 @@ class AdminDraftDashboardView(AdminTemplateMixin, View):
         return render(
             request,
             "tournaments/admin_draft_dashboard.html",
-            {"draft_id": draft.id, "match_ids": m_ids, "forms": forms},
+            {"tournament_slug": slug, "draft_id": draft.id, "match_ids": m_ids, "forms": forms},
         )
 
     def post(self, request, *args, **kwargs):

@@ -27,10 +27,9 @@ class PlayerBasicInfoView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         user = request.user
 
-        tournament = kwargs['tournament_id']
-
         try:
             player = queries.player(user)
+            tournament = queries.get_tournament(tournament_slug=kwargs['slug'])
             current_enroll = queries.enrollment_from_tournament(tournament, player)
         except ValueError as e:
             return JsonResponse({"error": str(e)}, status=404)
@@ -51,8 +50,8 @@ class PlayerDraftInfoView(LoginRequiredMixin, View):
         user = request.user
         try:
             player = queries.player(user)
-            enrollments = queries.all_enrollments(player, user.id)
-            current_enroll = queries.current_enrollment(enrollments, user.id, force_update=True)
+            tournament = queries.get_tournament(tournament_slug=kwargs['slug'])
+            current_enroll = queries.enrollment_from_tournament(tournament, player)
             current_draft = queries.current_draft(current_enroll, user.id)
             current_round = queries.current_round(current_draft, force_update=True)
             current_round_idx = current_round.round_idx if current_round else 0
@@ -76,8 +75,8 @@ class PlayerMatchInfoView(LoginRequiredMixin, View):
 
         try:
             player = queries.player(user)
-            enrollments = queries.all_enrollments(player, user.id)
-            current_enroll = queries.current_enrollment(enrollments, user.id)
+            tournament = queries.get_tournament(tournament_slug=kwargs['slug'])
+            current_enroll = queries.enrollment_from_tournament(tournament, player)
             if current_enroll.bye_this_round:
                 return JsonResponse({"match": {"bye": True}}, status=200)
             current_draft = queries.current_draft(current_enroll, user.id)
@@ -143,8 +142,8 @@ class PlayerOtherPairingsInfoView(LoginRequiredMixin, View):
 
         try:
             player = queries.player(user)
-            enrollments = queries.all_enrollments(player, user.id)
-            current_enroll = queries.current_enrollment(enrollments, user.id)
+            tournament = queries.get_tournament(tournament_slug=kwargs['slug'])
+            current_enroll = queries.enrollment_from_tournament(tournament, player)
             draft_id = kwargs.get("draft_id")
             current_draft = queries.draft_from_id(draft_id)
             current_round = queries.current_round(current_draft, force_update=True)
@@ -237,8 +236,8 @@ class AnnouncementView(LoginRequiredMixin, View):
         user = request.user
         try:
             player = queries.player(user)
-            enrollments = queries.all_enrollments(player, user.id)
-            current_enroll = queries.current_enrollment(enrollments, user.id)
+            tournament = queries.get_tournament(tournament_slug=kwargs['slug'])
+            current_enroll = queries.enrollment_from_tournament(tournament, player)
         except ValueError as e:
             return JsonResponse({"error": str(e)}, status=404)
 
@@ -252,12 +251,11 @@ class TimetableView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         user = request.user
 
-        tournament_id = kwargs.get('tournament_id')
-
         try:
             player = queries.player(user)
-            current_enroll = queries.player_enroll_for_tournament(player, tournament_id, user.id)
-            upcoming_drafts = queries.timetable(current_enroll, user.id)
+            tournament = queries.get_tournament(tournament_slug=kwargs['slug'])
+            current_enroll = queries.enrollment_from_tournament(tournament, player)
+            upcoming_drafts = queries.timetable(tournament, current_enroll, user.id)
         except ValueError as e:
             return JsonResponse({"error": str(e)}, status=404)
 

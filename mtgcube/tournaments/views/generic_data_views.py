@@ -1,23 +1,20 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
 from django.views import View
 from django.utils.translation import gettext as _
 
-from .. import services
-from ..models import Draft, Round, Tournament
+from .. import services, queries
 
 
 class SeatingsView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
-        draft_id = kwargs.get("draft_id")
-        draft = get_object_or_404(Draft, pk=draft_id)
+        draft = queries.draft_from_id(kwargs['draft_id'])
 
         if not draft.seated:
             return JsonResponse({"error": "Draft has not been seated yet."}, status=200)
 
-        current_round = Round.objects.filter(draft=draft).order_by("-round_idx").first()
-
+        current_round = queries.current_round(draft)
+    
         # Get seatings
         if current_round.started or current_round.paired or current_round.round_idx > 1:
             error_message = _("Round %(round)s has already started.") % {"round": current_round.round_idx}
@@ -37,8 +34,7 @@ class SeatingsView(LoginRequiredMixin, View):
 
 class PlayerListView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
-        draft_id = kwargs.get("draft_id")
-        draft = get_object_or_404(Draft, pk=draft_id)
+        draft = queries.draft_from_id(kwargs['draft_id'])
 
         players = [
             enrollment.player.user.name for enrollment in draft.enrollments.all()
@@ -49,10 +45,12 @@ class PlayerListView(LoginRequiredMixin, View):
 
 class DraftStandingsView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
-        draft_id = kwargs.get("draft_id")
-        draft = get_object_or_404(Draft, pk=draft_id)
+        draft = queries.draft_from_id(kwargs['draft_id'])
 
-        current_round = Round.objects.filter(draft=draft).order_by("-round_idx").first()
+        try:
+            current_round = queries.current_round(draft)
+        except ValueError:
+            current_round = None
 
         # Get standings
         if (
@@ -81,13 +79,12 @@ class DraftStandingsView(LoginRequiredMixin, View):
 
 class EventStandingsView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
-        event_id = kwargs.get('tournament_id')
-        event = get_object_or_404(Tournament, pk=event_id)
+        tournament = queries.get_tournament(tournament_slug=kwargs['slug'])
 
-        if event.current_round <= 1:
+        if tournament.current_round <= 1:
             return JsonResponse({"error": _("Standings will show up here after the first round has finished.")})
 
-        sorted_players = services.event_standings(event)
+        sorted_players = services.event_standings(tournament)
 
         standings_out = [
             {
@@ -100,4 +97,4 @@ class EventStandingsView(LoginRequiredMixin, View):
             for enrollment in sorted_players
         ]
 
-        return JsonResponse({"standings": standings_out, "current_round": event.current_round - 1})
+        return JsonResponse({"standings": standings_out, "current_round": tournament.current_round - 1})
