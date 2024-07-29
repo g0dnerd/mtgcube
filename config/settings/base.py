@@ -212,6 +212,9 @@ TEMPLATES = [
     }
 ]
 
+DYNAMIC_BREADCRUMBS_PATH_MAX_COMPONENT_LENGTH = 100
+DYNAMIC_BREADCRUMBS_PATH_MAX_DEPTH = 7
+
 # https://docs.djangoproject.com/en/dev/ref/settings/#form-renderer
 FORM_RENDERER = "django.forms.renderers.TemplatesSetting"
 

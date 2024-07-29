@@ -1,6 +1,7 @@
 import random
 
-from .models import Game, Enrollment, Round, Draft
+from .models import Game, Enrollment, Round
+from . import queries
 
 
 def pair_round(rd: Round):
@@ -129,38 +130,37 @@ def update_tiebreakers(draft):
     for player in players:
         if player.bye_this_round:
             player.draft_score += 3
+            player.draft_games_played += 2
+            player.draft_games_won += 2
             player.score += 3
             player.games_played += 2
-            player.draft_games_played += 2
             player.games_won += 2
-            player.draft_games_won += 2
             player.save()
-        player.pmw = max(round((player.score // 3) / round_num, 2), 0.33)
         player.draft_pmw = max(round((player.draft_score // 3) / round_num, 2), 0.33)
+        player.pmw = max(round((player.score // 3) / round_num, 2), 0.33)
         try:
-            player.pgw = max(round(player.games_won / player.games_played, 2), 0.33)
             player.draft_pgw = max(
                 round(player.draft_games_won / player.draft_games_played, 2), 0.33
             )
+            player.pgw = max(round(player.games_won / player.games_played, 2), 0.33)
         except ZeroDivisionError:
-            player.pgw = 1.0
-            player.draft_pmw = 1.0
             player.draft_pgw = 1.0
-        player.omw = 0
-        player.ogw = 0
+            player.pgw = 1.0
         player.draft_omw = 0
         player.draft_ogw = 0
+        player.omw = 0
+        player.ogw = 0
         player.save()
     for player in players:
         for opponent in player.pairings.all():
-            player.omw += opponent.pmw
-            player.ogw += opponent.pgw
             player.draft_omw += opponent.draft_pmw
             player.draft_ogw += opponent.draft_pgw
-        player.omw = max(round(player.omw / round_num, 2), 0.33)
-        player.ogw = max(round(player.ogw / round_num, 2), 0.33)
+            player.omw += opponent.pmw
+            player.ogw += opponent.pgw
         player.draft_omw = max(round(player.draft_omw / round_num, 2), 0.33)
         player.draft_ogw = max(round(player.draft_ogw / round_num, 2), 0.33)
+        player.omw = max(round(player.omw / round_num, 2), 0.33)
+        player.ogw = max(round(player.ogw / round_num, 2), 0.33)
         player.paired = False
         player.save()
 
@@ -193,7 +193,7 @@ def draft_standings(draft, update=True):
 
 
 def event_standings(tournament):
-    players = Enrollment.objects.filter(tournament=tournament).all()
+    players = queries.enrollments_for_tournament(tournament)
     sorted_players = sorted(
         players, key=lambda x: (x.score, x.omw, x.pgw, x.ogw), reverse=True
     )
@@ -232,8 +232,21 @@ def seatings(draft):
 
 
 def finish_round(current_round: Round):
-    draft: Draft = current_round.draft
-    
+
+    draft = current_round.draft
+    update_tiebreakers(draft)
+
+    if current_round.round_idx == draft.round_number:
+        draft.finished = True
+        draft.save()
+        reset_draft_scores(draft)
+    else:
+        new_rd = Round(draft=draft, round_idx=current_round.round_idx + 1)
+        new_rd.save()
+
+    current_round.finished = True
+    current_round.save()
+
     try:
         bye = draft.enrollments.get(bye_this_round=True)
         bye.bye_this_round = False
@@ -246,9 +259,6 @@ def clear_histories(draft):
     draft.seated = False
     draft.started = False
     draft.save()
-
-    draft.phase.current_round = 0
-    draft.phase.save()
 
     players = draft.enrollments.all()
 
