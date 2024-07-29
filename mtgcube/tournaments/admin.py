@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Tournament, Game, Enrollment, Player, Phase, Round, Draft, Cube, Image
+from .models import Tournament, Game, Enrollment, Player, Phase, Round, Draft, Cube, Image, SideEvent
 
 
 # Register your models here.
@@ -52,13 +52,19 @@ class EnrollmentAdmin(admin.ModelAdmin):
         "score",
         "games_played",
         "games_won",
+        "omw",
+        "pgw",
+        "ogw",
+        "draft_score",
+        "draft_games_played",
+        "draft_games_won",
+        "draft_omw",
+        "draft_pgw",
+        "draft_ogw",
         "pairings",
         "paired",
         "bye_this_round",
         "judge_note",
-        "draft_score",
-        "draft_games_played",
-        "draft_games_won",
     ]
 
 
@@ -75,20 +81,26 @@ class PlayerAdmin(admin.ModelAdmin):
 
 class TournamentAdmin(admin.ModelAdmin):
     list_display = ["name"]
-    fields = ["name", "location", "announcement", "start_datetime", "end_datetime"]
+    fields = ["name", "current_round", "location", "announcement", "start_datetime", "end_datetime", "slug"]
+    prepopulated_fields = {"slug": ("name", )}
+
+
+class SideEventAdmin(admin.ModelAdmin):
+    list_display = ["name"]
+    fields = ["tournament", "name", "location", "description", "announcement", "start_datetime", "end_datetime"]
 
 
 class PhaseAdmin(admin.ModelAdmin):
     fields = [
         "tournament",
         "phase_idx",
+        "started",
+        "finished",
         "round_number",
-        "current_round",
     ]
 
-
 class DraftAdmin(admin.ModelAdmin):
-    fields = ["phase", "cube", "enrollments", "round_number", "seated", "started", "finished"]
+    fields = ["phase", "cube", "enrollments", "round_number", "seated", "started", "finished", "slug"]
 
 
 class RoundAdmin(admin.ModelAdmin):
@@ -111,3 +123,4 @@ admin.site.register(Draft, DraftAdmin)
 admin.site.register(Round, RoundAdmin)
 admin.site.register(Cube, CubeAdmin)
 admin.site.register(Image, ImageAdmin)
+admin.site.register(SideEvent, SideEventAdmin)

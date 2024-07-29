@@ -1,0 +1,36 @@
+{% extends 'tournaments/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans 'Tournament vault' %}{% endblock %}
+
+{% block content %}
+    <h1>{% trans 'Tournament Vault' %}:</h1>
+    <h4 class="player-welcome">
+        {% trans 'Welcome to the tournament vault' %}!
+    </h4>
+    {% if request.user.is_authenticated %}
+        {% if tournaments %}
+            <ul class="event-list">
+                <h5>{% trans 'My events' %}:</h5>
+                {% for tournament in tournaments %}
+                    {% url 'tournaments:event_dashboard' tournament.slug as url %}
+                        <li><a href="{{ url }}">{{ tournament.name }}</a></li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            {% blocktrans %}
+                <p>Once you are signed up for an event, you can take a look at them here.</p>
+            {% endblocktrans %}
+        {% endif %}
+        
+        <ul class="home-nav-buttons">
+            <li><a class="home-nav-button" href="{% url 'users:detail' request.user.username  %}">{% trans "My Profile" %}</a></li>
+            <li><a class="home-nav-button" href="{% url 'account_logout' %}">{% trans "Sign Out" %}</a></li>
+        </ul>
+    {% else %}
+    <ul class="home-nav-buttons">
+        <li><a class="home-nav-button" href="{% url 'account_signup' %}">{% trans "Sign Up" %}</a></li>
+        <li><a class="home-nav-button" href="{% url 'account_login' %}">{% trans "Sign In" %}</a></li>
+    </ul>
+    {% endif %}
+{% endblock %}

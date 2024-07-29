@@ -1,21 +1,17 @@
 {% extends "tournaments/base.html" %}
 {% load static i18n %}
-{% block title%}Check-in{% endblock %}
-
+{% block title %}Check-in{% endblock %}
 {% block javascript %}
-{{ block.super }}
-<script>
+    {{ block.super }}
+    <script>
     document.getElementById('upload-form').addEventListener('submit', function() {
         document.getElementById('loading-gif').style.display = 'block';
     });
-</script>
+    </script>
 {% endblock %}
-
 {% block content %}
     <div class="check-in">
-        <h1>
-            {% trans 'Check-in: Deck image upload' %}
-        </h1>
+        <h1>{% trans 'Check-in: Deck image upload' %}</h1>
         <h5>
             {% trans 'For check-in, please upload at least one image with your entire deck and one with your entire pool. All cards need to be clearly visible.' %}
         </h5>
@@ -26,7 +22,7 @@
         </form>
         <div id="loading-gif" style="display:none;">
             <p>{% trans 'Uploading, please wait' %}...</p>
-            <img src="{% static 'loading.gif' %}" alt="Loading..."/>
+            <img src="{% static 'loading.gif' %}" alt="Loading..." />
         </div>
     </div>
 {% endblock %}

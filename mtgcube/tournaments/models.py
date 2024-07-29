@@ -1,7 +1,10 @@
 from django.db import models
+from django.template.defaultfilters import slugify
 from django.utils import timezone
 from mtgcube.users.models import User
 from django.utils.translation import gettext_lazy as _
+from django.urls import reverse
+
 
 class Tournament(models.Model):
     id = models.AutoField(primary_key=True)
@@ -10,14 +13,26 @@ class Tournament(models.Model):
     end_datetime = models.DateTimeField(default=timezone.now)
     location = models.CharField(max_length=255, blank=True)
     announcement = models.CharField(max_length=255, blank=True)
+    slug = models.SlugField(unique=True)
+    current_round = models.IntegerField(default=0)
 
     def __str__(self):
         return self.name
 
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        return super().save(*args, **kwargs)
+    
     @classmethod
     def get_default_pk(cls):
         tournament, __ = cls.objects.get_or_create(name="Cube Open Hamburg 2024")
         return tournament.pk
+
+
+class SideEvent(Tournament):
+    tournament = models.ForeignKey(Tournament, related_name="side_events", on_delete=models.CASCADE)
+    description = models.CharField(max_length=255, blank=True)
 
 
 class Phase(models.Model):
@@ -25,7 +40,13 @@ class Phase(models.Model):
     tournament = models.ForeignKey("Tournament", on_delete=models.CASCADE)
     phase_idx = models.IntegerField("Phase Number", default=1)
     round_number = models.IntegerField("Amount of rounds", default=3)
-    current_round = models.IntegerField(default=1)
+    started = models.BooleanField(default=False)
+    finished = models.BooleanField(default=False)
+
+    def save(self, *args, **kwargs):
+        if self.phase_idx == 1:
+            self.started = True
+        super(Phase, self).save(*args, **kwargs)
 
     class Meta:
         unique_together = ["tournament", "phase_idx"]
@@ -43,12 +64,21 @@ class Draft(models.Model):
     started = models.BooleanField(default=False)
     finished = models.BooleanField(default=False)
     seated = models.BooleanField(default=False)
+    slug = models.SlugField(unique=True)
 
     class Meta:
         unique_together = ["phase", "cube"]
 
     def __str__(self):
         return f"{self.phase} - Draft {self.id} ({self.cube.name})"
+    
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(f'{self.phase.tournament.name}{self.phase.phase_idx}{self.cube.name}')
+        return super().save(*args, **kwargs)
+    
+    def get_absolute_url(self):
+        return reverse("tournaments:admin_draft_dashboard", kwargs={"slug": self.slug})
 
 
 class Round(models.Model):
@@ -64,6 +94,7 @@ class Round(models.Model):
 
     def __str__(self):
         return f"{self.draft} - Round {self.round_idx}"
+
 
 class Player(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -134,9 +165,9 @@ class Game(models.Model):
             return "Pending"
         else:
             if not self.result_confirmed:
-                trans = _('(awaiting confirmation)')
+                trans = _("(awaiting confirmation)")
                 return self.result + f" {trans}"
-            trans = _('(confirmed)')
+            trans = _("(confirmed)")
             return self.result + f" {trans}"
 
     def game_formatted(self):
@@ -156,8 +187,10 @@ class Cube(models.Model):
     def __str__(self):
         return self.name
 
+
 def user_directory_path(instance, filename):
-    return f'images/userupload/{instance.user.id}/{filename}'
+    return f"images/userupload/{instance.user.id}/{filename}"
+
 
 class Image(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -167,5 +200,5 @@ class Image(models.Model):
     checkin = models.BooleanField(default=True)
 
     def __str__(self):
-        img_time_fstring = self.uploaded_at.time().strftime('%H:%M:%S')
-        return f'{self.user} - Draft {self.draft_idx} ({img_time_fstring})'
+        img_time_fstring = self.uploaded_at.time().strftime("%H:%M:%S")
+        return f"{self.user} - Draft {self.draft_idx} ({img_time_fstring})"

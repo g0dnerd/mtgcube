@@ -15,10 +15,10 @@ class User(AbstractUser):
     NONBINARY = "x"
     
     PRONOUN_CHOICES = {
-        "n": "neither/don't want to say",
-        "m": "he/him",
-        "f": "she/her",
-        "x": "they/them",
+        "n": _("neither/don't want to say"),
+        "m": _("he/him"),
+        "f": _("she/her"),
+        "x": _("they/them"),
     }
 
     pronouns = CharField(

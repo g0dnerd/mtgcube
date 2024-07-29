@@ -7,12 +7,12 @@
         {% trans 'Welcome to the tournament vault' %}!
     </h4>
     {% if request.user.is_authenticated %}
-        {% url 'tournaments:event_dashboard' as url %}
+        {% url 'tournaments:tournament_list' as url %}
         <p>
             {% blocktrans %}
             Once you are signed up for an event, you can take a look at your
             <a href="{{ url }}">
-                event dashboard</a>.
+                event list</a>.
             {% endblocktrans %}
         </p>
     {% else %}
