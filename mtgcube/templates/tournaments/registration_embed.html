@@ -1,0 +1,51 @@
+{% load i18n %}
+{% load i18n tournament_filter tournament_utils %}
+
+{% block javascript %}
+<script>
+    function confirmationDialog(eventId) {
+        document.getElementById(`confirm-${eventId}`).hidden=false;
+    }
+    function resetHidden(eventId) {
+        document.getElementById(`confirm-${eventId}`).hidden=true;
+    }
+</script>
+{% endblock %}
+
+{% block content %}
+    {{ tournament.id|json_script:"t_id" }}
+    {% if tournament|is_side_event %}
+        <li class="side-event-signup-panel">
+    {% else %}
+        <li class="main-event-signup-panel">
+    {% endif %}
+        <ul class="event-info">
+            <li class="event-title"><h5>{{tournament.name}}</h5></li>
+            <li class="event-description">{{tournament.description}}</li>
+            {% with free=tournament.player_capacity|subtract:tournament.signed_up %}
+                {% if free < 1 %}
+                    <li class="event-capacity full"><strong>{% trans 'Free spots' %}</strong>: {{ free }}/{{ tournament.player_capacity }}</li>
+                {% else %}
+                    <li class="event-capacity"><strong>{% trans 'Free spots' %}</strong>: {{ free }}/{{ tournament.player_capacity }}</li>
+                {% endif %}
+                <li class="event-format"><strong>{%trans 'Format' %}:</strong> {{ tournament.format_description|linebreaksbr }}</li>
+                <li class="event-time"><strong>{% trans 'Start' %}</strong>: {{tournament.start_datetime}} - <strong>{% trans 'End' %}</strong>: {{tournament.end_datetime}}</li>
+                <li class="event-signup">
+                    {% if free > 0 %}
+                    <button class="registration-button" type="submit" onclick="confirmationDialog('{{ tournament.id }}');">{% trans 'Register' %}</button>
+                    <div id="confirm-{{ tournament.id }}" hidden>
+                        <p class="registration-confirmation">{% trans 'Please confirm you want to sign up for' %} {{ tournament.name }}.</p>
+                        <form class="enroll-form" method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <button class="warning" onclick="resetHidden('{{ tournament.id }}')" name="event-id" value="{{ tournament.id }}" >{% trans 'Yes' %}</button>
+                        </form>
+                        <button onclick="resetHidden('{{ tournament.id }}')">{% trans 'No' %}</button>
+                    </div>
+                    {% else %}
+                    <button class="registration-button event-full" type="submit" disabled>{% trans 'The event is full' %}</button>
+                </li>
+                {% endif %}
+            {% endwith %}
+        </ul>
+    </li>
+{% endblock %}

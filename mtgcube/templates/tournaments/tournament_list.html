@@ -1,29 +1,51 @@
 {% extends 'tournaments/base.html' %}
-{% load i18n tournament_filter %}
+{% load i18n tournament_filter tournament_utils %}
 
-{% block title %}{% trans 'Tournament vault' %}{% endblock %}
+{% block title %}{% trans 'MtG Cube Tournament Vault - Home' %}{% endblock %}
 
 {% block content %}
-    <h1>{% trans 'Tournament Vault' %}:</h1>
+    <h1>{% trans 'MtG Cube Tournament Vault - Home' %}</h1>
     <h4 class="player-welcome">
         {% trans 'Welcome to the tournament vault' %}!
     </h4>
     {% if request.user.is_authenticated %}
-        {% if tournaments %}
+        {% if tournaments.events %}
             <ul class="event-list">
                 <h5>{% trans 'My events' %}:</h5>
-                {% for tournament in tournaments %}
+                {% for tournament in tournaments.events %}
                     {% url 'tournaments:event_dashboard' tournament.slug as url %}
-                        {% if not tournament|is_side_event %}
-                        <li class="main-event-link"><a href="{{ url }}">{{ tournament.name }}</a></li>
-                        {% else %}
-                            <li class="side-event-link"><a href="{{ url }}">{{ tournament.name }}</a></li>
-                        {% endif %}
+                    {% if not tournament|is_side_event %}
+                        <li class="main-event-information-panel">
+                    {% else %}
+                        <li class="side-event-information-panel">
+                    {% endif %}
+                            <ul class="event-info">
+                                <li class="event-title">{{ tournament.name }}</li>
+                        {% with status=tournaments.status|get_item:tournament.id %}
+                            {% if status %}
+                                {% if not tournament|is_side_event %}
+                                    <li class="main-event-link"><a href="{{ url }}">{% trans 'Go to event dashboard' %}</a></li>
+                                {% else %}
+                                    <li class="side-event-link"><a href="{{ url }}">{% trans 'Go to event dashboard' %}</a></li>
+                                {% endif %}
+                            {% endif %}
+                                    <li class="event-description">{{tournament.description}}</li>
+                                    <li class="event-capacity"><strong>{% trans 'Registrations' %}</strong>: {{ tournament.signed_up }}/{{ tournament.player_capacity }}</li>
+                                    <li class="event-format"><strong>Format:</strong> {{ tournament.format_description|linebreaksbr }}</li>
+                                    <li class="event-start-time"><strong>{% trans 'Start' %}</strong>: {{tournament.start_datetime}}</li>
+                            {% if status %}
+                                    <li class="signup-status complete">{% trans 'Your registration is finished and you are good to go' %}!</li>
+                            {% else %}
+                                    <li class="signup-status incomplete">{% trans 'Your registration still needs to be confirmed by a tournament official' %}.</li>
+                            {% endif %}
+                        {% endwith %}
+                            </ul>
+                        </li>
                 {% endfor %}
             </ul>
         {% else %}
             {% blocktrans %}
-                <p>Once you are signed up for an event, you can take a look at them here.</p>
+                <p>Once you are signed up for one or more events, you can take a look at them here.</p>
             {% endblocktrans %}
         {% endif %}
         
