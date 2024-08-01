@@ -7,6 +7,7 @@
             var standingsElement = document.getElementById("draft-standings-" + draftId);
             var headerElement = document.getElementById("draft-standings-header-" + draftId);
             var infoElement = document.getElementById("draft-standings-info-" + draftId);
+            var containerElement = document.getElementById("standings-container-" + draftId);
             var url = "{% url 'tournaments:draft_standings' tournament_slug 0 %}".replace(0, draftId);
             fetch(url)
             .then(response => response.json())
@@ -25,10 +26,13 @@
                     `).join('');
                     var tbody = standingsElement.querySelector('tbody');
                     tbody.innerHTML = `${standingsHtml}`;
-                    standingsElement.style.display = 'block';
+                    containerElement.style.display = 'block';
                 } else {
-                    headerElement.innerHTML = `{% trans 'Draft standings' %}:`;
-                    infoElement.innerHTML = `${data.error}`;
+                    if (data.error == 'No draft standings yet') {
+                        headerElement.innerHTML = `{% trans 'Draft standings' %}:`;
+                        infoElement.innerHTML = "{% trans 'Draft standings will display here after the first round finishes' %}.";
+                        containerElement.style.display = 'block';
+                    }
                 }
             })
             .catch(error => console.error('Error updating match info:', error));
@@ -45,10 +49,10 @@
 {% endblock %}
 
 {% block content %}
-<li class="standings">
+<li class="standings" id="standings-container-{{ draft_id }}" style="display:none;">
     <h5 id="draft-standings-header-{{ draft_id }}"></h5>
     <p id="draft-standings-info-{{ draft_id }}"></p>
-    <table class="standings-table" id="draft-standings-{{ draft_id }}" style="display:none;">
+    <table class="standings-table" id="draft-standings-{{ draft_id }}">
         <thead>
             <tr>
                 <th style="text-align: center; padding-right: 40px;">#</th>

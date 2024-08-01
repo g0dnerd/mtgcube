@@ -1,24 +1,23 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.views import View
-from django.utils.translation import gettext as _
 
-from .. import services, queries
+from .. import queries
 
 
 class SeatingsView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
-        draft = queries.draft_from_id(kwargs['draft_id'])
+        draft = queries.get_draft(id=kwargs['draft_id'], force_update=True)
 
         if not draft.seated:
-            return JsonResponse({"error": "Draft has not been seated yet."}, status=200)
+            return JsonResponse({"error": "No seatings yet."}, status=200)
 
         current_round = queries.current_round(draft)
     
         # Get seatings
-        if current_round.started or current_round.paired or current_round.round_idx > 1:
-            error_message = _("Round %(round)s has already started.") % {"round": current_round.round_idx}
-            return JsonResponse({"error": error_message})
+        if current_round:
+            if current_round.started or current_round.paired or current_round.round_idx > 1:
+                return JsonResponse({"error": "No seatings anymore."})
 
         sorted_players = list(draft.enrollments.all().order_by("seat"))
         seatings_out = [
@@ -34,7 +33,7 @@ class SeatingsView(LoginRequiredMixin, View):
 
 class PlayerListView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
-        draft = queries.draft_from_id(kwargs['draft_id'])
+        draft = queries.get_draft(id=kwargs['draft_id'])
 
         players = [
             enrollment.player.user.name for enrollment in draft.enrollments.all()
@@ -45,46 +44,40 @@ class PlayerListView(LoginRequiredMixin, View):
 
 class DraftStandingsView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
-        draft = queries.draft_from_id(kwargs['draft_id'])
-
-        try:
-            current_round = queries.current_round(draft)
-        except ValueError:
-            current_round = None
+        draft = queries.get_draft(id=kwargs['draft_id'])
 
         # Get standings
-        if (
-            not current_round
-            or current_round.round_idx == 1
-            and not current_round.finished
-        ):
-            return JsonResponse({"error": "Draft has no standings yet."}, status=200)
-        else:
-            sorted_players = services.draft_standings(draft, update=False)
-            standings_out = [
-                {
-                    "name": enrollment.player.user.name,
-                    "score": enrollment.draft_score,
-                    "omw": enrollment.draft_omw,
-                    "pgw": enrollment.draft_pgw,
-                    "ogw": enrollment.draft_ogw,
-                }
-                for enrollment in sorted_players
-            ]
+        
+        sorted_players = queries.draft_standings(draft)
+        if not sorted_players:
+            return JsonResponse({"error": "No draft standings yet."}, status=200)
+        
+        standings_out = [
+            {
+                "name": enrollment.player.user.name,
+                "score": enrollment.draft_score,
+                "omw": enrollment.draft_omw,
+                "pgw": enrollment.draft_pgw,
+                "ogw": enrollment.draft_ogw,
+            }
+            for enrollment in sorted_players
+        ]
+
+        current_round = queries.current_round(draft, force_update=True)
+        rd_idx = min(draft.phase.tournament.current_round, current_round.round_idx)
 
         return JsonResponse(
-            {"standings": standings_out, "current_round": current_round.round_idx - 1}
+            {"standings": standings_out, "current_round": rd_idx}
         )
 
 
 class EventStandingsView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
-        tournament = queries.get_tournament(tournament_slug=kwargs['slug'])
+        tournament = queries.get_tournament(tournament_slug=kwargs['slug'], force_update=True)
 
-        if tournament.current_round <= 1:
-            return JsonResponse({"error": _("Standings will show up here after the first round has finished.")})
-
-        sorted_players = services.event_standings(tournament)
+        sorted_players = queries.tournament_standings(tournament)
+        if not sorted_players:
+            return JsonResponse({"error": "No event standings yet."})
 
         standings_out = [
             {

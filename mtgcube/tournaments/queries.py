@@ -7,7 +7,6 @@ from django.utils.translation import gettext as _
 from itertools import chain
 
 from .models import Player, Enrollment, Draft, Game, Tournament, SideEvent, Image, Round
-from . import services
 
 
 def player(user, force_update=False):
@@ -18,33 +17,76 @@ def player(user, force_update=False):
         player = cache.get(f"player_{user.id}")
         if player:
             return player
-    player = Player.objects.select_related("user").get(user=user)
-    if not player:
+    try:
+        player = Player.objects.select_related("user").get(user=user)
+    except Player.DoesNotExist:
+        if not user.is_superuser:
+            player = Player(user=user)
+            player.save()
+            cache.set(f"player_{user.id}", player, 60)
+            return player
         raise ValueError("No player found for current user")
 
     cache.set(f"player_{user.id}", player, 60)
     return player
 
 
-def all_enrollments(player, uid, force_update=False):
-    """Gets all enrollments corresponding to the given player.
+def available_tournaments(player, uid, force_update=False):
+    """Gets all available tournaments corresponding to the given player.
     Pulls from the cache if available, queries the DB if not.
     """
     if not force_update:
-        enrollments = cache.get(f"enrollments_{uid}")
-        if enrollments:
-            return enrollments
-    enrollments = Enrollment.objects.filter(player=player).select_related("tournament")
+        tournaments = cache.get(f"available_tournaments_{uid}")
+        if tournaments:
+            return tournaments
 
-    if not enrollments:
-        raise ValueError("No enrollments found for given player.")
+    # Get all tournaments the player is enrolled in
+    enrolled_tournament_ids = Enrollment.objects.filter(player=player).values_list(
+        "tournament_id", flat=True
+    )
+
+    now = timezone.now()
+    if player:
+        mains = (
+            Tournament.objects.exclude(
+                Q(id__in=enrolled_tournament_ids) | Q(start_datetime__lt=now)
+            )
+            .filter(sideevent__isnull=True)
+            .distinct()
+            .order_by("start_datetime")
+        )
+        sides = (
+            SideEvent.objects.exclude(
+                Q(id__in=enrolled_tournament_ids) | Q(start_datetime__lt=now)
+            )
+            .distinct()
+            .order_by("start_datetime")
+        )
+    else:
+        mains = (
+            Tournament.objects.exclude(Q(start_datetime__lt=now))
+            .filter(sideevent__isnull=True)
+            .distinct()
+            .order_by("start_datetime")
+        )
+        sides = (
+            SideEvent.objects.exclude(Q(start_datetime__lt=now))
+            .distinct()
+            .order_by("start_datetime")
+        )
+
+    tournaments = list(chain(mains, sides))
+
+    if not tournaments:
+        raise ValueError("No available tournaments found for given player.")
 
     cache.set(
-        f"enrollments_{uid}", enrollments, 300
+        f"available_tournaments_{uid}", tournaments, 300
     )  # Cache enrollments object for 5 minutes
-    return enrollments
+    return tournaments
 
-def all_tournaments(player, uid, force_update=False):
+
+def enrolled_tournaments(player, uid, force_update=False):
     """Gets all enrollments corresponding to the given player.
     Pulls from the cache if available, queries the DB if not.
     """
@@ -52,27 +94,41 @@ def all_tournaments(player, uid, force_update=False):
         tournaments = cache.get(f"tournaments_{uid}")
         if tournaments:
             return tournaments
-        
+
+    now = timezone.now()
     if player:
-        mains = Tournament.objects.filter(sideevent__isnull=True, enrollment__player=player).distinct()
-        sides = SideEvent.objects.filter(enrollment__player=player).distinct()
+        mains = (
+            Tournament.objects.exclude(Q(start_datetime__lt=now))
+            .filter(sideevent__isnull=True, enrollment__player=player)
+            .distinct()
+            .order_by("start_datetime")
+        )
+        sides = (
+            SideEvent.objects.filter(enrollment__player=player)
+            .distinct()
+            .order_by("start_datetime")
+        )
     else:
-        mains = Tournament.objects.filter(sideevent__isnull=True).distinct()
-        sides = SideEvent.objects.all().distinct()
+        mains = (
+            Tournament.objects.filter(sideevent__isnull=True)
+            .distinct()
+            .order_by("start_datetime")
+        )
+        sides = SideEvent.objects.all().distinct().order_by("start_datetime")
 
     tournaments = list(chain(mains, sides))
-
-    if not tournaments:
-        raise ValueError("No enrollments found for given player.")
 
     cache.set(
         f"tournaments_{uid}", tournaments, 300
     )  # Cache enrollments object for 5 minutes
     return tournaments
 
+
 def enrollment_from_tournament(tournament, player, force_update=False):
     if not force_update:
-        current_enroll = cache.get(f"tournament_enroll_{player.user.id}_{tournament.id}")
+        current_enroll = cache.get(
+            f"tournament_enroll_{player.user.id}_{tournament.id}"
+        )
         if current_enroll:
             return current_enroll
     current_enroll = Enrollment.objects.get(tournament=tournament, player=player)
@@ -82,22 +138,9 @@ def enrollment_from_tournament(tournament, player, force_update=False):
     return current_enroll
 
 
-
-def current_enrollment(enrollments, uid, force_update=False):
-    if not force_update:
-        current_enroll = cache.get(f"current_enroll_{uid}")
-        if current_enroll:
-            return current_enroll
-    current_enroll = enrollments.order_by("-enrolled_on").first()
-    cache.set(
-        f"current_enroll_{uid}", current_enroll, 300
-    )  # Cache enrollments for 5 minutes
-    return current_enroll
-
-
 def current_draft(current_enrollment, uid, force_update=False):
     if not force_update:
-        draft = cache.get(f"draft_{current_enrollment.id}")
+        draft = cache.get(f"draft_{uid}")
         if draft:
             return draft
     draft = (
@@ -108,9 +151,11 @@ def current_draft(current_enrollment, uid, force_update=False):
     )
 
     if not draft:
-        raise ValueError(_("As soon as one of your drafts starts, you will be able to see it here."))
+        raise ValueError(
+            _("As soon as one of your drafts starts, you will be able to see it here.")
+        )
 
-    cache.set(f"draft_{current_enrollment.id}", draft, 120)  # Cache draft object for 2 minutes
+    cache.set(f"draft_{uid}", draft, 120)  # Cache draft object for 2 minutes
     return draft
 
 
@@ -138,7 +183,9 @@ def bye_this_round(current_enrollment, current_draft, force_update=False):
     if not force_update:
         bye_this_round = cache.get(f"bye_this_round_{current_draft.id}")
         if bye_this_round:
-            return bye_this_round
+            if bye_this_round != current_enrollment:
+                return bye_this_round.player.user.name
+        return False
 
     try:
         bye_this_round = current_draft.enrollments.get(bye_this_round=True)
@@ -152,59 +199,19 @@ def bye_this_round(current_enrollment, current_draft, force_update=False):
         return False
 
 
-def latest_event(force_update=False, sideevent=True):
-    if not force_update:
-        event = cache.get("latest_event")
-        if event:
-            return event
-
-    if sideevent:
-        event = Tournament.objects.all().order_by("-start_datetime").first()
-    else:
-        event = (
-            Tournament.objects.filter(sideevent__isnull=True)
-            .order_by("-start_datetime")
-            .first()
-        )
-    if not event:
-        raise ValueError("No events found.")
-    cache.set("latest_event", event, 300)
-    return event
-
-
 def timetable(tournament, current_enrollment, uid, force_update=False):
     if not force_update:
         timetable = cache.get(f"timetable_{uid}_{tournament.id}")
         if timetable:
             return timetable
 
-    timetable = Draft.objects.filter(phase__tournament=tournament, enrollments=current_enrollment).order_by("phase")
+    timetable = Draft.objects.filter(
+        phase__tournament=tournament, enrollments=current_enrollment
+    ).order_by("phase")
     if not timetable:
         raise ValueError("No upcoming drafts found for given player.")
     cache.set(f"timetable_{uid}_{tournament.id}", timetable, 120)
     return timetable
-
-
-def available_side_events(player, event, uid, force_update=False):
-    if not force_update:
-        side_events = cache.get(f"side_events_{uid}")
-        if side_events:
-            return side_events
-
-    # Get all tournaments the player is enrolled in
-    enrolled_tournament_ids = Enrollment.objects.filter(player=player).values_list(
-        "tournament_id", flat=True
-    )
-
-    # Get all SideEvents where the player is not enrolled
-    now = timezone.now()
-    side_events = SideEvent.objects.exclude(
-        Q(id__in=enrolled_tournament_ids) | Q(start_datetime__lt=now)
-    ).order_by("start_datetime")
-    if not side_events:
-        raise ValueError("No available side events found for given player.")
-    cache.set(f"side_events{uid}", side_events, 300)
-    return list(side_events)
 
 
 def images(user, draft, checkin: bool):
@@ -212,48 +219,34 @@ def images(user, draft, checkin: bool):
     return images
 
 
-def enroll_for_side_event(user, side_event):
+def enroll_for_event(user, tournament):
     user_player = player(user)
 
-    if Enrollment.objects.filter(player=user_player, tournament=side_event).exists():
-        raise ValueError("User is already enrolled in this side event.")
-    if timezone.now() >= side_event.start_datetime:
+    if tournament.signed_up >= tournament.player_capacity:
+        raise ValueError("Event is full.")
+
+    if Enrollment.objects.filter(player=user_player, tournament=tournament).exists():
+        raise ValueError("User is already enrolled in this event.")
+    if timezone.now() >= tournament.start_datetime:
         raise ValueError("Event has already started")
-    Enrollment.objects.create(
-        tournament=side_event, player=user_player, registration_finished=True
-    )
+
+    try:
+        tournament.tournament
+        Enrollment.objects.create(
+            tournament=tournament, player=user_player, registration_finished=True
+        )
+    except AttributeError:
+        Enrollment.objects.create(
+            tournament=tournament, player=user_player, registration_finished=False
+        )
+
+    tournament.signed_up += 1
+    tournament.save()
 
 
-def player_timetable(player, uid, event, force_update=False):
-    if not force_update:
-        timetable = cache.get(f"timetable_{uid}")
-        if timetable:
-            return timetable
-
-    player_enrolls = all_enrollments(player, uid, force_update)
-    current_enroll = current_enrollment(player_enrolls, uid, force_update)
-
-    timetable = Draft.objects.filter(
-        enrollments=current_enroll, finished=False, started=False
-    ).order_by("phase__phase_idx")
-
-    if not timetable:
-        raise ValueError("No drafts found for current user.")
-
-    cache.set(f"timetable_{uid}", timetable, 120)
-    return timetable
-
-
-def report_result(match_id, player1_wins, player2_wins, reporting_player, admin=False):
+def report_result(match, player1_wins, player2_wins, reporting_player, admin=False):
     if int(player1_wins) + int(player2_wins) > 3:
         raise ValueError("Error: Please enter a valid game result.")
-
-    match = cache.get(f"match_{match_id}")
-    if not match:
-        match = Game.objects.get(pk=match_id)
-        if not match:
-            raise ValueError("Error: Match not found")
-        cache.set(f"match_{match_id}", match, 300)
 
     match.player1_wins = int(player1_wins)
     match.player2_wins = int(player2_wins)
@@ -263,7 +256,6 @@ def report_result(match_id, player1_wins, player2_wins, reporting_player, admin=
     else:
         match.result_reported_by = "Admin"
         match.result_confirmed = True
-        services.update_result(match, match.player1_wins, match.player2_wins)
     match.save()
 
 
@@ -312,17 +304,27 @@ def get_tournament(tournament_id=None, tournament_slug=None, force_update=False)
         cache.set(f"tournament_{tournament_slug}", tournament, 300)
     return tournament
 
-def draft_from_id(draft_id, force_update=False):
-    if not force_update:
-        draft = cache.get(f"draft_{draft_id}")
-        if draft:
-            return draft
 
-    draft = Draft.objects.get(pk=draft_id)
-    if draft:
-        cache.set(f"draft_{draft_id}", draft, 300)
-        return draft
-    raise ValueError("Draft for ID not found.")
+def get_draft(id=None, slug=None, force_update=False):
+    if not force_update:
+        if id:
+            draft = cache.get(f"draft_{id}")
+            if draft:
+                return draft
+        if slug:
+            draft = cache.get(f"draft_{slug}")
+            if draft:
+                return draft
+
+    try:
+        if id:
+            draft = Draft.objects.get(pk=id)
+        if slug:
+            draft = Draft.objects.get(slug=slug)
+    except Draft.DoesNotExist:
+        return None
+    cache.set(f"draft_{id}", draft, 300)
+    return draft
 
 
 def match_from_id(match_id, force_update=False):
@@ -359,11 +361,8 @@ def current_round(current_draft, force_update=True):
         Round.objects.filter(draft=current_draft).order_by("-round_idx").first()
     )
 
-    if current_round:
-        cache.set(f"current_round_{current_draft.id}", current_round, 120)
-        return current_round
-
-    raise ValueError("Pairings will be shown here after the draft has finished.")
+    cache.set(f"current_round_{current_draft.id}", current_round, 120)
+    return current_round
 
 
 def current_match(current_enroll, current_round, uid, force_update=False):
@@ -380,42 +379,7 @@ def current_match(current_enroll, current_round, uid, force_update=False):
         cache.set(f"current_match_{uid}", current_match, 60)
         return current_match
     except Game.DoesNotExist:
-        raise ValueError(f"Waiting for pairings for round {current_round.round_idx}.")
-
-
-def player_enroll_for_tournament(player, tournament_id, uid, force_update=False):
-    tournament = get_tournament(tournament_id, force_update)
-
-    if not force_update:
-        enrollment = cache.get(f"enrollment_{uid}")
-        if enrollment:
-            return enrollment
-
-    enrollment = Enrollment.objects.get(tournament=tournament, player=player)
-    if enrollment:
-        cache.set(f"enrollment_{uid}", enrollment, 300)
-        return enrollment
-    raise ValueError("Enrollment in event for player not found.")
-
-
-def admin_draft_prefetch(slug, force_update=False):
-    if not force_update:
-        draft = cache.get(f"admin_draft_{slug}")
-        if draft:
-            return draft
-
-    draft = (
-        Draft.objects.filter(slug=slug)
-        .select_related("cube")
-        .prefetch_related(
-            Prefetch("enrollments__player__user", to_attr="enrolled_players"),
-        ).first()
-    )
-
-    if draft:
-        cache.set(f"admin_draft_{slug}", draft, 300)
-        return draft
-    raise ValueError("Draft for slug not found")
+        return None
 
 
 def admin_round_prefetch(draft, force_update=False):
@@ -436,6 +400,70 @@ def admin_round_prefetch(draft, force_update=False):
     )
 
     if current_round:
-        cache.set(f'admin_round_{draft.id}', current_round, 60)
+        cache.set(f"admin_round_{draft.id}", current_round, 60)
         return current_round
     raise ValueError("No current round found to prefetch for.")
+
+
+def enrollment_match_history(enroll, tournament, force_update=False):
+    if not force_update:
+        matches = cache.get(f"match_history_{enroll.player.user.id}")
+        if matches:
+            return matches
+
+    matches = Game.objects.filter(
+        Q(player1=enroll) | Q(player2=enroll),
+        round__draft__phase__tournament=tournament,
+    )
+
+    cache.set(f"match_history_{enroll.player.user.id}", matches, 300)
+    return matches
+
+
+def draft_standings(draft):
+    rd = current_round(draft, force_update=True)
+    rd_idx = rd.round_idx if not rd.finished else rd.round_idx + 1
+    if not rd or rd_idx == 1 and not rd.finished:
+        return None
+
+    standings = cache.get(f"draft_standings_{draft.id}", version=rd_idx)
+    if standings:
+        return standings
+
+    players = draft.enrollments.all()
+    sorted_players = sorted(
+        players,
+        key=lambda x: (x.draft_score, x.draft_omw, x.draft_pgw, x.draft_ogw),
+        reverse=True,
+    )
+    cache.set(
+        f"draft_standings_{draft.id}",
+        sorted_players,
+        timeout=None,
+        version=rd_idx,
+    )
+    return sorted_players
+
+
+def tournament_standings(tournament, force_update=False):
+    if tournament.current_round <= 1:
+        return None
+    if not force_update:
+        standings = cache.get(
+            f"tournament_standings_{tournament.id}",
+            version=tournament.current_round
+        )
+        if standings:
+            return standings
+
+    players = enrollments_for_tournament(tournament, force_update)
+    sorted_players = sorted(
+        players, key=lambda x: (x.score, x.omw, x.pgw, x.ogw), reverse=True
+    )
+    cache.set(
+        f'tournament_standings_{tournament.id}',
+        sorted_players,
+        timeout=None,
+        version=tournament.current_round
+    )
+    return sorted_players
