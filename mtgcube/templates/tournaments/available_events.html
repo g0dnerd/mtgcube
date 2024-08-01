@@ -1,0 +1,27 @@
+{% extends 'tournaments/base.html' %}
+{% load i18n tournament_utils %}
+
+{% block title %}{% trans 'All events' %}{% endblock %}
+
+{% block content %}
+    <h1>{% trans 'All events' %}</h1>
+    {% if tournaments.available %}
+        <ul class="available-event-list">
+            {% for tournament in tournaments.available %}
+                {% include 'tournaments/registration_embed.html' with tournament=tournament %}
+            {% endfor %}
+        </ul>
+    {% else %}
+        {% blocktrans %}
+            <p>Once more events become available, you can sign up for them here.</p>
+        {% endblocktrans %}
+    {% endif %}
+    {% if tournaments.enrolled %}
+        <ul class="enrolled-event-list">
+        {% for tournament in tournaments.enrolled %}
+            {% with status=tournaments.status|get_item:tournament.id %}
+                {% include 'tournaments/event_panel_embed.html' with tournament=tournament status=status %}
+            {% endwith %}
+        {% endfor %}
+    {% endif %}
+{% endblock %}

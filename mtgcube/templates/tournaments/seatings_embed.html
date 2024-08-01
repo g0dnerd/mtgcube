@@ -4,6 +4,7 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         function updateSeatings(draftId) {
+            var seatingsContainer = document.getElementById("player-seatings-" + draftId);
             var seatingsElement = document.getElementById("seatings-" + draftId);
             var headerElement = document.getElementById("seatings-header-" + draftId);
             var infoElement = document.getElementById("seatings-info-" + draftId);
@@ -17,7 +18,11 @@
                         <li>${player.name}</li>
                     `).join('');
                 } else {
-                    infoElement.innerHTML = `${data.error}`;
+                    if (data.error == "Draft has not been seated yet.") {
+                        infoElement.innerHTML = `Waiting for seatings.`;
+                    } else {
+                        seatingsContainer.style.display = 'none';
+                    }
                 }
             })
             .catch(error => console.error('Error updating match info:', error));
@@ -34,7 +39,9 @@
 {% endblock %}
 
 {% block content %}
-    <h5 class="seatings-header" id="seatings-header-{{ draft_id }}"></h5>
-    <p class="seatings-information" id="seatings-info-{{ draft_id }}"></p>
+<li class="seatings-info" id="player-seatings-{{ draft_id }}">
+    <h5 id="seatings-header-{{ draft_id }}"></h5>
+    <p id="seatings-info-{{ draft_id }}"></p>
     <ol class="seatings-table" id="seatings-{{ draft_id }}"></ol>
+</li>
 {% endblock %}

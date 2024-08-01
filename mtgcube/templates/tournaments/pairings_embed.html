@@ -4,6 +4,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     function updatePairingsInfo(draftId) {
+        var pairingsContainer = document.getElementById("player-pairings-" + draftId);
         var pairingsElement = document.getElementById("pairings-" + draftId);
         var headerElement = document.getElementById("pairings-header-" + draftId);
         var url = "{% url 'tournaments:player_pairings_info' tournament_slug 0 %}".replace(0, draftId);
@@ -11,7 +12,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.error) {
-                pairingsElement.innerHTML = `<h5>${data.error}</h5>`;
+                pairingsContainer.style.display = 'none';
             } else {
                 var pairingsHtml = data.other_pairings.map(match => `
                     <li>{% trans 'Table' %} ${match.table}: ${match.player1} vs ${match.player2}</li>
@@ -40,6 +41,8 @@ document.addEventListener('DOMContentLoaded', function() {
 {% endblock %}
 
 {% block content %}
-<h5 id="pairings-header-{{ draft.id }}"></h5>
-<ul class="pairings-list" id="pairings-{{ draft.id }}"></ul>
+<li class="pairings-info" id="player-pairings-{{ draft.id }}">
+    <h5 id="pairings-header-{{ draft.id }}"></h5>
+    <ul class="pairings-list" id="pairings-{{ draft.id }}"></ul>
+</li>
 {% endblock %}

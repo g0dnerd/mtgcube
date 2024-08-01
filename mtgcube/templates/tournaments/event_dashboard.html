@@ -5,34 +5,6 @@
 {% block javascript %}
 {{ block.super }}
 <script>
-    var checkin = false;
-    function fetchPlayerBasicInfo() {
-        fetch("{% url 'tournaments:player_basic_info' tournament.slug %}")
-        .then(response => response.json())
-        .then(data => {
-            const statusElement = document.getElementById('player-signup-status');
-            if (!data.error) {
-                checkin = data.checked_in;
-                if (data.signup_status) {
-                    statusElement.innerHTML = `
-                    <h5>
-                        {% trans 'Your registration is finished - you are good to go' %}!
-                    </h5>
-                    `;
-                }
-                statusElement.style.display = 'none';
-                
-                const eventElement = document.getElementById('event-info-header');
-                eventElement.innerHTML = `
-                <h1 class="event-name">{{ tournament.name }}</h1>
-                `;
-            } else {
-                console.log(data.error);
-            }
-        })
-        .catch(error => console.error('Error fetching player information:', error));
-    }
-
     function fetchDraftDetails() {
         fetch("{% url 'tournaments:player_draft_info' tournament.slug %}")
         .then(response => response.json())
@@ -42,13 +14,22 @@
             const statusElement = document.getElementById('player-signup-status');
             if (!data.error) {
                 const currentDraftUrl = "{% url 'tournaments:draft_dashboard' tournament.slug %}";
-                draftInfoElement.innerHTML = `
-                <h5>
-                    <a href="${currentDraftUrl}">{% trans 'My current draft' %}</a>
-                </h5>
-                `;
+                if (data.current_round == 0) {
+                    draftInfoElement.innerHTML = `
+                    <h5 class="draft-disabled">
+                        {% trans 'Waiting for draft to start' %}
+                    </h5>
+                    `;
+                } else {
+                    draftInfoElement.innerHTML = `
+                    <h5>
+                        <a href="${currentDraftUrl}">{% trans 'My current draft' %}</a>
+                    </h5>
+                    `;
+                }
+                const cubeUrl = "{% url 'tournaments:cube_detail' 0 %}".replace(0, data.cube_slug);
                 cubeInfoElement.innerHTML = `
-                {% trans 'Cube list' %}: <a href="${data.cube_url}" target="_blank">
+                {% trans 'Cube list' %}: <a href=${cubeUrl} target="_blank">
                     ${data.cube_name}
                 </a>
                 `;
@@ -60,29 +41,6 @@
             }
         })
         .catch(error => console.error('Error fetching draft information:', error));
-    }
-
-    function fetchMatchDetails() {
-        fetch("{% url 'tournaments:player_match_info' tournament.slug %}")
-        .then(response => response.json())
-        .then(data => {
-            const gameDetailsElement = document.getElementById('player-match-info');
-            if (!data.error) {
-                if (checkin) {
-                    if (data.bye) {
-                        gameDetailsElement.innerHTML = `<h5>{% trans 'You have the bye this round' %}.</h5>`;
-                    } else {
-                        gameDetailsElement.innerHTML = `
-                            {%trans 'My current match in round' %} ${data.current_round}: 
-                            {% trans 'Playing vs' %} ${data.opponent} {%trans 'at table' %} ${data.table}
-                        `;
-                    }
-                }
-            } else {
-                gameDetailsElement.innerHTML = `${data.error}`;
-            }
-        })
-        .catch(error => console.error('Error fetching match information:', error));
     }
 
     function fetchAnnouncement() {
@@ -106,13 +64,9 @@
 
     // Initial formatting
     document.addEventListener('DOMContentLoaded', () => {
-        fetchPlayerBasicInfo();
         fetchDraftDetails();
-        fetchMatchDetails();
         fetchAnnouncement();
-        setInterval(fetchPlayerBasicInfo, 60000);
         setInterval(fetchDraftDetails, 60000);
-        setInterval(fetchMatchDetails, 60000);
         setInterval(fetchAnnouncement, 120000);
     });
 </script>
@@ -121,27 +75,18 @@
 
 {% block content %}
 <div class="event-dashboard">
-    <h4>{% trans 'Event Dashboard' %}</h4><div class="event-title" id="event-info-header"></div>
+    <h4>{% trans 'Event Dashboard' %}</h4>
+    <div class="event-title" id="event-info-header">
+        <h1 class="event-name">{{ tournament.name }}</h1>
+    </div>
     <div class="signup-status" id="player-signup-status"></div>
     <div class="event-announcement" id="announcement" style="display:none;"></div>
     <ul class="player-info-list">
         <li class="draft-info" id="draft-info-header"></li>
         <li class="cube-info" id="player-cube-info"></li>
-        <li class="match-info" id="player-match-info"></li>
+        {% include 'tournaments/current_match_preview_embed.html' with tournament=tournament %}
         {% include 'tournaments/event_standings_embed.html' with tournament_slug=tournament.slug %}
         {% include 'tournaments/timetable_embed.html' with tournament_slug=tournament.slug %}
-        {% if not is_side %}
-            <li class="side-event-list">
-                <h5>{% trans 'Check out our side events' %}:</h5>
-                <ul>
-                    {% for side_event in side_events %}
-                        {% include 'tournaments/side_event_embed.html' with side_event=side_event %}
-                    {% empty %}
-                        <li class="no-side-events">{% trans 'Once there are side events available, you can sign up for them here' %}.</li>
-                    {% endfor %}
-                </ul>
-            </li>
-        {% endif %}
     </ul>
 </div>
 {% endblock %}
