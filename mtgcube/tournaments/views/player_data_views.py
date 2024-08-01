@@ -9,7 +9,6 @@ from django.urls import reverse_lazy
 
 from ..forms import ImageForm
 from .. import queries as queries
-from .. import services
 from ..models import Image
 
 from django.views import View
@@ -27,16 +26,16 @@ class PlayerBasicInfoView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         user = request.user
 
-        try:
-            player = queries.player(user)
-            tournament = queries.get_tournament(tournament_slug=kwargs['slug'])
-            current_enroll = queries.enrollment_from_tournament(tournament, player)
-        except ValueError as e:
-            return JsonResponse({"error": str(e)}, status=404)
+        player = queries.player(user)
+        tournament = queries.get_tournament(tournament_slug=kwargs['slug'])
+        current_enroll = queries.enrollment_from_tournament(tournament, player)
+
+        draft = queries.get_draft(id=kwargs['draft_id'])
 
         player_json = {
             "name": user.name if user.name else user.username,
             "signup_status": current_enroll.registration_finished,
+            "draft_seated": draft.seated,
             "checked_in": current_enroll.checked_in,
             "checked_out": current_enroll.checked_out,
         }
@@ -48,26 +47,30 @@ class PlayerDraftInfoView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         # Get user info from cache
         user = request.user
+        player = queries.player(user)
+        tournament = queries.get_tournament(tournament_slug=kwargs['slug'])
         try:
-            player = queries.player(user)
-            tournament = queries.get_tournament(tournament_slug=kwargs['slug'])
             current_enroll = queries.enrollment_from_tournament(tournament, player)
             current_draft = queries.current_draft(current_enroll, user.id)
+        except ValueError:
+            return JsonResponse({"error": True})
+        try:
             current_round = queries.current_round(current_draft, force_update=True)
             current_round_idx = current_round.round_idx if current_round else 0
-        except ValueError as e:
-            return JsonResponse({"error": str(e)}, status=404)
+        except ValueError:
+            current_round = None
+            current_round_idx = None
 
         draft_json = {
             "id": current_draft.id,
             "current_round": str(current_round_idx),
             "cube_name": current_draft.cube.name,
             "cube_url": current_draft.cube.url,
+            "cube_slug": current_draft.cube.slug,
             "finished": current_draft.finished,
         }
 
         return JsonResponse(draft_json)
-
 
 class PlayerMatchInfoView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
@@ -77,25 +80,62 @@ class PlayerMatchInfoView(LoginRequiredMixin, View):
             player = queries.player(user)
             tournament = queries.get_tournament(tournament_slug=kwargs['slug'])
             current_enroll = queries.enrollment_from_tournament(tournament, player)
+        except ValueError as e:
+            return JsonResponse({"error": _(str(e))}, status=404)
+        
+        current_draft = queries.current_draft(current_enroll, user.id)
+        current_round = queries.current_round(current_draft, force_update=True)
+
+        if not current_round:
+            return JsonResponse({"error": "Not started."}, status=200,)
+
+        if not current_enroll.checked_in:
+            return JsonResponse({"error": "No checkin."}, status=200,)
+
+        if current_enroll.bye_this_round:
+            return JsonResponse({"match": {"bye": True}}, status=200)
+
+        current_match = queries.current_match(
+            current_enroll, current_round, user.id, force_update=True
+        )
+        if not current_match:
+            return JsonResponse({"error": "No match yet."})
+
+        opponent = current_match.player2
+        if current_match.player2 == current_enroll:
+            opponent = current_match.player1
+
+        opp_pronouns = _(PRONOUN_CHOICES[opponent.player.user.pronouns])
+
+        match_json = {
+            "id": current_match.id,
+            "table": current_match.table,
+            "player1": current_match.player1.player.user.name,
+            "player2": current_match.player2.player.user.name,
+            "current_round": current_round.round_idx,
+            "opponent": opponent.player.user.name,
+            "opp_pronouns": opp_pronouns,
+        }
+
+        return JsonResponse(match_json)
+
+
+class PlayerFullMatchInfoView(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        user = request.user
+
+        try:
+            player = queries.player(user)
+            tournament = queries.get_tournament(tournament_slug=kwargs['slug'])
+            current_enroll = queries.enrollment_from_tournament(tournament, player)
             if current_enroll.bye_this_round:
                 return JsonResponse({"match": {"bye": True}}, status=200)
-            current_draft = queries.current_draft(current_enroll, user.id)
-            current_round = queries.current_round(current_draft, force_update=True)
-            current_match = queries.current_match(
-                current_enroll, current_round, user.id, force_update=True
-            )
+            current_match = queries.match_from_id(kwargs['match_id'], force_update=True)
         except ValueError as e:
             return JsonResponse({"error": _(str(e))}, status=404)
 
         if not current_enroll.checked_in:
-            return JsonResponse(
-                {
-                    "error": _(
-                        "Your pairing will be revealed once you have completed the check-in."
-                    )
-                },
-                status=200,
-            )
+            return JsonResponse({"error": "No checkin."}, status=200,)
 
         player_role = 1
         opponent = current_match.player2
@@ -123,7 +163,7 @@ class PlayerMatchInfoView(LoginRequiredMixin, View):
             "table": current_match.table,
             "player1": current_match.player1.player.user.name,
             "player2": current_match.player2.player.user.name,
-            "current_round": current_round.round_idx,
+            "current_round": current_match.round.round_idx,
             "result": current_match.game_result_formatted(),
             "result_confirmed": current_match.result_confirmed,
             "reported_by": current_match.result_reported_by,
@@ -145,14 +185,14 @@ class PlayerOtherPairingsInfoView(LoginRequiredMixin, View):
             tournament = queries.get_tournament(tournament_slug=kwargs['slug'])
             current_enroll = queries.enrollment_from_tournament(tournament, player)
             draft_id = kwargs.get("draft_id")
-            current_draft = queries.draft_from_id(draft_id)
+            current_draft = queries.get_draft(id=draft_id)
             current_round = queries.current_round(current_draft, force_update=True)
         except ValueError as e:
             return JsonResponse({"error": str(e)}, status=404)
 
         if not current_round or not current_round.paired:
             return JsonResponse(
-                {"error": _("Round has not yet been paired.")}, status=200
+                {"error": "No pairings yet."}, status=200
             )
 
         try:
@@ -160,17 +200,10 @@ class PlayerOtherPairingsInfoView(LoginRequiredMixin, View):
                 current_enroll, current_round, user.id
             )
         except ValueError:
-            return JsonResponse({"error": _("No pairings yet.")}, status=200)
+            return JsonResponse({"error": "No pairings yet."}, status=200)
 
         if not current_enroll.checked_in:
-            return JsonResponse(
-                {
-                    "error": _(
-                        "Pairings will be revealed once you have completed the check-in."
-                    )
-                },
-                status=200,
-            )
+            return JsonResponse({"error": "No check-in."}, status=200,)
 
         other_pairings = [
             {
@@ -215,22 +248,6 @@ class ReportResultView(LoginRequiredMixin, View):
             return JsonResponse({"error": "Game not found"}, status=404)
 
 
-class ConfirmResultView(LoginRequiredMixin, View):
-    def post(self, request, *args, **kwargs):
-        data = json.loads(request.body)
-        game_id = data.get("game_id")
-
-        match = queries.match_from_id(game_id)
-
-        if match:
-            match.result_confirmed = True
-            services.update_result(match, match.player1_wins, match.player2_wins)
-            match.save()
-            return JsonResponse({"success": True})
-        else:
-            return JsonResponse({"error": "Game not found"}, status=404)
-
-
 class AnnouncementView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         user = request.user
@@ -264,6 +281,7 @@ class TimetableView(LoginRequiredMixin, View):
                 "id": d.id,
                 "cube": d.cube.name,
                 "cube_url": d.cube.url,
+                "cube_slug": d.cube.slug,
                 "round_number": d.round_number,
                 "first_round": (d.phase.phase_idx - 1) * d.round_number + 1,
                 "last_round": d.round_number * d.phase.phase_idx,
@@ -358,7 +376,7 @@ class DeleteImageCheckinView(LoginRequiredMixin, View):
         except ValueError as e:
             return JsonResponse({"error": str(e)}, status=404)
 
-        images = Image.objects.filter(draft_idx=current_draft.id, checkin=True)
+        images = queries.images(user, current_draft, checkin=True)
         if not images:
             current_enroll.checked_in = False
             current_enroll.save()
@@ -382,7 +400,7 @@ class DeleteImageCheckoutView(LoginRequiredMixin, View):
         except ValueError as e:
             return JsonResponse({"error": str(e)}, status=404)
 
-        images = Image.objects.filter(draft_idx=current_draft.id, checkin=False)
+        images = queries.images(user, current_draft, checkin=False)
         if not images:
             current_enroll.checked_out = False
             current_enroll.save()

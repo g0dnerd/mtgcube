@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.shortcuts import redirect, render
 from django.views import View
+from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
 from django.urls import reverse_lazy
 
@@ -11,12 +12,14 @@ from .form_views import (
     FinishRoundView,
     ResetDraftView,
     AdminReportResultView,
+    PlayerReportResultView,
     FinishEventRoundView,
-    SideEventEnrollView
+    ConfirmResultView,
+    EventEnrollView,
 )
 from .. import queries as queries
-from ..models import Tournament
-from ..forms import ReportResultForm
+from ..models import Tournament, Cube
+from ..forms import ReportResultForm, ConfirmResultForm
 
 
 class AdminTemplateMixin(UserPassesTestMixin):
@@ -28,7 +31,7 @@ class AdminTemplateMixin(UserPassesTestMixin):
         return redirect("tournaments:index")
 
 
-class EventListView(LoginRequiredMixin, ListView):
+class MyEventsView(LoginRequiredMixin, ListView):
     model = Tournament
     context_object_name = "tournaments"
     template_name = "tournaments/tournament_list.html"
@@ -36,16 +39,65 @@ class EventListView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         user = self.request.user
         if user.is_superuser:
-            return queries.all_tournaments(None, user.id, force_update=True)
-        player = queries.player(user)
-        queryset = queries.all_tournaments(player, user.id, force_update=True)
+            events = queries.enrolled_tournaments(None, user.id, force_update=True)
+            status = {}
+            for e in events:
+                status[e.id] = True
+            queryset = {"events": events, "status": status}
+            return queryset
+        try:
+            player = queries.player(user)
+            events = queries.enrolled_tournaments(player, user.id, force_update=True)
+            status = {}
+            for e in events:
+                current_enroll = queries.enrollment_from_tournament(e, player)
+                status[e.id] = current_enroll.registration_finished
+
+            queryset = {"events": events, "status": status}
+
+        except ValueError:
+            return None
         return queryset
+
+
+class AvailableEvents(LoginRequiredMixin, ListView):
+    model = Tournament
+    context_object_name = "tournaments"
+    template_name = "tournaments/available_events.html"
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_superuser:
+            return queries.available_tournaments(None, user.id, force_update=True)
+        player = queries.player(user)
+        try:
+            available = queries.available_tournaments(
+                player, user.id, force_update=True
+            )
+            enrolled = queries.enrolled_tournaments(player, user.id, force_update=True)
+
+            status = {}
+            for e in enrolled:
+                current_enroll = queries.enrollment_from_tournament(e, player)
+                status[e.id] = current_enroll.registration_finished
+
+            queryset = {
+                "enrolled": enrolled,
+                "available": available,
+                "status": status,
+            }
+        except ValueError:
+            return None
+        return queryset
+
+    def post(self, request, *args, **kwargs):
+        return EventEnrollView.as_view()(request, *args, **kwargs)
 
 
 class AdminDraftDashboardView(AdminTemplateMixin, View):
     def get(self, request, *args, **kwargs):
         slug = kwargs.get("slug")
-        draft = queries.admin_draft_prefetch(slug, force_update=True)
+        draft = queries.get_draft(slug=slug, force_update=True)
         try:
             current_round = queries.admin_round_prefetch(draft, force_update=True)
             matches = current_round.game_set.select_related(
@@ -57,14 +109,19 @@ class AdminDraftDashboardView(AdminTemplateMixin, View):
                 match_id: ReportResultForm(initial={"match_id": match_id})
                 for match_id in m_ids
             }
-        except ValueError: # If no rounds exist yet in the current draft
+        except ValueError:  # If no rounds exist yet in the current draft
             m_ids = []
             forms = []
 
         return render(
             request,
             "tournaments/admin_draft_dashboard.html",
-            {"tournament_slug": slug, "draft_id": draft.id, "match_ids": m_ids, "forms": forms},
+            {
+                "tournament_slug": slug,
+                "draft_id": draft.id,
+                "match_ids": m_ids,
+                "forms": forms,
+            },
         )
 
     def post(self, request, *args, **kwargs):
@@ -85,7 +142,7 @@ class AdminDashboardView(AdminTemplateMixin, View):
         return self.request.user.is_superuser
 
     def get(self, request, *args, **kwargs):
-        tournament = queries.get_tournament(tournament_slug=kwargs['slug'])
+        tournament = queries.get_tournament(tournament_slug=kwargs["slug"])
         try:
             drafts = queries.active_drafts_for_event(tournament)
             draft_ids = [d.id for d in drafts]
@@ -107,28 +164,54 @@ class AdminDashboardView(AdminTemplateMixin, View):
 
 class IndexView(LoginRequiredMixin, View):
     def get(self, request):
-        return redirect('tournaments:tournament_list')
+        return redirect("tournaments:tournament_list")
 
 
 class DraftDashboardView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         user = request.user
-        tournament = queries.get_tournament(tournament_slug=kwargs['slug'])
-        try:
-            player = queries.player(user)
-            current_enroll = queries.enrollment_from_tournament(tournament, player)
-            draft = queries.current_draft(current_enroll, user.id)
-        except ValueError:
-            messages.error(
-                request,
-                "You must be registered in a tournament to access the event dashboard.\
-                If you believe you should be, please contact on of our staff members.",
-            )
-            return redirect("tournaments:index")
+        tournament = queries.get_tournament(tournament_slug=kwargs["slug"])
+        bye = False
+        player = queries.player(user)
+        current_enroll = queries.enrollment_from_tournament(tournament, player)
+        if current_enroll.bye_this_round:
+            bye = True
+        draft = queries.current_draft(current_enroll, user.id)
+
+        current_round = queries.current_round(draft, force_update=True)
+        match = queries.current_match(
+            current_enroll, current_round, user.id, force_update=True
+        )
+
+        if not match:
+            current_round = None
+            match = None
+            form = None
+            confirm_form = None
+        else:
+            form = ReportResultForm(initial={"match_id": match.id})
+            confirm_form = ConfirmResultForm(initial={"confirm_match_id": match.id})
+
 
         return render(
-            request, "tournaments/current_draft.html", context={"draft": draft, "tournament": tournament}
+            request,
+            "tournaments/current_draft.html",
+            context={
+                "draft": draft,
+                "tournament": tournament,
+                "round": current_round,
+                "bye": bye,
+                "match": match,
+                "form": form,
+                "confirm_form": confirm_form,
+            },
         )
+    
+    def post(self, request, *args, **kwargs):
+        if "match_id" in request.POST:
+            return PlayerReportResultView.as_view()(request, *args, **kwargs)
+        if "confirm_match_id" in request.POST:
+            return ConfirmResultView.as_view()(request, *args, **kwargs)
 
 
 class EventDashboardView(LoginRequiredMixin, View):
@@ -138,7 +221,7 @@ class EventDashboardView(LoginRequiredMixin, View):
             return redirect(reverse_lazy("tournaments:admin_dashboard", kwargs=kwargs))
 
         try:
-            player = queries.player(user)
+            queries.player(user)
         except ValueError:
             messages.error(
                 request,
@@ -147,37 +230,16 @@ class EventDashboardView(LoginRequiredMixin, View):
             )
             return redirect("tournaments:index")
 
-        tournament = queries.get_tournament(tournament_slug=kwargs['slug'])
-        try:
-            tournament.tournament
-            side_events = []
-            is_side = True
-        except AttributeError:
-            try:
-                side_events = list(
-                    queries.available_side_events(
-                        player, tournament, user.id, force_update=True
-                    )
-                )
-            except ValueError:
-                side_events = []
-            is_side = False
+        tournament = queries.get_tournament(tournament_slug=kwargs["slug"])
 
-        context = {
-            "tournament": tournament,
-            "side_events": side_events,
-            "is_side": is_side,
-        }
+        context = {"tournament": tournament}
         return render(request, "tournaments/event_dashboard.html", context)
-
-    def post(self, request, *args, **kwargs):
-        return SideEventEnrollView.as_view()(request, *args, **kwargs)
 
 
 class MyPoolCheckinView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         user = request.user
-        tournament = queries.get_tournament(tournament_slug=kwargs['slug'])
+        tournament = queries.get_tournament(tournament_slug=kwargs["slug"])
 
         try:
             player = queries.player(user)
@@ -199,7 +261,7 @@ class MyPoolCheckinView(LoginRequiredMixin, View):
 class MyPoolCheckoutView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         user = request.user
-        tournament = queries.get_tournament(tournament_slug=kwargs['slug'])
+        tournament = queries.get_tournament(tournament_slug=kwargs["slug"])
 
         try:
             player = queries.player(user)
@@ -216,3 +278,15 @@ class MyPoolCheckoutView(LoginRequiredMixin, View):
             "tournaments/my_pool_checkout.html",
             {"images": images, "tournament": tournament},
         )
+
+
+class CubeDetailView(LoginRequiredMixin, DetailView):
+    model = Cube
+    context_object_name = "cube"
+    template_name = "tournaments/cube_detail.html"
+
+    def get_context_data(self, **kwargs):
+        from .player_data_views import PRONOUN_CHOICES
+        context = super().get_context_data(**kwargs)
+        context["creator_pronouns"] = PRONOUN_CHOICES[context['object'].creator.pronouns]
+        return context

@@ -81,13 +81,13 @@ class PlayerAdmin(admin.ModelAdmin):
 
 class TournamentAdmin(admin.ModelAdmin):
     list_display = ["name"]
-    fields = ["name", "current_round", "location", "announcement", "start_datetime", "end_datetime", "slug"]
+    fields = ["name", "description", "format_description", "player_capacity", "signed_up", "current_round", "location", "announcement", "start_datetime", "end_datetime", "slug"]
     prepopulated_fields = {"slug": ("name", )}
 
 
 class SideEventAdmin(admin.ModelAdmin):
     list_display = ["name"]
-    fields = ["tournament", "name", "location", "description", "announcement", "start_datetime", "end_datetime"]
+    fields = ["tournament", "name", "description", "format_description", "player_capacity", "signed_up", "location", "announcement", "start_datetime", "end_datetime"]
 
 
 class PhaseAdmin(admin.ModelAdmin):
@@ -108,7 +108,7 @@ class RoundAdmin(admin.ModelAdmin):
 
 
 class CubeAdmin(admin.ModelAdmin):
-    fields = ["name", "description", "url"]
+    fields = ["name", "slug", "creator", "card_number", "description", "special_rules", "url", "image"]
 
 class ImageAdmin(admin.ModelAdmin):
     fields = ["user", "draft_idx", "image"]

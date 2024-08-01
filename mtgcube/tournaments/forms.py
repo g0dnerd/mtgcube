@@ -15,3 +15,6 @@ class ReportResultForm(forms.Form):
     match_id = forms.CharField(widget=forms.HiddenInput())
     player1_wins = forms.ChoiceField(choices=[(i, str(i)) for i in range(3)])
     player2_wins = forms.ChoiceField(choices=[(i, str(i)) for i in range(3)])
+
+class ConfirmResultForm(forms.Form):
+    confirm_match_id = forms.CharField(widget=forms.HiddenInput())

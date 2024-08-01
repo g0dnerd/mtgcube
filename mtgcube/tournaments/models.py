@@ -10,6 +10,10 @@ class Tournament(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=50, unique=True)
     start_datetime = models.DateTimeField(default=timezone.now)
+    description = models.CharField(max_length=255, blank=True)
+    format_description = models.TextField(blank=True)
+    player_capacity = models.IntegerField(default=0)
+    signed_up = models.IntegerField(default=0)
     end_datetime = models.DateTimeField(default=timezone.now)
     location = models.CharField(max_length=255, blank=True)
     announcement = models.CharField(max_length=255, blank=True)
@@ -23,7 +27,7 @@ class Tournament(models.Model):
         if not self.slug:
             self.slug = slugify(self.name)
         return super().save(*args, **kwargs)
-    
+
     @classmethod
     def get_default_pk(cls):
         tournament, __ = cls.objects.get_or_create(name="Cube Open Hamburg 2024")
@@ -31,8 +35,9 @@ class Tournament(models.Model):
 
 
 class SideEvent(Tournament):
-    tournament = models.ForeignKey(Tournament, related_name="side_events", on_delete=models.CASCADE)
-    description = models.CharField(max_length=255, blank=True)
+    tournament = models.ForeignKey(
+        Tournament, related_name="side_events", on_delete=models.CASCADE
+    )
 
 
 class Phase(models.Model):
@@ -71,12 +76,14 @@ class Draft(models.Model):
 
     def __str__(self):
         return f"{self.phase} - Draft {self.id} ({self.cube.name})"
-    
+
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(f'{self.phase.tournament.name}{self.phase.phase_idx}{self.cube.name}')
+            self.slug = slugify(
+                f"{self.phase.tournament.name}{self.phase.phase_idx}{self.cube.name}"
+            )
         return super().save(*args, **kwargs)
-    
+
     def get_absolute_url(self):
         return reverse("tournaments:admin_draft_dashboard", kwargs={"slug": self.slug})
 
@@ -123,11 +130,11 @@ class Enrollment(models.Model):
     draft_omw = models.FloatField(default=0)
     draft_pgw = models.FloatField(default=0)
     draft_ogw = models.FloatField(default=0)
+    draft_place = models.PositiveIntegerField(default=0)
+    tournament_place = models.PositiveIntegerField(default=0)
     checked_in = models.BooleanField(default=False)
     checked_out = models.BooleanField(default=False)
-    pairings = models.ManyToManyField(
-        "self", blank=True
-    )  # needs to be reset after a draft finishes
+    pairings = models.ManyToManyField("self", blank=True)
     seat = models.IntegerField(default=0)
     paired = models.BooleanField(default=False)
     had_bye = models.BooleanField(default=False)
@@ -178,11 +185,20 @@ class Game(models.Model):
         return f"Table {self.table}: {p1name} - {p2name}"
 
 
+def cube_directory_path(instance, filename):
+    return f"images/cube_thumbnails/{instance.name}_{filename}"
+
+
 class Cube(models.Model):
     id = models.AutoField(primary_key=True)
+    creator = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     name = models.CharField(max_length=200, unique=True)
-    description = models.CharField(max_length=255)
+    card_number = models.IntegerField(default=0)
+    description = models.TextField(blank=True)
+    special_rules = models.TextField(blank=True)
     url = models.URLField("URL", max_length=200, unique=True)
+    image = models.ImageField(upload_to=cube_directory_path, blank=True)
+    slug = models.SlugField(null=True)
 
     def __str__(self):
         return self.name
