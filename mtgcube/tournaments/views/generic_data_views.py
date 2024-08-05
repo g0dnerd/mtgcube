@@ -7,7 +7,7 @@ from .. import queries
 
 class SeatingsView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
-        draft = queries.get_draft(id=kwargs['draft_id'], force_update=True)
+        draft = queries.get_draft(slug=kwargs['draft_slug'], force_update=True)
 
         if not draft.seated:
             return JsonResponse({"error": "No seatings yet."}, status=200)
@@ -33,7 +33,7 @@ class SeatingsView(LoginRequiredMixin, View):
 
 class PlayerListView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
-        draft = queries.get_draft(id=kwargs['draft_id'])
+        draft = queries.get_draft(slug=kwargs['draft_slug'])
 
         players = [
             enrollment.player.user.name for enrollment in draft.enrollments.all()
@@ -44,30 +44,22 @@ class PlayerListView(LoginRequiredMixin, View):
 
 class DraftStandingsView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
-        draft = queries.get_draft(id=kwargs['draft_id'])
+        draft = queries.get_draft(slug=kwargs['draft_slug'])
 
         # Get standings
-        
-        sorted_players = queries.draft_standings(draft)
-        if not sorted_players:
+        standings = queries.draft_standings(draft)
+        if not standings:
             return JsonResponse({"error": "No draft standings yet."}, status=200)
         
-        standings_out = [
-            {
-                "name": enrollment.player.user.name,
-                "score": enrollment.draft_score,
-                "omw": enrollment.draft_omw,
-                "pgw": enrollment.draft_pgw,
-                "ogw": enrollment.draft_ogw,
-            }
-            for enrollment in sorted_players
-        ]
-
         current_round = queries.current_round(draft, force_update=True)
-        rd_idx = max(min(draft.phase.tournament.current_round, current_round.round_idx), 1)
+        
+        if not current_round.finished:
+            rd_idx = current_round.round_idx - 1
+        else:
+            rd_idx = current_round.round_idx
 
         return JsonResponse(
-            {"standings": standings_out, "current_round": rd_idx}
+            {"standings": standings, "current_round": rd_idx}
         )
 
 
@@ -75,19 +67,8 @@ class EventStandingsView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         tournament = queries.get_tournament(tournament_slug=kwargs['slug'], force_update=True)
 
-        sorted_players = queries.tournament_standings(tournament)
-        if not sorted_players:
+        standings = queries.tournament_standings(tournament, force_update=True)
+        if not standings:
             return JsonResponse({"error": "No event standings yet."})
 
-        standings_out = [
-            {
-                "name": enrollment.player.user.name,
-                "score": enrollment.draft_score,
-                "omw": enrollment.draft_omw,
-                "pgw": enrollment.draft_pgw,
-                "ogw": enrollment.draft_ogw,
-            }
-            for enrollment in sorted_players
-        ]
-
-        return JsonResponse({"standings": standings_out, "current_round": tournament.current_round - 1})
+        return JsonResponse({"standings": standings, "current_round": tournament.current_round - 1})

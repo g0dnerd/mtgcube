@@ -40,24 +40,25 @@ class MyEventsView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         user = self.request.user
         if user.is_superuser:
-            events = queries.enrolled_tournaments(None, user.id, force_update=True)
+            events = queries.enrolled_tournaments(None, force_update=True)
             status = {}
             for e in events:
                 status[e.id] = True
             queryset = {"events": events, "status": status}
             return queryset
-        try:
-            player = queries.player(user)
-            events = queries.enrolled_tournaments(player, user.id, force_update=True)
-            status = {}
-            for e in events:
-                current_enroll = queries.enrollment_from_tournament(e, player)
-                status[e.id] = current_enroll.registration_finished
+        
+        player = queries.get_player(user)
+        events = queries.enrolled_tournaments(player, force_update=True)
+        if not events:
+            return None
+
+        status = {}
+        for e in events:
+            current_enroll = queries.enrollment_from_tournament(e, player)
+            status[e.id] = current_enroll.registration_finished
 
             queryset = {"events": events, "status": status}
 
-        except ValueError:
-            return None
         return queryset
 
 
@@ -69,26 +70,21 @@ class AvailableEvents(LoginRequiredMixin, ListView):
     def get_queryset(self):
         user = self.request.user
         if user.is_superuser:
-            return queries.available_tournaments(None, user.id, force_update=True)
-        player = queries.player(user)
-        try:
-            available = queries.available_tournaments(
-                player, user.id, force_update=True
-            )
-            enrolled = queries.enrolled_tournaments(player, user.id, force_update=True)
+            return queries.available_tournaments(None, force_update=True)
+        player = queries.get_player(user)
+        available = queries.available_tournaments(player, force_update=True)
+        enrolled = queries.enrolled_tournaments(player, force_update=True)
 
-            status = {}
-            for e in enrolled:
-                current_enroll = queries.enrollment_from_tournament(e, player)
-                status[e.id] = current_enroll.registration_finished
+        status = {}
+        for e in enrolled:
+            current_enroll = queries.enrollment_from_tournament(e, player)
+            status[e.id] = current_enroll.registration_finished
 
-            queryset = {
-                "enrolled": enrolled,
-                "available": available,
-                "status": status,
-            }
-        except ValueError:
-            return None
+        queryset = {
+            "enrolled": enrolled,
+            "available": available,
+            "status": status,
+        }
         return queryset
 
     def post(self, request, *args, **kwargs):
@@ -97,21 +93,23 @@ class AvailableEvents(LoginRequiredMixin, ListView):
 
 class AdminDraftDashboardView(AdminTemplateMixin, View):
     def get(self, request, *args, **kwargs):
-        slug = kwargs.get("slug")
-        draft = queries.get_draft(slug=slug, force_update=True)
-        try:
-            current_round = queries.admin_round_prefetch(draft, force_update=True)
+        draft = queries.get_draft(slug=kwargs["draft_slug"])
+        
+        current_round = queries.admin_round_prefetch(draft, force_update=True)
+        if current_round:
             matches = current_round.game_set.select_related(
                 "player1__player__user", "player2__player__user"
             ).order_by("table")
             bye = queries.bye_this_round(draft)
+            if bye:
+                bye = bye.player.user.name
 
             m_ids = [m.id for m in matches]
             forms = {
                 match_id: ReportResultForm(initial={"match_id": match_id})
                 for match_id in m_ids
             }
-        except ValueError:  # If no rounds exist yet in the current draft
+        else:  # If no rounds exist yet in the current draft
             m_ids = []
             forms = []
             bye = False
@@ -120,8 +118,8 @@ class AdminDraftDashboardView(AdminTemplateMixin, View):
             request,
             "tournaments/admin_draft_dashboard.html",
             {
-                "tournament_slug": slug,
-                "draft_id": draft.id,
+                "tournament_slug": kwargs["slug"],
+                "draft": draft,
                 "match_ids": m_ids,
                 "bye": bye,
                 "forms": forms,
@@ -147,11 +145,12 @@ class AdminDashboardView(AdminTemplateMixin, View):
 
     def get(self, request, *args, **kwargs):
         tournament = queries.get_tournament(tournament_slug=kwargs["slug"])
-        try:
-            drafts = queries.active_drafts_for_event(tournament)
+
+        drafts = queries.active_drafts_for_tournament(tournament)
+        if drafts:
             draft_ids = [d.id for d in drafts]
             slugs = {d.id: d.slug for d in drafts}
-        except ValueError:
+        else:
             draft_ids = []
             drafts = None
             slugs = {}
@@ -163,7 +162,7 @@ class AdminDashboardView(AdminTemplateMixin, View):
         )
 
     def post(self, request, *args, **kwargs):
-        if 'finish-event-rd' in request.POST:
+        if 'finish-event-round' in request.POST:
             return FinishEventRoundView.as_view()(request, *args, **kwargs)
         if 'reset-event' in request.POST:
             return ResetEventView.as_view()(request, *args, **kwargs)
@@ -179,25 +178,25 @@ class DraftDashboardView(LoginRequiredMixin, View):
         user = request.user
         tournament = queries.get_tournament(tournament_slug=kwargs["slug"])
         bye = False
-        player = queries.player(user)
+        player = queries.get_player(user)
         current_enroll = queries.enrollment_from_tournament(tournament, player)
         if current_enroll.bye_this_round:
             bye = True
-        draft = queries.current_draft(current_enroll, user.id)
-
-        current_round = queries.current_round(draft, force_update=True)
-        match = queries.current_match(
-            current_enroll, current_round, user.id, force_update=True
-        )
-
-        if not match:
-            current_round = None
-            match = None
             form = None
             confirm_form = None
+        draft = queries.current_draft(current_enroll)
+
+        current_round = queries.current_round(draft, force_update=True)
+        if not current_round:
+            current_round = None
+            match = None
         else:
-            form = ReportResultForm(initial={"match_id": match.id})
-            confirm_form = ConfirmResultForm(initial={"confirm_match_id": match.id})
+            match = queries.current_match(
+                current_enroll, current_round, force_update=True
+            )
+            if not bye:
+                form = ReportResultForm(initial={"match_id": match.id})
+                confirm_form = ConfirmResultForm(initial={"confirm_match_id": match.id})
 
 
         return render(
@@ -227,19 +226,19 @@ class EventDashboardView(LoginRequiredMixin, View):
         if user.is_superuser:
             return redirect(reverse_lazy("tournaments:admin_dashboard", kwargs=kwargs))
 
-        try:
-            queries.player(user)
-        except ValueError:
+        tournament = queries.get_tournament(tournament_slug=kwargs["slug"])
+        player = queries.get_player(user)
+        enrollment = queries.enrollment_from_tournament(tournament, player)
+        if not enrollment:
             messages.error(
                 request,
-                "There is an issue with your account. Please contact one of our event administrators.\
-                (ERR:NO_PLAYER_FOR_USER)",
+                "Error: You are not enrolled in this event.",
             )
             return redirect("tournaments:index")
+        
+        draft = queries.current_draft(enrollment)
 
-        tournament = queries.get_tournament(tournament_slug=kwargs["slug"])
-
-        context = {"tournament": tournament}
+        context = {"tournament": tournament, "draft": draft}
         return render(request, "tournaments/event_dashboard.html", context)
 
 
@@ -248,12 +247,11 @@ class MyPoolCheckinView(LoginRequiredMixin, View):
         user = request.user
         tournament = queries.get_tournament(tournament_slug=kwargs["slug"])
 
-        try:
-            player = queries.player(user)
-            current_enroll = queries.enrollment_from_tournament(tournament, player)
-            current_draft = queries.current_draft(current_enroll, user.id)
-        except ValueError as e:
-            messages.error(request, str(e))
+        player = queries.get_player(user)
+        current_enroll = queries.enrollment_from_tournament(tournament, player)
+        current_draft = queries.current_draft(current_enroll)
+        if not current_draft:
+            messages.error(request, "No draft.")
             return redirect("tournaments:index")
 
         images = queries.images(user, current_draft, checkin=True)
@@ -261,7 +259,7 @@ class MyPoolCheckinView(LoginRequiredMixin, View):
         return render(
             request,
             "tournaments/my_pool_checkin.html",
-            {"images": images, "tournament": tournament},
+            {"images": images, "tournament": tournament, "draft": current_draft},
         )
 
 
@@ -270,12 +268,11 @@ class MyPoolCheckoutView(LoginRequiredMixin, View):
         user = request.user
         tournament = queries.get_tournament(tournament_slug=kwargs["slug"])
 
-        try:
-            player = queries.player(user)
-            current_enroll = queries.enrollment_from_tournament(tournament, player)
-            current_draft = queries.current_draft(current_enroll, user.id)
-        except ValueError as e:
-            messages.error(request, str(e))
+        player = queries.get_player(user)
+        current_enroll = queries.enrollment_from_tournament(tournament, player)
+        current_draft = queries.current_draft(current_enroll)
+        if not current_draft:
+            messages.error(request, "No draft.")
             return redirect("tournaments:index")
 
         images = queries.images(user, current_draft, checkin=False)
@@ -283,7 +280,7 @@ class MyPoolCheckoutView(LoginRequiredMixin, View):
         return render(
             request,
             "tournaments/my_pool_checkout.html",
-            {"images": images, "tournament": tournament},
+            {"images": images, "tournament": tournament, "draft": current_draft},
         )
 
 
