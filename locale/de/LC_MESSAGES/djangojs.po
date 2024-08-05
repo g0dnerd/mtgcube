@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-04 16:00+0200\n"
+"POT-Creation-Date: 2024-08-05 22:10+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,25 +18,29 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: mtgcube/static/js/admin_match.js:9 mtgcube/static/js/pairings.js:14
+#: mtgcube/static/js/admin_match.js:36 mtgcube/static/js/pairings.js:14
 msgid "Table"
 msgstr "Tisch"
 
-#: mtgcube/static/js/admin_match.js:12
+#: mtgcube/static/js/admin_match.js:39
 msgid "reported by"
 msgstr "hochgeladen durch"
 
-#: mtgcube/static/js/admin_match.js:28 mtgcube/static/js/admin_match.js:29
+#: mtgcube/static/js/admin_match.js:55 mtgcube/static/js/admin_match.js:56
 msgid "wins"
 msgstr "gewinnt"
 
-#: mtgcube/static/js/current_match_full.js:39
-msgid ""
-"Your pairing will be revealed once you have completed the <a href=\"/"
-"tournaments/checkin\">check-in</a>."
-msgstr ""
-"Dein:e Gegner:in wird dir angezeigt, sobald du den <a href=\"/tournaments/"
-"checkin\">Check-in</a> abgeschlossen hast."
+#: mtgcube/static/js/current_match_full.js:40
+#: mtgcube/static/js/current_match_preview.js:20
+msgid "Your pairing will be revealed once you have"
+msgstr "Dein:e Gegner:in wird dir hier angezeigt, sobald du"
+
+#: mtgcube/static/js/current_match_full.js:40
+#: mtgcube/static/js/current_match_preview.js:20
+#, fuzzy
+#| msgid "check-in"
+msgid "checked in"
+msgstr "eingecheckt hast"
 
 #: mtgcube/static/js/current_match_preview.js:10
 msgid "You have the bye this round"
@@ -48,18 +52,7 @@ msgstr "Du hast diese Runde einen Bye"
 msgid "My current opponent at table "
 msgstr "Mein:e Gegner:in an Tisch "
 
-#: mtgcube/static/js/current_match_preview.js:19
-#, fuzzy, javascript-format
-#| msgid ""
-#| "Your pairing will be revealed once you have completed the <a href=\"/"
-#| "tournaments/checkin\">check-in</a>."
-msgid ""
-"Your pairing will be revealed once you have <a href=\"%s\">checked in</a>."
-msgstr ""
-"Dein:e Gegner:in wird dir angezeigt, sobald du <a href=\"%s\">eingecheckt</"
-"a> hast."
-
-#: mtgcube/static/js/current_match_preview.js:24
+#: mtgcube/static/js/current_match_preview.js:25
 msgid "Waiting for pairings"
 msgstr "Warten auf Pairings"
 
@@ -145,18 +138,6 @@ msgstr "Mein Draftplan"
 
 #~ msgid "at table"
 #~ msgstr "an Tisch"
-
-#, fuzzy
-#~| msgid ""
-#~| "Your pairing will be revealed once you have completed the <a href=\"/"
-#~| "tournaments/checkin\">check-in</a>."
-#~ msgid "Your pairing will be revealed once you have"
-#~ msgstr "Dein:e Gegner:in wird dir angezeigt, sobald du"
-
-#, fuzzy
-#~| msgid "check-in"
-#~ msgid "checked in"
-#~ msgstr "eingecheckt hast"
 
 #~ msgid "Event standings"
 #~ msgstr "Event-Standings"

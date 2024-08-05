@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-04 16:02+0200\n"
+"POT-Creation-Date: 2024-08-05 22:14+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -372,8 +372,7 @@ msgstr "Alle Events"
 #, fuzzy
 #| msgid "Once there are side events available, you can sign up for them here"
 msgid "Once more events become available, you can sign up for them here"
-msgstr ""
-"Hier kannst du dich für Events anmelden, sobald sie verfügbar werden"
+msgstr "Hier kannst du dich für Events anmelden, sobald sie verfügbar werden"
 
 #: mtgcube/templates/tournaments/checkin.html:14
 msgid "Check-in: Deck image upload"
@@ -440,15 +439,11 @@ msgstr "Beschreibung"
 msgid "Special rules"
 msgstr "Sonderregeln"
 
-#: mtgcube/templates/tournaments/cube_detail.html:23
+#: mtgcube/templates/tournaments/cube_detail.html:24
 #, fuzzy
 #| msgid "Cube list"
-msgid "Full cube list"
-msgstr "Cube-Liste"
-
-#: mtgcube/templates/tournaments/cube_detail.html:24
-msgid "on CubeCobra"
-msgstr ""
+msgid "Full cube list on CubeCobra"
+msgstr "Vollständige Cube-Liste auf CubeCobra"
 
 #: mtgcube/templates/tournaments/current_draft.html:4
 #: mtgcube/templates/tournaments/current_draft.html:10
@@ -459,7 +454,7 @@ msgstr "Mein aktueller Draft"
 #, fuzzy
 #| msgid "My current draft"
 msgid "My current draft in round"
-msgstr "Mein aktuelles Match in Runde"
+msgstr "Mein aktueller Draft in Runde"
 
 #: mtgcube/templates/tournaments/current_match_full_embed.html:12
 msgid "You have the bye this round"
@@ -614,23 +609,19 @@ msgstr "(Bestätigung ausstehend)"
 msgid "(confirmed)"
 msgstr "(bestätigt)"
 
-#: mtgcube/tournaments/queries.py:156
-msgid "As soon as one of your drafts starts, you will be able to see it here."
-msgstr "Sobald einer deiner Drafts startet, wirst du ihn hier ansehen können."
-
-#: mtgcube/tournaments/views/player_data_views.py:18
+#: mtgcube/tournaments/views/player_data_views.py:16
 msgid "(they/them)"
 msgstr "(they/them)"
 
-#: mtgcube/tournaments/views/player_data_views.py:19
+#: mtgcube/tournaments/views/player_data_views.py:17
 msgid "(he/him)"
 msgstr "(he/him)"
 
-#: mtgcube/tournaments/views/player_data_views.py:20
+#: mtgcube/tournaments/views/player_data_views.py:18
 msgid "(she/her)"
 msgstr "(she/her)"
 
-#: mtgcube/tournaments/views/player_data_views.py:21
+#: mtgcube/tournaments/views/player_data_views.py:19
 #, fuzzy
 #| msgid "Neither/don't want to say"
 msgid "(neither/don't want to say)"
@@ -672,12 +663,6 @@ msgstr "Weder noch/keine Angabe"
 msgid "Display Name"
 msgstr "Anzeigename"
 
-#: mtgcube/users/models.py:18
-#, fuzzy
-#| msgid "Neither/don't want to say"
-msgid "neither/don't want to say"
-msgstr "weder noch/keine Angabe"
-
 #: mtgcube/users/models.py:19
 #, fuzzy
 #| msgid "(he/him)"
@@ -699,6 +684,16 @@ msgstr "(they/them)"
 #: mtgcube/users/views.py:28
 msgid "Information successfully updated"
 msgstr "Information erfolgreich angepasst"
+
+#~ msgid ""
+#~ "As soon as one of your drafts starts, you will be able to see it here."
+#~ msgstr ""
+#~ "Sobald einer deiner Drafts startet, wirst du ihn hier ansehen können."
+
+#, fuzzy
+#~| msgid "Neither/don't want to say"
+#~ msgid "neither/don't want to say"
+#~ msgstr "weder noch/keine Angabe"
 
 #, fuzzy
 #~| msgid ""
