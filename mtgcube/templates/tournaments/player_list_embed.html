@@ -7,8 +7,8 @@
 
 {% block content %}
 
-<li class="player-list-embed" id="player-list" data-tournament-slug="{{ tournament_slug }}" data-draft-id="{{ draft_id }}">
+<li class="player-list-embed" id="player-list" data-tournament-slug="{{ tournament_slug }}" data-draft-slug="{{ draft.slug }}">
     <h5>Players:</h5>
-    <p class="player-list" id="player-list-{{ draft_id }}"></p>
+    <p id="player-list-inner"></p>
 </li>
 {% endblock %}

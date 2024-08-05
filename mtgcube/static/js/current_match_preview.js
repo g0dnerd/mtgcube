@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     function updateMatchInfo(tournamentSlug) {
         var matchElement = document.getElementById("current-match");
-        var url = `/event-dashboard/${tournamentSlug}/~player-match-info/`;
+        var url = `/event-dashboard/${tournamentSlug}/~player-match-preview/`;
         fetch(url)
         .then(response => response.json())
         .then(data => {
@@ -15,8 +15,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 matchElement.style.display = 'block';
             } else {
                 if (data.error == 'No checkin.') {
-                    var checkInUrl = `/event-dashboard/${tournamentSlug}/my-current-draft/check-in/`;
-                    matchElement.innerHTML = gettext(`Your pairing will be revealed once you have <a href="%s">checked in</a>.`, checkInUrl);
+                    var checkInUrl = `/event-dashboard/${tournamentSlug}/${data.draft.slug}/checkin-upload/`;
+                    matchElement.innerHTML = gettext(
+                        'Your pairing will be revealed once you have') + `<a href="${checkInUrl}">` + gettext('checked in') + `</a>` + '.';
                     matchElement.style.display = 'block';
                 }
                 else if (data.error == "No match yet.") {

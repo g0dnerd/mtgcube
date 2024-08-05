@@ -10,8 +10,8 @@
 {% block content %}
 <h1>Admin Draft Overview</h1>
 <ul class="match-admin">
-    {% include 'tournaments/player_list_embed.html' with tournament_slug=tournament_slug draft_id=draft_id %}
-    {% include 'tournaments/seatings_embed.html' with tournament_slug=tournament_slug draft_id=draft_id %}
+    {% include 'tournaments/player_list_embed.html' with tournament_slug=tournament_slug draft=draft %}
+    {% include 'tournaments/seatings_embed.html' with tournament_slug=tournament_slug draft=draft %}
     <li class="admin-match-info">
         <h5>Matches:</h5>
         <ul>
@@ -29,21 +29,21 @@
     </li>
 </ul>
 <ul>
-    {% include 'tournaments/draft_standings_embed.html' with tournament_slug=tournament_slug draft_id=draft_id %}
-    <li class="admin-draft-buttons">
+    {% include 'tournaments/draft_standings_embed.html' with tournament_slug=tournament_slug draft=draft %}
+    <li class="admin-draft-buttons" id="admin-btns" data-draft-slug="{{ draft.slug }}" data-tournament-slug="{{ tournament_slug }}">
         <div class="row">
             <div class="col-sm-12">
                 <form class="seat-form" method="post" enctype="multipart/form-data">
                     {% csrf_token %}
-                    <button type="submit" name="seat-draft">Seat draft</button>
+                    <button type="submit" name="seat-draft" id="seat-btn" disabled>Seat draft</button>
                 </form>
                 <form class="pair-form" method="post" enctype="multipart/form-data">
                     {% csrf_token %}
-                    <button type="submit" name="pair-round">Pair round</button>
+                    <button type="submit" name="pair-round" id="pair-btn" disabled>Pair round</button>
                 </form>
                 <form class="finish-round-form" method="post" enctype="multipart/form-data">
                     {% csrf_token %}
-                    <button type="submit" name="finish-round">Finish round and make standings</button>
+                    <button type="submit" name="finish-round" id="finish-btn" disabled>Finish round and make standings</button>
                 </form>
                 <form class="reset-draft-form" method="post" enctype="multipart/form-data">
                     {% csrf_token %}

@@ -6,9 +6,9 @@
 
 {% block content %}
 <li class="match-info">
-    <div id="match-details" data-match-id="{{ match.id }}" data-draft-id="{{ draft.id }}" data-tournament-slug="{{ tournament_slug }}">
+    <div id="match-details" data-match-id="{{ match.id }}" data-draft-slug="{{ draft.slug }}" data-tournament-slug="{{ tournament_slug }}">
         {% if bye %}
-            <div id="opponent-header" style="display:none;">
+            <div id="opponent-header">
                 <h5>{% trans "You have the bye this round" %}!</h5>
             </div>
         {% else %}

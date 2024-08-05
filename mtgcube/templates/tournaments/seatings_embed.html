@@ -6,9 +6,9 @@
 {% endblock %}
 
 {% block content %}
-<li class="seatings-info" id="player-seatings" data-tournament-slug="{{ tournament_slug }}" data-draft-id="{{ draft_id }}" style="display:none;">
-    <h5 id="seatings-header-{{ draft_id }}"></h5>
-    <p id="seatings-info-{{ draft_id }}"></p>
-    <ol class="seatings-table" id="seatings-{{ draft_id }}"></ol>
+<li class="seatings-info" id="player-seatings" data-tournament-slug="{{ tournament_slug }}" data-draft-slug="{{ draft.slug }}" style="display:none;">
+    <h5 id="seatings-header"></h5>
+    <p id="seatings-info"></p>
+    <ol class="seatings-table" id="seatings"></ol>
 </li>
 {% endblock %}

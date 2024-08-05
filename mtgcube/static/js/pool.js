@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function getUploadHtml(data) {
         if (!data.checked_in) {
-            var checkinUrl = `/event-dashboard/${tournamentSlug}/my-current-draft/check-in/`;
+            var checkinUrl = `/event-dashboard/${tournamentSlug}/${draftSlug}/checkin-upload/`;
             return `
                 <div class="pool-info-check-in-missing">
                     <h5>${gettext('You are not yet checked in')}. ${gettext('Please')} <a href="${checkinUrl}">${gettext('upload your pool')}</a> ${gettext('once you have finished drafting.')}</h5>
@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
         }
         
-        var checkinPoolUrl = `/event-dashboard/${tournamentSlug}/my-current-draft/checkin-deck-upload/`;
+        var checkinPoolUrl = `/event-dashboard/${tournamentSlug}/${draftSlug}/checkin-pool/`;
         let html = `
             <div class="pool-info-checked-in">
                 <h5>${gettext('You are checked in and good to go')}!</h5>
@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
 
         if (data.checked_out) {
-            var checkoutPoolUrl = `/event-dashboard/${tournamentSlug}/my-current-draft/checkout-deck-upload/`;
+            var checkoutPoolUrl = `/event-dashboard/${tournamentSlug}/${draftSlug}/checkout-pool/`;
             html = `
                 <div class="pool-info-checked-out">
                     <h5>${gettext('You have checked out and are good to go!')}</h5>
@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             `;
         } else {
-            var checkoutUrl = `/event-dashboard/${tournamentSlug}/my-current-draft/check-out/`;
+            var checkoutUrl = `/event-dashboard/${tournamentSlug}/${draftSlug}/checkout-upload/`;
             html += `
                 <div class="pool-info-check-out-missing">
                     <h5>${gettext('To check out, please')} <a href="${checkoutUrl}">${gettext('upload your pool')}</a> ${gettext('after you have finished all your matches.')}</h5>
@@ -39,8 +39,8 @@ document.addEventListener('DOMContentLoaded', function() {
         return html;
     }
 
-    function updateStatusInfo() {
-        var url = `/event-dashboard/${tournamentSlug}/draft/${draftId}/~player-basic-info/`;
+    function updateStatusInfo(tournamentSlug, draftSlug) {
+        var url = `/event-dashboard/${tournamentSlug}/${draftSlug}/~player-basic-info/`;
         fetch(url)
             .then(response => response.json())
             .then(data => {
@@ -57,10 +57,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     var tournamentSlug = document.getElementById('deck-upload').dataset.tournamentSlug;
-    var draftId = document.getElementById('deck-upload').dataset.draftId;
+    var draftSlug = document.getElementById('deck-upload').dataset.draftSlug;
+    console.log(draftSlug);
     var poolElement = document.getElementById("deck-upload");
-    updateStatusInfo(tournamentSlug, draftId);
+    updateStatusInfo(tournamentSlug, draftSlug);
     setInterval(function() {
-        updateStatusInfo(tournamentSlug, draftId);
+        updateStatusInfo(tournamentSlug, draftSlug);
     }, 120000); // 120 seconds
 });

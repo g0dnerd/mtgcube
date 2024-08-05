@@ -7,14 +7,14 @@
         {% trans 'My check-out pool & decklist submissions' %}
     </h1>
     <div class="upload-more">
-        <a href="{% url 'tournaments:checkout' tournament.slug %}">{% trans 'Upload deck images' %}</a>
+        <a href="{% url 'tournaments:checkout' tournament.slug draft.slug %}">{% trans 'Upload deck images' %}</a>
     </div>
     <div class="pool-info-checkout">
         <ul>
             {% for image in images %}
                 <li>
                     <img src="{{ image.image.url }}" alt="{{ image }}">
-                    <a href="{% url 'tournaments:delete_image_checkout' tournament.slug image.id %}">{% trans 'Delete' %}</a>
+                    <a href="{% url 'tournaments:delete_image_checkout' tournament.slug draft.slug image.id %}">{% trans 'Delete' %}</a>
                 </li>
             {% endfor %}
         </ul>

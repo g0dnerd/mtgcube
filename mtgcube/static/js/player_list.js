@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
-    function updatePlayerInfo(tournamentSlug, draftId) {
-        var infoElement = document.getElementById("player-list-" + draftId);
-        var url = `/event-dashboard/${tournamentSlug}/draft/${draftId}/~players/`;
+    function updatePlayerInfo(tournamentSlug, draftSlug) {
+        var infoElement = document.getElementById("player-list-inner");
+        var url = `/event-dashboard/${tournamentSlug}/${draftSlug}/~players/`;
         fetch(url)
         .then(response => response.json())
         .then(data => {
@@ -11,10 +11,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     var tournamentSlug = document.getElementById('player-list').dataset.tournamentSlug;
-    var draftId = document.getElementById('player-list').dataset.draftId;
-    updatePlayerInfo(tournamentSlug, draftId);
+    var draftSlug = document.getElementById('player-list').dataset.draftSlug;
+    updatePlayerInfo(tournamentSlug, draftSlug);
 
     setInterval(function() {
-        updatePlayerInfo(tournamentSlug, draftId);
+        updatePlayerInfo(tournamentSlug, draftSlug);
     }, 120000); // 120 seconds
 });

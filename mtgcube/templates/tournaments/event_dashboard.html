@@ -9,7 +9,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="event-dashboard" id="dashboard-container" data-tournament-slug="{{ tournament.slug }}">
+<div class="event-dashboard" id="dashboard-container" data-tournament-slug="{{ tournament.slug }}" data-draft-slug="{{ draft.slug }}">
     <h4>{% trans 'Event Dashboard' %}</h4>
     <div class="event-title" id="event-info-header">
         <h1 class="event-name">{{ tournament.name }}</h1>

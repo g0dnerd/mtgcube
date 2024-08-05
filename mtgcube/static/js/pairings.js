@@ -1,9 +1,9 @@
 document.addEventListener('DOMContentLoaded', function() {
-    function updatePairingsInfo(tournamentSlug, draftId) {
+    function updatePairingsInfo(tournamentSlug, draftSlug) {
         var pairingsContainer = document.getElementById("player-pairings");
-        var pairingsElement = document.getElementById("pairings-" + draftId);
-        var headerElement = document.getElementById("pairings-header-" + draftId);
-        var url = `/event-dashboard/${tournamentSlug}/draft/${draftId}/~player-pairings-info/`;
+        var pairingsElement = document.getElementById("pairings");
+        var headerElement = document.getElementById("pairings-header");
+        var url = `/event-dashboard/${tournamentSlug}/${draftSlug}/~player-pairings/`;
         fetch(url)
         .then(response => response.json())
         .then(data => {
@@ -27,10 +27,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     var tournamentSlug = document.getElementById('player-pairings').dataset.tournamentSlug;
-    var draftId = document.getElementById('player-pairings').dataset.draftId;
-    updatePairingsInfo(tournamentSlug, draftId);
+    var draftSlug = document.getElementById('player-pairings').dataset.draftSlug;
+    updatePairingsInfo(tournamentSlug, draftSlug);
 
     setInterval(function() {
-        updatePairingsInfo(tournamentSlug, draftId);
+        updatePairingsInfo(tournamentSlug, draftSlug);
     }, 120000); // 120 seconds
 });

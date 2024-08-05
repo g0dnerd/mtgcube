@@ -3,11 +3,11 @@ document.addEventListener('DOMContentLoaded', function() {
         var infoElement = document.getElementById("draft-name-" + draftId);
         var playersElement = document.getElementById("players-" + draftId);
         var statusElement = document.getElementById("draft-status-" + draftId);
-        var url = `/admin-dashboard/${tournamentSlug}/~draft/${draftId}/`
+        var url = `/admin-dashboard/${tournamentSlug}/${draftSlug}/~draft/`
         fetch(url)
         .then(response => response.json())
         .then(data => {
-            var draftUrl = `/admin-dashboard/${draftSlug}`;
+            var draftUrl = `/admin-dashboard/${tournamentSlug}/${draftSlug}/`;
             infoElement.innerHTML = `
             <h5><a href="${draftUrl}">Draft</a> playing ${data.cube}:</h5>
             `;

@@ -14,13 +14,13 @@
         <h1>Cube: <a href="{% url 'tournaments:cube_detail' draft.cube.slug %}" target="_blank">{{ draft.cube.name }}</a></h1>
     </div>
     <ul class="player-info-list">
-        {% include 'tournaments/pool_embed.html' with tournament_slug=tournament.slug draft_id=draft.id %}
-        {% if match %}
-            {% include 'tournaments/current_match_full_embed.html' with tournament_slug=tournament.slug draft=draft match=match form=form confirm_form=confirm_form %}
+        {% include 'tournaments/pool_embed.html' with tournament_slug=tournament.slug draft=draft %}
+        {% if match or bye %}
+            {% include 'tournaments/current_match_full_embed.html' with tournament_slug=tournament.slug draft=draft match=match bye=bye form=form confirm_form=confirm_form %}
         {% endif %}
-        {% include 'tournaments/seatings_embed.html' with tournament_slug=tournament.slug draft_id=draft.id %}
-        {% include 'tournaments/pairings_embed.html' with tournament_slug=tournament.slug draft_id=draft.id %}
-        {% include 'tournaments/draft_standings_embed.html' with tournament_slug=tournament.slug draft_id=draft.id %}
+        {% include 'tournaments/seatings_embed.html' with tournament_slug=tournament.slug draft=draft %}
+        {% include 'tournaments/pairings_embed.html' with tournament_slug=tournament.slug draft=draft %}
+        {% include 'tournaments/draft_standings_embed.html' with tournament_slug=tournament.slug draft=draft %}
     </ul>
 </div>
 {% endblock %}

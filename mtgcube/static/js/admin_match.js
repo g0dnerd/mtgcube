@@ -1,4 +1,31 @@
 document.addEventListener('DOMContentLoaded', function() {
+    function updateRoundStatus(tournamentSlug, draftSlug) {
+        var url = `/admin-dashboard/${tournamentSlug}/${draftSlug}/~draft/`;
+        fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            var finishBtn = document.getElementById("finish-btn");
+            var pairBtn = document.getElementById("pair-btn");
+            var seatBtn = document.getElementById("seat-btn");
+            if (data.in_progress) {
+                finishBtn.disabled = true;
+            } else {
+                finishBtn.disabled = false;
+                if (data.finished) {
+                    pairBtn.disabled = false;
+                } else {
+                    pairBtn.disabled = true;
+                }
+            }
+            if (data.seated) {
+                pairBtn.disabled = false;
+                seatBtn.disabled = true;
+            } else {
+                seatBtn.disabled = false;
+            }
+        })
+        .catch(error => console.error('Error updating match info:', error));
+    }
     function updateMatchInfo(tournamentSlug, matchId) {
         var infoElement = document.getElementById("pairing-" + matchId);
         var resultElement = document.getElementById("report-result-form-" + matchId);
@@ -31,7 +58,17 @@ document.addEventListener('DOMContentLoaded', function() {
         .catch(error => console.error('Error updating match info:', error));
     }
 
+    
+    var draftSlug = document.getElementById('admin-btns').dataset.draftSlug;
+    var tournamentSlug = document.getElementById('admin-btns').dataset.tournamentSlug;
     var matchPanels = document.querySelectorAll('#match-panel');
+
+    updateRoundStatus(tournamentSlug, draftSlug);
+
+    setInterval(function() {
+        updateRoundStatus(tournamentSlug, draftSlug);
+    }, 120000);
+
     matchPanels.forEach(function(panel) {
         var matchId = panel.dataset.matchId;
         var tournamentSlug = panel.dataset.tournamentSlug;

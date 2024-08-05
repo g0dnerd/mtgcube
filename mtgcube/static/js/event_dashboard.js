@@ -1,5 +1,5 @@
-function fetchDraftDetails(tournamentSlug) {
-    var url = `/event-dashboard/${tournamentSlug}/~player-draft-info/`;
+function fetchDraftDetails(tournamentSlug, draftSlug) {
+    var url = `/event-dashboard/${tournamentSlug}/${draftSlug}/~player-draft-info/`;
     fetch(url)
     .then(response => response.json())
     .then(data => {
@@ -7,7 +7,7 @@ function fetchDraftDetails(tournamentSlug) {
         const cubeInfoElement = document.getElementById("player-cube-info");
         const statusElement = document.getElementById('player-signup-status');
         if (!data.error) {
-            var currentDraftUrl = `/event-dashboard/${tournamentSlug}/my-current-draft/`;
+            var currentDraftUrl = `/event-dashboard/${tournamentSlug}/${draftSlug}/`;
             if (data.current_round == 0 && !data.seated) {
                 draftInfoElement.innerHTML = `
                 <h5 class="draft-disabled">
@@ -60,10 +60,11 @@ function fetchAnnouncement(tournamentSlug) {
 // Initial formatting
 document.addEventListener('DOMContentLoaded', () => {
     var tournamentSlug = document.getElementById('dashboard-container').dataset.tournamentSlug;
-    fetchDraftDetails(tournamentSlug);
+    var draftSlug = document.getElementById('dashboard-container').dataset.draftSlug;
+    fetchDraftDetails(tournamentSlug, draftSlug);
     fetchAnnouncement(tournamentSlug);
     setInterval(function() {
-        fetchDraftDetails(tournamentSlug);
+        fetchDraftDetails(tournamentSlug, draftSlug);
     }, 600000); // 120 seconds
     setInterval(function() {
         fetchAnnouncement(tournamentSlug);
