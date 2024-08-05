@@ -15,10 +15,10 @@ class User(AbstractUser):
     NONBINARY = "x"
     
     PRONOUN_CHOICES = {
-        "n": _("neither/don't want to say"),
-        "m": _("he/him"),
-        "f": _("she/her"),
-        "x": _("they/them"),
+        NEITHER: (""),
+        MALE: _("he/him"),
+        FEMALE: _("she/her"),
+        NONBINARY: _("they/them"),
     }
 
     pronouns = CharField(
@@ -39,3 +39,11 @@ class User(AbstractUser):
 
         """
         return reverse("users:detail", kwargs={"username": self.username})
+    
+    def save(self, *args, **kwargs):
+        """Override the original save method to set the name."""
+        super(User, self).save(*args, **kwargs)
+
+        if self.name == "":
+            self.name = self.username
+            self.save()
