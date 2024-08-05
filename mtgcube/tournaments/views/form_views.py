@@ -76,7 +76,6 @@ class AdminReportResultView(FormView, AdminDataMixin):
 
     def form_valid(self, form):
         match_id = form.cleaned_data["match_id"]
-        print(match_id)
         player1_wins = form.cleaned_data["player1_wins"]
         player2_wins = form.cleaned_data["player2_wins"]
         match = queries.match_from_id(match_id)
@@ -87,7 +86,6 @@ class AdminReportResultView(FormView, AdminDataMixin):
             reporting_player=None,
             admin=True,
         )
-        print(match)
         services.finish_match(match)
         return super().form_valid(form)
 
@@ -119,7 +117,8 @@ class PairRoundView(FormView, AdminDataMixin):
     def post(self, request, *args, **kwargs):
         slug = kwargs.get("slug")
         draft = queries.get_draft(slug=slug, force_update=True)
-        services.pair_round(draft)
+        services.pair_round_new(draft)
+        # services.pair_round(draft)
         return redirect(self.get_success_url())
 
 
@@ -164,11 +163,29 @@ class FinishEventRoundView(FormView, AdminDataMixin):
 
     def post(self, request, *args, **kwargs):
         event_id = request.POST.get("finish-event-round")
-        event = queries.get_tournament(event_id)
+        event = queries.get_tournament(tournament_id=event_id)
 
         services.finish_event_round(event)
 
         return redirect(self.get_success_url())
+    
+
+class ResetEventView(FormView, AdminDataMixin):
+    template_name = "tournaments/admin_dashboard.html"
+
+    def get_success_url(self):
+        return reverse_lazy(
+            "tournaments:admin_dashboard", kwargs={"slug": self.kwargs["slug"]}
+        )
+
+    def post(self, request, *args, **kwargs):
+        event_id = request.POST.get("reset-event")
+        event = queries.get_tournament(tournament_id=event_id)
+
+        services.reset_tournament(event)
+
+        return redirect(self.get_success_url())
+
 
 
 class EventEnrollView(FormView, LoginRequiredMixin):

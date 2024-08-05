@@ -64,7 +64,7 @@ class DraftStandingsView(LoginRequiredMixin, View):
         ]
 
         current_round = queries.current_round(draft, force_update=True)
-        rd_idx = min(draft.phase.tournament.current_round, current_round.round_idx)
+        rd_idx = max(min(draft.phase.tournament.current_round, current_round.round_idx), 1)
 
         return JsonResponse(
             {"standings": standings_out, "current_round": rd_idx}

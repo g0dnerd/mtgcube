@@ -47,6 +47,7 @@ class EnrollmentAdmin(admin.ModelAdmin):
         "tournament",
         "player",
         "registration_finished",
+        "dropped",
         "checked_in",
         "checked_out",
         "score",
@@ -81,7 +82,7 @@ class PlayerAdmin(admin.ModelAdmin):
 
 class TournamentAdmin(admin.ModelAdmin):
     list_display = ["name"]
-    fields = ["name", "description", "format_description", "player_capacity", "signed_up", "current_round", "location", "announcement", "start_datetime", "end_datetime", "slug"]
+    fields = ["name", "public", "description", "format_description", "player_capacity", "signed_up", "current_round", "location", "announcement", "start_datetime", "end_datetime", "slug"]
     prepopulated_fields = {"slug": ("name", )}
 
 

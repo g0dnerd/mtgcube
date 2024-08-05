@@ -67,6 +67,7 @@ class PlayerDraftInfoView(LoginRequiredMixin, View):
             "cube_name": current_draft.cube.name,
             "cube_url": current_draft.cube.url,
             "cube_slug": current_draft.cube.slug,
+            "seated": current_draft.seated,
             "finished": current_draft.finished,
         }
 
@@ -218,7 +219,7 @@ class PlayerOtherPairingsInfoView(LoginRequiredMixin, View):
             for game in non_player_games
         ]
 
-        bye_this_round = queries.bye_this_round(current_enroll, current_draft)
+        bye_this_round = queries.bye_this_round(current_draft)
 
         return JsonResponse({"other_pairings": other_pairings, "bye": bye_this_round})
 
@@ -368,13 +369,12 @@ class DeleteImageCheckinView(LoginRequiredMixin, View):
         image.delete()
 
         user = request.user
-        try:
-            player = queries.player(user)
-            tournament = queries.get_tournament(tournament_slug=kwargs['slug'])
-            current_enroll = queries.enrollment_from_tournament(tournament, player)
-            current_draft = queries.current_draft(current_enroll, user.id)
-        except ValueError as e:
-            return JsonResponse({"error": str(e)}, status=404)
+        player = queries.player(user)
+        tournament = queries.get_tournament(tournament_slug=kwargs['slug'])
+        current_enroll = queries.enrollment_from_tournament(tournament, player)
+        current_draft = queries.current_draft(current_enroll, user.id)
+        if not current_draft:
+            return JsonResponse({"error": True}, status=404)
 
         images = queries.images(user, current_draft, checkin=True)
         if not images:
@@ -391,14 +391,13 @@ class DeleteImageCheckoutView(LoginRequiredMixin, View):
         default_storage.delete(image.image.name)
         image.delete()
 
-        try:
-            user = request.user
-            player = queries.player(user)
-            tournament = queries.get_tournament(tournament_slug=kwargs['slug'])
-            current_enroll = queries.enrollment_from_tournament(tournament, player)
-            current_draft = queries.current_draft(current_enroll, user.id)
-        except ValueError as e:
-            return JsonResponse({"error": str(e)}, status=404)
+        user = request.user
+        player = queries.player(user)
+        tournament = queries.get_tournament(tournament_slug=kwargs['slug'])
+        current_enroll = queries.enrollment_from_tournament(tournament, player)
+        current_draft = queries.current_draft(current_enroll, user.id)
+        if not current_draft:
+            return JsonResponse({"error": True}, status=404)
 
         images = queries.images(user, current_draft, checkin=False)
         if not images:

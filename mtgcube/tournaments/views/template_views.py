@@ -16,6 +16,7 @@ from .form_views import (
     FinishEventRoundView,
     ConfirmResultView,
     EventEnrollView,
+    ResetEventView,
 )
 from .. import queries as queries
 from ..models import Tournament, Cube
@@ -103,6 +104,7 @@ class AdminDraftDashboardView(AdminTemplateMixin, View):
             matches = current_round.game_set.select_related(
                 "player1__player__user", "player2__player__user"
             ).order_by("table")
+            bye = queries.bye_this_round(draft)
 
             m_ids = [m.id for m in matches]
             forms = {
@@ -112,6 +114,7 @@ class AdminDraftDashboardView(AdminTemplateMixin, View):
         except ValueError:  # If no rounds exist yet in the current draft
             m_ids = []
             forms = []
+            bye = False
 
         return render(
             request,
@@ -120,6 +123,7 @@ class AdminDraftDashboardView(AdminTemplateMixin, View):
                 "tournament_slug": slug,
                 "draft_id": draft.id,
                 "match_ids": m_ids,
+                "bye": bye,
                 "forms": forms,
             },
         )
@@ -159,7 +163,10 @@ class AdminDashboardView(AdminTemplateMixin, View):
         )
 
     def post(self, request, *args, **kwargs):
-        return FinishEventRoundView.as_view()(request, *args, **kwargs)
+        if 'finish-event-rd' in request.POST:
+            return FinishEventRoundView.as_view()(request, *args, **kwargs)
+        if 'reset-event' in request.POST:
+            return ResetEventView.as_view()(request, *args, **kwargs)
 
 
 class IndexView(LoginRequiredMixin, View):

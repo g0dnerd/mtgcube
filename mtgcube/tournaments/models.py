@@ -8,6 +8,7 @@ from django.urls import reverse
 
 class Tournament(models.Model):
     id = models.AutoField(primary_key=True)
+    public = models.BooleanField(default=False)
     name = models.CharField(max_length=50, unique=True)
     start_datetime = models.DateTimeField(default=timezone.now)
     description = models.CharField(max_length=255, blank=True)
@@ -114,6 +115,7 @@ class Player(models.Model):
 class Enrollment(models.Model):
     player = models.ForeignKey(Player, on_delete=models.CASCADE)
     tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
+    dropped = models.BooleanField(default=False)
     enrolled_on = models.DateTimeField(auto_now_add=True)
     registration_finished = models.BooleanField(default=False)
     score = models.IntegerField(default=0)

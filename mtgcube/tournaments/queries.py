@@ -23,11 +23,11 @@ def player(user, force_update=False):
         if not user.is_superuser:
             player = Player(user=user)
             player.save()
-            cache.set(f"player_{user.id}", player, 60)
+            cache.set(f"player_{user.id}", player, 300)
             return player
-        raise ValueError("No player found for current user")
+        return None
 
-    cache.set(f"player_{user.id}", player, 60)
+    cache.set(f"player_{user.id}", player, 300)
     return player
 
 
@@ -51,7 +51,7 @@ def available_tournaments(player, uid, force_update=False):
             Tournament.objects.exclude(
                 Q(id__in=enrolled_tournament_ids) | Q(start_datetime__lt=now)
             )
-            .filter(sideevent__isnull=True)
+            .filter(sideevent__isnull=True, public=True)
             .distinct()
             .order_by("start_datetime")
         )
@@ -59,6 +59,7 @@ def available_tournaments(player, uid, force_update=False):
             SideEvent.objects.exclude(
                 Q(id__in=enrolled_tournament_ids) | Q(start_datetime__lt=now)
             )
+            .filter(public=True)
             .distinct()
             .order_by("start_datetime")
         )
@@ -155,7 +156,7 @@ def current_draft(current_enrollment, uid, force_update=False):
             _("As soon as one of your drafts starts, you will be able to see it here.")
         )
 
-    cache.set(f"draft_{uid}", draft, 120)  # Cache draft object for 2 minutes
+    cache.set(f"draft_{uid}", draft, 30)  # Cache draft object for 30 seconds
     return draft
 
 
@@ -179,22 +180,22 @@ def non_player_games(current_enrollment, current_round, uid, force_update=False)
     return non_player_games
 
 
-def bye_this_round(current_enrollment, current_draft, force_update=False):
+def bye_this_round(draft, current_enrollment=None, force_update=False):
     if not force_update:
-        bye_this_round = cache.get(f"bye_this_round_{current_draft.id}")
+        bye_this_round = cache.get(f"bye_this_round_{draft.id}")
         if bye_this_round:
-            if bye_this_round != current_enrollment:
-                return bye_this_round.player.user.name
-        return False
+            if current_enrollment:
+                if bye_this_round != current_enrollment:
+                    return False
+            return bye_this_round.player.user.name
 
     try:
-        bye_this_round = current_draft.enrollments.get(bye_this_round=True)
-        cache.set(f"bye_this_round_{current_draft.id}", bye_this_round, 120)
-        return (
-            bye_this_round.player.user.name
-            if bye_this_round != current_enrollment
-            else False
-        )
+        bye_this_round = draft.enrollments.get(bye_this_round=True)
+        cache.set(f"bye_this_round_{draft.id}", bye_this_round, 120)
+        if current_enrollment:
+            if bye_this_round != current_enrollment:
+                return False
+        return bye_this_round.player.user.name
     except Enrollment.DoesNotExist:
         return False
 
@@ -237,7 +238,7 @@ def enroll_for_event(user, tournament):
         )
     except AttributeError:
         Enrollment.objects.create(
-            tournament=tournament, player=user_player, registration_finished=False
+            tournament=tournament, player=user_player, registration_finished=True
         )
 
     tournament.signed_up += 1
@@ -282,21 +283,30 @@ def get_tournament(tournament_id=None, tournament_slug=None, force_update=False)
     if not force_update:
         if tournament_id:
             tournament = cache.get(f"tournament_{tournament_id}")
+            if tournament:
+                return tournament
         elif tournament_slug:
             tournament = cache.get(f"tournament_{tournament_slug}")
-        if tournament:
-            return tournament
+            if tournament:
+                return tournament
 
     if tournament_id:
         try:
             tournament = SideEvent.objects.get(pk=tournament_id)
         except SideEvent.DoesNotExist:
-            tournament = Tournament.objects.get(pk=tournament_id)
+            try:
+                tournament = Tournament.objects.get(pk=tournament_id)
+            except Tournament.DoesNotExist:
+                return None
+        
     elif tournament_slug:
         try:
             tournament = SideEvent.objects.get(slug=tournament_slug)
         except SideEvent.DoesNotExist:
-            tournament = Tournament.objects.get(slug=tournament_slug)
+            try:
+                tournament = Tournament.objects.get(slug=tournament_slug)
+            except Tournament.DoesNotExist:
+                return None
 
     if tournament_id:
         cache.set(f"tournament_{tournament_id}", tournament, 300)
@@ -319,11 +329,12 @@ def get_draft(id=None, slug=None, force_update=False):
     try:
         if id:
             draft = Draft.objects.get(pk=id)
+            cache.set(f"draft_{id}", draft, 300)
         if slug:
             draft = Draft.objects.get(slug=slug)
+            cache.set(f"draft_{slug}", draft, 300)
     except Draft.DoesNotExist:
         return None
-    cache.set(f"draft_{id}", draft, 300)
     return draft
 
 
@@ -422,8 +433,10 @@ def enrollment_match_history(enroll, tournament, force_update=False):
 
 def draft_standings(draft):
     rd = current_round(draft, force_update=True)
+    if not rd:
+        return None
     rd_idx = rd.round_idx if not rd.finished else rd.round_idx + 1
-    if not rd or rd_idx == 1 and not rd.finished:
+    if rd_idx == 1 and not rd.finished:
         return None
 
     standings = cache.get(f"draft_standings_{draft.id}", version=rd_idx)

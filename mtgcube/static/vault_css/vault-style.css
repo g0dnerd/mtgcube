@@ -14,7 +14,7 @@ html {
 
 @font-face {
   font-family: 'GeneralSans-Variable';
-  src: url("https://mtg-cube.de/wp-content/themes/mtg-cube/library/fonts/GeneralSans-Variable.woff2") format("woff2"), url("https://mtg-cube.de/wp-content/themes/mtg-cube/library/fonts/GeneralSans-Variable.woff") format("woff"), url("https://mtg-cube.de/wp-content/themes/mtg-cube/library/fonts/GeneralSans-Variable.ttf") format("truetype");
+  src: url("https://storage.googleapis.com/mtgcube-media-bucket/fonts/GeneralSans-Variable.woff2") format("woff2"), url("https://storage.googleapis.com/mtgcube-media-bucket/fonts/GeneralSans-Variable.ttf") format("truetype");
   font-weight: 200 700;
   font-display: swap;
   font-style: normal; }
@@ -27,10 +27,52 @@ body.vault-app {
 .vault-app {
   /* navbar */ }
 
-.box, .vault-app ul .draft-info a, .event-announcement, .checkin-status {
+.box, .pool-info-check-in-missing, .vault-app ul .draft-info a, .vault-app .event-dashboard .player-info-list #timetable-, .event-announcement, .vault-app .event-list li a, .checkin-status {
   border: var(--border);
   border-radius: var(--radius);
   padding: var(--inner-padding); }
+
+.highlight-button, .vault-app ul .draft-info a, .vault-app .event-list li a {
+  text-align: center;
+  display: block;
+  text-decoration: none;
+  color: var(--black);
+  color: white;
+  background-color: var(--yellow);
+  background-color: var(--main-color);
+  padding: 7px 5px;
+  font-weight: 500;
+  font-size: 1em; }
+  .highlight-button:hover, .vault-app ul .draft-info a:hover, .vault-app .event-list li a:hover, .highlight-button:active, .vault-app ul .draft-info a:active, .vault-app .event-list li a:active, .highlight-button:focus, .vault-app ul .draft-info a:focus, .vault-app .event-list li a:focus {
+    background-color: white;
+    color: var(--main-color); }
+  .highlight-button:after, .vault-app ul .draft-info a:after, .vault-app .event-list li a:after {
+    content: '';
+    display: inline-block;
+    margin-left: 15px;
+    left: 0;
+    position: relative;
+    width: 25px;
+    height: 10px;
+    transform: translateX(0);
+    background: url("https://storage.googleapis.com/mtgcube-media-bucket/images/sprite-arrows.svg") 0 0px/25px no-repeat; }
+
+.regular-button, .player-welcome p a, .upload-more a, #upload-form button, .btn, .btn-primary, .home-nav-button, #tc-terms-form input[type="submit"], .vault-app ul li.pool-info h5 + a, button:not(.navbar-toggler, .btn-close) {
+  font-weight: 500;
+  border: var(--border);
+  border-color: var(--main-color);
+  padding: 7px 10px;
+  text-decoration: none;
+  color: black;
+  display: inline-block;
+  margin: 5px 0;
+  width: 100%;
+  text-align: center;
+  border-radius: var(--radius);
+  background: none; }
+  .regular-button:active, .player-welcome p a:active, .upload-more a:active, #upload-form button:active, .btn:active, .btn-primary:active, .home-nav-button:active, #tc-terms-form input[type="submit"]:active, .vault-app ul li.pool-info h5 + a:active, button:active:not(.navbar-toggler, .btn-close), .regular-button:hover, .player-welcome p a:hover, .upload-more a:hover, #upload-form button:hover, .btn:hover, .btn-primary:hover, .home-nav-button:hover, #tc-terms-form input[type="submit"]:hover, .vault-app ul li.pool-info h5 + a:hover, button:hover:not(.navbar-toggler, .btn-close) {
+    background: var(--main-color);
+    color: white; }
 
 .vault-app .mb-1 .navbar {
   background-color: var(--yellow) !important;
@@ -39,7 +81,13 @@ body.vault-app {
 
 .vault-app .mb-1 .navbar-brand {
   font-weight: 600;
-  color: var(--black); }
+  color: var(--black);
+  color: transparent;
+  font-size: 0;
+  display: inline-block;
+  width: 60px;
+  height: 56px;
+  background: url("https://storage.googleapis.com/mtgcube-media-bucket/images/logo-vault-1.svg") 0 0/contain no-repeat; }
 
 .vault-app .mb-1 .navbar li a {
   color: var(--black); }
@@ -48,11 +96,8 @@ body.vault-app {
   list-style: none;
   padding-left: 0; }
 
-.vault-app ul > li {
-  border-bottom: var(--border);
-  padding: 5px 0; }
-  .vault-app ul > li:last-child {
-    border: none; }
+.vault-app ul:not(.navbar-nav) > li:last-child {
+  border: none; }
 
 .vault-app li ul li {
   border: none; }
@@ -63,7 +108,7 @@ body.vault-app {
 /* GLOBAL */
 /* TYPO */
 h1 {
-  font-size: 2em;
+  font-size: 1.8em;
   border-bottom: 2px solid var(--black);
   padding-bottom: 5px;
   margin-top: 0.3em;
@@ -97,31 +142,22 @@ a {
 select {
   padding: 4px; }
 
-/* button:not(.navbar-toggler){
-    border: none;
-    border-radius: 5px;
-    border: var(--border);
-    padding: 10px 5px;
-    margin: 10px 0;
-    background: var(--yellow);
-    font-weight: 600;
-    color: var(--black);
-    font-size: 1.25em;
-    width: 100%;
-} */
-button:not(.navbar-toggler, .btn-close) {
-  font-weight: 600;
-  border: var(--border);
-  border-color: var(--main-color);
-  padding: 5px 10px;
-  text-decoration: none;
-  color: black;
-  display: inline-block;
-  margin: 3px 0;
-  width: 100%;
-  text-align: center;
-  border-radius: var(--radius);
-  background: none; }
+button:not(.navbar-toggler, .btn-close).already-registered {
+  pointer-events: none;
+  color: #ccc; }
+  button:not(.navbar-toggler, .btn-close).already-registered::before {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    background: transparent;
+    margin-right: 5px;
+    position: relative;
+    top: 2px;
+    opacity: 0.3;
+    background: url("https://storage.googleapis.com/mtgcube-media-bucket/images/icons/icon-check-white.svg") 0 0/contain no-repeat;
+    top: 6px;
+    opacity: 1; }
 
 .mb-1,
 .my-1 {
@@ -135,7 +171,12 @@ button:not(.navbar-toggler, .btn-close) {
   background: #e9ecef;
   border: none; }
 
-/* Eventdashboard */
+/* HOME */
+.vault-app .event-list li {
+  border: none;
+  margin-top: 10px; }
+
+/* EVENTDASHBOARD */
 .event-dashboard > div:not(.event-title) {
   margin-top: 1em; }
 
@@ -151,31 +192,46 @@ button:not(.navbar-toggler, .btn-close) {
 .event-announcement {
   background-color: lightgreen; }
 
+.vault-app .event-dashboard .player-info-list .draft-info, .vault-app .event-dashboard .player-info-list .cube-info {
+  border: none; }
+
+.vault-app .event-dashboard .player-info-list .match-info, .vault-app .event-dashboard .player-info-list .current-match-panel {
+  border-bottom: var(--border);
+  padding-bottom: 20px; }
+
+.vault-app .event-dashboard .player-info-list .standings {
+  margin-top: 20px; }
+
+.vault-app .event-dashboard .player-info-list .draft-timetable {
+  margin-top: 20px; }
+
+.vault-app .event-dashboard .player-info-list #timetable- {
+  padding: 5px 10px 10px; }
+
 .draft-title h1 a {
   text-decoration: none; }
 
 .vault-app ul .draft-info {
-  padding: 0;
+  padding: 10px 0;
   border: none; }
   .vault-app ul .draft-info h5 {
     margin: 0; }
   .vault-app ul .draft-info a {
-    text-align: center;
-    display: block;
-    text-decoration: none;
-    color: var(--black);
-    background-color: var(--yellow);
-    padding: 10px 5px; }
-  .vault-app ul .draft-info a:after {
-    content: '';
-    display: inline-block;
-    margin-left: 15px;
-    left: 0;
-    position: relative;
-    width: 25px;
-    height: 10px;
-    transform: translateX(0);
-    background: url("https://storage.googleapis.com/mtgcube-media-bucket/images/sprite-arrows.svg") 0 0px/25px no-repeat; }
+    font-weight: 500;
+    font-size: 1em; }
+
+.player-info-list .pool-info, .player-info-list .current-match-panel, .player-info-list .match-info, .player-info-list .standings, .player-info-list .seatings-info {
+  margin-top: 20px; }
+
+.player-info-list .current-match-panel, .player-info-list .match-info {
+  padding: 20px 0;
+  border-top: var(--border);
+  border-bottom: var(--border); }
+
+.seatings-info {
+  padding: 10px 0;
+  border-top: var(--border);
+  border-bottom: var(--border); }
 
 #match-details h5:first-of-type {
   background-color: var(--yellow);
@@ -184,12 +240,16 @@ button:not(.navbar-toggler, .btn-close) {
 .my-opponent {
   font-weight: 400; }
 
+.match-result {
+  margin: 0;
+  font-weight: 600; }
+
 /*  PAIRINGS */
 .pairings-info {
   border: none; }
 
 .pairings-info ul li {
-  padding-left: 5px; }
+  padding: 3px 5px; }
 
 .pairings-info ul li:nth-child(odd) {
   background-color: #e9ecef; }
@@ -206,45 +266,187 @@ button:not(.navbar-toggler, .btn-close) {
     border-bottom: var(--border); }
     .standings-table thead th {
       padding: 5px;
-      color: white; }
+      color: white;
+      font-weight: 500; }
   .standings-table tbody tr:nth-child(odd) {
     background-color: #e9ecef; }
 
 /* Check In & Out */
 .vault-app ul li.pool-info h5 {
-  font-size: 0.8em; }
+  font-size: 1em; }
 
-.vault-app ul li.pool-info h5 + a {
-  font-weight: 600;
-  border: var(--border);
-  border-color: var(--main-color);
-  padding: 5px 10px;
-  text-decoration: none;
-  color: black;
-  display: inline-block;
-  margin: 3px 0;
-  width: 100%;
-  text-align: center;
-  border-radius: var(--radius); }
-
-.pool-info-checked-in h5 {
-  color: green; }
+.pool-info-check-in-missing {
+  background: red;
+  padding: 10px; }
+  .pool-info-check-in-missing h5 {
+    margin: 0; }
+  .pool-info-check-in-missing h5 a {
+    color: white; }
 
 /* Upload */
-.upload-more a, #upload-form button {
-  font-weight: 600;
-  border: var(--border);
-  border-color: var(--main-color);
-  padding: 5px 10px;
-  text-decoration: none;
-  color: black;
-  display: inline-block;
-  margin: 3px 0;
-  width: 100%;
-  text-align: center;
-  border-radius: var(--radius);
-  background: none; }
+#report-result-form select + button {
+  margin: 10px 0; }
 
 img {
   max-width: 100%;
   width: auto; }
+
+.player-welcome p a {
+  display: block; }
+
+.vault-app.darkmode {
+  background: #252525;
+  color: white;
+  --border: 1px solid RGBA(255,255,255, 0.2);
+  /*.event-list a::before {
+            background: url("https://storage.googleapis.com/mtgcube-media-bucket/images/icons/icon-trophy-white.svg") 0 0 / contain no-repeat;
+            opacity: 1;
+        }*/ }
+  .vault-app.darkmode .mb-1 .navbar {
+    background-color: #f7f8f9 !important; }
+  .vault-app.darkmode .mb-1 .navbar-brand {
+    width: 44px;
+    height: 56px;
+    background: url(https://storage.googleapis.com/mtgcube-media-bucket/images/logo-vault-clean.svg) center center/contain no-repeat; }
+  .vault-app.darkmode h1 {
+    border-bottom: 1px solid white; }
+  .vault-app.darkmode ul.event-info {
+    padding: 5px 10px 10px;
+    border: var(--border);
+    border-radius: 5px;
+    background: #000;
+    display: flex;
+    flex-direction: column;
+    color: #9da4b2; }
+    .vault-app.darkmode ul.event-info .main-event-link, .vault-app.darkmode ul.event-info .side-event-link {
+      order: 2;
+      margin-top: 10px; }
+    .vault-app.darkmode ul.event-info li {
+      margin-top: 3px; }
+      .vault-app.darkmode ul.event-info li strong {
+        font-weight: 500;
+        color: #f7f8f9; }
+    .vault-app.darkmode ul.event-info .event-title {
+      font-size: 1.4em;
+      border-bottom: 1px solid RGBA(255, 255, 255, 0.2);
+      font-weight: 500;
+      margin-top: 0;
+      color: white; }
+  .vault-app.darkmode .upload-more a,
+  .vault-app.darkmode #upload-form button,
+  .vault-app.darkmode .btn,
+  .vault-app.darkmode .btn-primary,
+  .vault-app.darkmode .home-nav-button,
+  .vault-app.darkmode #tc-terms-form input[type="submit"] {
+    background: #444;
+    color: white;
+    border: none; }
+  .vault-app.darkmode .standings-table tbody tr,
+  .vault-app.darkmode .pairings-info ul li {
+    background-color: RGBA(255, 255, 255, 0.2); }
+  .vault-app.darkmode .standings-table tbody tr:nth-child(odd), .vault-app.darkmode .pairings-info ul li:nth-child(odd) {
+    background-color: RGBA(255, 255, 255, 0.1); }
+  .vault-app.darkmode .regular-button, .vault-app.darkmode button:not(.navbar-toggler, .btn-close), .vault-app.darkmode ul li.pool-info h5 + a, .vault-app.darkmode .upload-more a, .upload-more .vault-app.darkmode a, .vault-app.darkmode #upload-form button, #upload-form .vault-app.darkmode button, .vault-app.darkmode .btn, .vault-app.darkmode .btn-primary, .vault-app.darkmode .home-nav-button, .vault-app.darkmode #tc-terms-form input[type="submit"], #tc-terms-form .vault-app.darkmode input[type="submit"], .vault-app.darkmode .player-welcome p a, .player-welcome p .vault-app.darkmode a {
+    border: none;
+    color: white;
+    background: #444; }
+    .vault-app.darkmode .regular-button:active, .vault-app.darkmode button:active:not(.navbar-toggler, .btn-close), .vault-app.darkmode ul li.pool-info h5 + a:active, .vault-app.darkmode .upload-more a:active, .upload-more .vault-app.darkmode a:active, .vault-app.darkmode #upload-form button:active, #upload-form .vault-app.darkmode button:active, .vault-app.darkmode .btn:active, .vault-app.darkmode .btn-primary:active, .vault-app.darkmode .home-nav-button:active, .vault-app.darkmode #tc-terms-form input[type="submit"]:active, #tc-terms-form .vault-app.darkmode input[type="submit"]:active, .vault-app.darkmode .player-welcome p a:active, .player-welcome p .vault-app.darkmode a:active, .vault-app.darkmode .regular-button:hover, .vault-app.darkmode button:hover:not(.navbar-toggler, .btn-close), .vault-app.darkmode ul li.pool-info h5 + a:hover, .vault-app.darkmode .upload-more a:hover, .upload-more .vault-app.darkmode a:hover, .vault-app.darkmode #upload-form button:hover, #upload-form .vault-app.darkmode button:hover, .vault-app.darkmode .btn:hover, .vault-app.darkmode .btn-primary:hover, .vault-app.darkmode .home-nav-button:hover, .vault-app.darkmode #tc-terms-form input[type="submit"]:hover, #tc-terms-form .vault-app.darkmode input[type="submit"]:hover, .vault-app.darkmode .player-welcome p a:hover, .player-welcome p .vault-app.darkmode a:hover {
+      background: var(--main-color);
+      color: white; }
+    .vault-app.darkmode .regular-button.already-registered, .vault-app.darkmode button.already-registered:not(.navbar-toggler, .btn-close), .vault-app.darkmode ul li.pool-info h5 + a.already-registered, .vault-app.darkmode .upload-more a.already-registered, .upload-more .vault-app.darkmode a.already-registered, .vault-app.darkmode #upload-form button.already-registered, #upload-form .vault-app.darkmode button.already-registered, .vault-app.darkmode .already-registered.btn, .vault-app.darkmode .already-registered.btn-primary, .vault-app.darkmode .already-registered.home-nav-button, .vault-app.darkmode #tc-terms-form input.already-registered[type="submit"], #tc-terms-form .vault-app.darkmode input.already-registered[type="submit"], .vault-app.darkmode .player-welcome p a.already-registered, .player-welcome p .vault-app.darkmode a.already-registered {
+      pointer-events: none;
+      color: #ccc;
+      background: transparent;
+      border: var(--border); }
+      .vault-app.darkmode .regular-button.already-registered::before, .vault-app.darkmode button.already-registered:not(.navbar-toggler, .btn-close)::before, .vault-app.darkmode ul li.pool-info h5 + a.already-registered::before, .vault-app.darkmode .upload-more a.already-registered::before, .upload-more .vault-app.darkmode a.already-registered::before, .vault-app.darkmode #upload-form button.already-registered::before, #upload-form .vault-app.darkmode button.already-registered::before, .vault-app.darkmode .already-registered.btn::before, .vault-app.darkmode .already-registered.btn-primary::before, .vault-app.darkmode .already-registered.home-nav-button::before, .vault-app.darkmode #tc-terms-form input.already-registered[type="submit"]::before, #tc-terms-form .vault-app.darkmode input.already-registered[type="submit"]::before, .vault-app.darkmode .player-welcome p a.already-registered::before, .player-welcome p .vault-app.darkmode a.already-registered::before {
+        content: '';
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        background: transparent;
+        margin-right: 5px;
+        position: relative;
+        top: 2px;
+        opacity: 0.3;
+        background: url("https://storage.googleapis.com/mtgcube-media-bucket/images/icons/icon-check-white.svg") 0 0/contain no-repeat;
+        top: 6px;
+        opacity: 1; }
+  .vault-app.darkmode .breadcrumb,
+  .vault-app.darkmode .breadcrumb.alert {
+    background: black;
+    border-bottom: var(--border); }
+  .vault-app.darkmode .breadcrumb-item + .breadcrumb-item::before, .vault-app.darkmode .breadcrumb-item.active {
+    color: #ccc !important; }
+  .vault-app.darkmode ul li.pool-info h5 + a {
+    border: none;
+    color: white;
+    background: #444; }
+    .vault-app.darkmode ul li.pool-info h5 + a:active {
+      background: var(--main-color);
+      color: white; }
+  .vault-app.darkmode #match-details h5:first-of-type {
+    background-color: transparent;
+    color: var(--yellow);
+    color: white;
+    border: 1px solid var(--yellow);
+    padding: 7px 10px 10px;
+    border-radius: 5px; }
+  .vault-app.darkmode .event-list h5::before, .vault-app.darkmode .draft-info a::before, .vault-app.darkmode .event-dashboard .current-match-panel::before, .vault-app.darkmode .standings h5::before, .vault-app.darkmode .draft-timetable h5::before,
+  .vault-app.darkmode .pool-info h5 + a::before, .vault-app.darkmode #match-details h5::before, .vault-app.darkmode .pairings-info h5 h5::before, .vault-app.darkmode .standings h5::before, .vault-app.darkmode .event-dashboard .event-name::before, .vault-app.darkmode .pool-info-checked-in h5::before, .vault-app.darkmode .seatings-info h5::before {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    background: transparent;
+    margin-right: 5px;
+    position: relative;
+    top: 2px;
+    opacity: 0.3; }
+  .vault-app.darkmode .event-list h5::before {
+    background: url("https://storage.googleapis.com/mtgcube-media-bucket/images/icons/icon-calender-white.svg") 0 0/contain no-repeat; }
+  .vault-app.darkmode .draft-info a::before {
+    background: url("https://storage.googleapis.com/mtgcube-media-bucket/images/icons/icon-draft-white.svg") 0 0/contain no-repeat;
+    opacity: 1; }
+  .vault-app.darkmode .event-dashboard .event-name::before {
+    background: url("https://storage.googleapis.com/mtgcube-media-bucket/images/icons/icon-trophy-white.svg") 0 0/contain no-repeat;
+    width: 30px;
+    height: 30px;
+    margin-right: 10px;
+    top: 5px; }
+  .vault-app.darkmode .cube-info::before {
+    background: url("https://storage.googleapis.com/mtgcube-media-bucket/images/icons/icon-cube-white.svg") 0 0/contain no-repeat;
+    top: 4px; }
+  .vault-app.darkmode .event-dashboard .current-match-panel::before, .vault-app.darkmode #match-details h5::before {
+    background: url("https://storage.googleapis.com/mtgcube-media-bucket/images/icons/icon-match-white.svg") 0 0/contain no-repeat;
+    top: 4px; }
+  .vault-app.darkmode .standings h5::before {
+    background: url("https://storage.googleapis.com/mtgcube-media-bucket/images/icons/icon-standings-white.svg") 0 0/contain no-repeat;
+    top: 4px; }
+  .vault-app.darkmode .draft-timetable h5::before {
+    background: url("https://storage.googleapis.com/mtgcube-media-bucket/images/icons/icon-date-b-white.svg") 0 0/contain no-repeat; }
+  .vault-app.darkmode .pool-info h5 + a::before {
+    background: url("https://storage.googleapis.com/mtgcube-media-bucket/images/icons/icon-pool-white.svg") 0 0/contain no-repeat;
+    top: 4px; }
+  .vault-app.darkmode .pairings-info h5 h5::before {
+    background: url("https://storage.googleapis.com/mtgcube-media-bucket/images/icons/icon-pairing-white.svg") 0 0/contain no-repeat;
+    top: 4px; }
+  .vault-app.darkmode .pool-info-checked-in h5::before {
+    background: url("https://storage.googleapis.com/mtgcube-media-bucket/images/icons/icon-check-white.svg") 0 0/contain no-repeat;
+    top: 6px;
+    opacity: 1; }
+  .vault-app.darkmode .seatings-info h5::before {
+    background: url("https://storage.googleapis.com/mtgcube-media-bucket/images/icons/icon-seatings-white.svg") 0 0/contain no-repeat; }
+  .vault-app.darkmode .toc-container {
+    max-width: 70ch;
+    color: #eee;
+    margin-top: 20px; }
+    .vault-app.darkmode .toc-container h2 {
+      border-bottom: var(--border);
+      color: white; }
+    .vault-app.darkmode .toc-container h2, .vault-app.darkmode .toc-container h3 {
+      margin-top: 30px; }
+  .vault-app.darkmode .single-cube .image-container {
+    margin-top: 20px; }
+  .vault-app.darkmode .single-cube h5 {
+    margin-top: 20px;
+    border-bottom: var(--border); }
