@@ -1,5 +1,6 @@
 import random
 
+from django.utils import timezone
 import networkx as nx
 
 from .models import Game, Enrollment, Round, Draft, Phase
@@ -380,6 +381,8 @@ def clear_histories(draft):
     draft.finished = False
     draft.save()
 
+    queries.reset_cache(draft.phase.tournament)
+
     players = draft.enrollments.all()
 
     try:
@@ -431,3 +434,44 @@ def reset_tournament(tournament):
     
     for d in drafts:
         clear_histories(d)
+
+
+def report_result(match, player1_wins, player2_wins, reporting_player, admin=False):
+    if int(player1_wins) + int(player2_wins) > 3:
+        raise ValueError("Error: Please enter a valid game result.")
+
+    match.player1_wins = int(player1_wins)
+    match.player2_wins = int(player2_wins)
+    match.result = f"{player1_wins}-{player2_wins}"
+    if not admin:
+        match.result_reported_by = reporting_player.user.name
+    else:
+        match.result_reported_by = "Admin"
+        match.result_confirmed = True
+    match.save()
+
+
+def enroll_for_event(user, tournament):
+    user_player = queries.get_player(user)
+
+    if tournament.signed_up >= tournament.player_capacity:
+        raise ValueError("Event is full.")
+
+    enroll = queries.enrollment_from_tournament(tournament, user_player)
+    if enroll:
+        raise ValueError("User is already enrolled in this event.")
+    if timezone.now() >= tournament.start_datetime:
+        raise ValueError("Event has already started")
+
+    try:
+        tournament.tournament
+        Enrollment.objects.create(
+            tournament=tournament, player=user_player, registration_finished=True
+        )
+    except AttributeError:
+        Enrollment.objects.create(
+            tournament=tournament, player=user_player, registration_finished=True
+        )
+
+    tournament.signed_up += 1
+    tournament.save()
