@@ -333,7 +333,7 @@ TERMS_EXCLUDE_URL_LIST = {"/termsrequired/", "/accounts/logout/", "/securetoo/"}
 TERMS_EXCLUDE_URL_CONTAINS_LIST = (
     {}
 )  # Useful if you are using internationalization and your URLs could change per language
-TERMS_CACHE_SECONDS = 30
+TERMS_CACHE_SECONDS = 0
 # TERMS_EXCLUDE_USERS_WITH_PERM = "auth.can_skip_t&c"
 TERMS_IP_HEADER_NAME = "REMOTE_ADDR"
 TERMS_STORE_IP_ADDRESS = True
