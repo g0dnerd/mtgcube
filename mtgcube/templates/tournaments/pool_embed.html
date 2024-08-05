@@ -1,0 +1,11 @@
+{% load i18n static %}
+
+{% block javascript %}
+<script src="{% url 'javascript-catalog' %}"></script>
+<script src="{% static 'js/pool.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<li class="pool-info" id="deck-upload" style="display:none;" data-tournament-slug="{{ tournament_slug }}" data-draft-id="{{ draft_id }}"></li>
+{% endblock %}
+

@@ -25,5 +25,11 @@
             <button type="submit" name="finish-event-round" value="{{ tournament.id }}">Finish event round</button>
         </form>
     </li>
+    <li class="reset-event">
+        <form class="reset-event-form" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <button type="submit" name="reset-event" value="{{ tournament.id }}" onclick="return confirm();">Hard reset tournament</button>
+        </form>
+    </li>
 </ul>
 {% endblock %}

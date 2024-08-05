@@ -1,54 +1,11 @@
 {% load i18n %}
 
-{% block javascript %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    function updateMatchInfo(matchId) {
-        var infoElement = document.getElementById("pairing-" + matchId);
-        var resultElement = document.getElementById("report-result-form-" + matchId);
-        var url = "{% url 'tournaments:admin_match_embed' tournament_slug 0 %}".replace(0, matchId);
-        fetch(url)
-        .then(response => response.json())
-        .then(data => {
-            var pairingHtml = `<strong>{% trans 'Table' %} ${data.table}:</strong> ${data.player1} vs ${data.player2}`;
-            var resultInfo = data.result;
-            if (data.result !== 'Pending') {
-                resultInfo += ` ({% trans 'reported by' %} ${data.reported_by})`;
-                if (data.result_confirmed) {
-                    resultElement.style.display = 'none';
-                }
-            }
-            if (data.bye) {
-                pairingHtml += ` - BYE`;
-            }
-            pairingHtml += `: ${resultInfo}`;
-            infoElement.innerHTML = pairingHtml;
-
-            var player1Label = resultElement.querySelector(`label[for="player1-wins-${matchId}"]`);
-            var player2Label = resultElement.querySelector(`label[for="player2-wins-${matchId}"]`);
-
-            player1Label.innerHTML = `${data.player1} {% trans 'wins' %}`;
-            player2Label.innerHTML = `${data.player2} {% trans 'wins' %}`;
-        })
-        .catch(error => console.error('Error updating match info:', error));
-    }
-    
-    var matchId = "{{ match_id }}";
-    updateMatchInfo(matchId);
-
-    setInterval(function() {
-        updateMatchInfo(matchId);
-    }, 120000); // 120 seconds
-});
-</script>
-{% endblock %}
-
 {% block content %}
     <li class="admin-match-info-panel" id="match-info-{{ match_id }}">
-        <div class="match-panel">
+        <div id="match-panel" data-match-id="{{ match_id }}" data-tournament-slug="{{ tournament_slug }}">
             <div class="pairing" id="pairing-{{ match_id }}"></div>
             <div class="match-result" id="result-{{ match_id }}">
-                <form class="report-result" id="report-result-form-{{ match_id }}" method="post" enctype="multipart/form-data">
+                <form class="report-result" id="report-result-form-{{ match_id }}" method="post" enctype="multipart/form-data" style="display:none;">
                     {% csrf_token %}
                     {{ form.match_id }}
                     <label for="player1-wins-{{ match_id }}"></label>

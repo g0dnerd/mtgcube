@@ -1,29 +1,14 @@
-{% load i18n %}
+{% load i18n static %}
 
 {% block javascript %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    function updatePlayerInfo(draftId) {
-        var infoElement = document.getElementById("player-list-" + draftId);
-        var url = "{% url 'tournaments:draft_players' tournament_slug 0 %}".replace(0, draftId);
-        fetch(url)
-        .then(response => response.json())
-        .then(data => {
-            infoElement.innerHTML = data.players.map((player) => `${player}`).join(', ');
-        })
-        .catch(error => console.error('Error updating match info:', error));
-    }
-    
-    var draftId = "{{ draft_id }}";
-    updatePlayerInfo(draftId);
-
-    setInterval(function() {
-        updatePlayerInfo(draftId);
-    }, 120000); // 120 seconds
-});
-</script>
+<script src="{% url 'javascript-catalog' %}"></script>
+<script src="{% static 'js/player_list.js' %}"></script>
 {% endblock %}
 
 {% block content %}
-    <span class="player-list" id="player-list-{{draft_id }}"></span>
+
+<li class="player-list-embed" id="player-list" data-tournament-slug="{{ tournament_slug }}" data-draft-id="{{ draft_id }}">
+    <h5>Players:</h5>
+    <p class="player-list" id="player-list-{{ draft_id }}"></p>
+</li>
 {% endblock %}

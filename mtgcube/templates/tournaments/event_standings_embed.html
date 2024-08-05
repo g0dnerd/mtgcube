@@ -1,55 +1,15 @@
-{% load i18n %}
+{% load i18n static %}
 
 {% block javascript %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        function updateStandings(eventSlug) {
-            var standingsElement = document.getElementById("event-standings-" + eventSlug);
-            var headerElement = document.getElementById("event-standings-header-" + eventSlug);
-            var infoElement = document.getElementById("event-standings-info-" + eventSlug);
-            var url = "{% url 'tournaments:event_standings' 0 %}".replace(0, eventSlug);
-            fetch("{% url 'tournaments:event_standings' tournament_slug %}")
-            .then(response => response.json())
-            .then(data => {
-                if (!data.error) {
-                    headerElement.innerHTML = `{% trans 'Event standings after round' %} ${data.current_round}:`;
-                    var standingsHtml = data.standings.map((player, i) => `
-                        <tr>
-                            <td style="text-align: center; padding-right: 40px;">${i + 1}</td>
-                            <td style="text-align: center; padding-right: 40px;">${player.name}</td>
-                            <td style="text-align: center; padding-right: 40px;">${player.score}</td>
-                            <td style="text-align: center; padding-right: 40px;">${player.omw}</td>
-                            <td style="text-align: center; padding-right: 40px;">${player.pgw}</td>
-                            <td style="text-align: center; padding-right: 40px;">${player.ogw}</td>
-                        </tr>
-                    `).join('');
-                    var tbody = standingsElement.querySelector('tbody');
-                    tbody.innerHTML = `${standingsHtml}`;
-                    standingsElement.style.display = 'block';
-                } else {
-                    headerElement.innerHTML = `{% trans 'Event standings' %}:`;
-                    infoElement.innerHTML = `${data.error}`;
-                }
-            })
-            .catch(error => console.error('Error updating event standings:', error));
-        }
-        
-        var eventSlug = "{{ tournament_slug }}";
-        console.log(eventSlug);
-        updateStandings(eventSlug);
-    
-        setInterval(function() {
-            updateStandings(eventSlug);
-        }, 120000); // 120 seconds
-    });
-    </script>
+<script src="{% url 'javascript-catalog' %}"></script>
+<script src="{% static 'js/event_standings.js' %}"></script>
 {% endblock %}
 
 {% block content %}
-<li class="standings">
+<li class="standings" id="standings-container" data-tournament-slug="{{ tournament_slug }}" style="display:none;">
     <h5 id="event-standings-header-{{ tournament_slug }}"></h5>
     <p id="event-standings-info-{{ tournament_slug }}"></p>
-    <table class="standings-table" id="event-standings-{{ tournament_slug }}" style="display:none;">
+    <table class="standings-table" id="event-standings-{{ tournament_slug }}">
         <thead>
             <tr>
                 <th style="text-align: center; padding-right: 40px;">#</th>

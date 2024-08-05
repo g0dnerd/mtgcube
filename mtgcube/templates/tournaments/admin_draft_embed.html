@@ -1,54 +1,15 @@
+{% load static %}
+
 {% block javascript %}
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        function updateDraftInfo(draftId) {
-            var infoElement = document.getElementById("draft-name-" + draftId);
-            var playersElement = document.getElementById("players-" + draftId);
-            var statusElement = document.getElementById("draft-status-" + draftId);
-            
-            var url = "{% url 'tournaments:admin_draft_embed' tournament_slug 0 %}".replace(0, draftId);
-            fetch(url)
-            .then(response => response.json())
-            .then(data => {
-                infoElement.innerHTML = `
-                <h5><a href="{% url 'tournaments:admin_draft_dashboard' slug %}">Draft</a> playing ${data.cube}:</h5>
-                `;
-
-                if (data.paired) {
-                    if (data.finished) {
-                        var status='Round finished.';
-                    } else {
-                        var status='Round in progress.';
-                    }
-                } else {
-                    if (data.seated) {
-                        var status='Drafting portion in progress.';
-                    } else {
-                        var status='Waiting for seatings.';
-                    }
-                }
-                statusElement.innerHTML = `
-                Status: ${status}
-                `;
-
-                var playersHtml = 'Players: ' + data.players.map((player, i) =>
-                `${player}`).join(', ');
-                playersElement.innerHTML = playersHtml;
-            })
-            .catch(error => console.error('Error updating draft info:', error));
-        }
-        
-        var draftId = "{{ draft_id }}";
-        updateDraftInfo(draftId);
-        setInterval(function() {
-            updateDraftInfo(draftId);
-        }, 120000); // 120 seconds
-    });
-    </script>
+<script src="{% static 'js/admin_draft.js' %}"></script>
 {% endblock %}
+
 {% block content %}
-    <li>
-        <ul class="admin-draft-info-panel">
+    <li class="admin-draft-info-panel">
+        <ul id="draft-details" 
+            data-draft-id="{{ draft_id }}"
+            data-draft-slug="{{ slug }}"
+            data-tournament-slug="{{ tournament_slug }}">
             <li id="draft-name-{{ draft_id }}"></li>
             <li id="players-{{ draft_id }}"></li>
             <li id="draft-status-{{ draft_id }}"></li>

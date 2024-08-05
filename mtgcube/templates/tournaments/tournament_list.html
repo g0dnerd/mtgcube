@@ -33,9 +33,7 @@
                                     <li class="event-capacity"><strong>{% trans 'Registrations' %}</strong>: {{ tournament.signed_up }}/{{ tournament.player_capacity }}</li>
                                     <li class="event-format"><strong>Format:</strong> {{ tournament.format_description|linebreaksbr }}</li>
                                     <li class="event-start-time"><strong>{% trans 'Start' %}</strong>: {{tournament.start_datetime}}</li>
-                            {% if status %}
-                                    <li class="signup-status complete">{% trans 'Your registration is finished and you are good to go' %}!</li>
-                            {% else %}
+                            {% if not status %}
                                     <li class="signup-status incomplete">{% trans 'Your registration still needs to be confirmed by a tournament official' %}.</li>
                             {% endif %}
                         {% endwith %}
@@ -44,9 +42,8 @@
                 {% endfor %}
             </ul>
         {% else %}
-            {% blocktrans %}
-                <p>Once you are signed up for one or more events, you can take a look at them here.</p>
-            {% endblocktrans %}
+            {% url 'tournaments:available_events' as url %}
+            {% blocktrans %}<p>You are not yet <a href="{{ url }}">registered</a> for any events.</p>{% endblocktrans %}
         {% endif %}
         
         <ul class="home-nav-buttons">

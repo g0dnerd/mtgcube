@@ -1,0 +1,28 @@
+{% extends "tournaments/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans 'Cubes' %}: {{ cube.name }}{% endblock %}
+
+{% block content %}
+<article class="single-cube">
+    <h1>{{ cube.name }} ({{ cube.card_number }} {% trans 'cards' %})</h1>
+    <h4 class="creator">{% trans 'Creator' %}: {{ cube.creator.name }} {{ creator_pronouns }}</h4>
+    <div class="image_container cube_image"><img src="{{ cube.image.url }}"/></div>
+    <ul>
+        <li class="cube-description">
+            <h5>{% trans 'Description' %}</h5>
+            {{ cube.description|linebreaks }}
+        </li>
+        {% if cube.special_rules %}
+            <li class="special-rules">
+                <h5>{% trans 'Special rules' %}</h5>
+                {{ cube.special_rules|linebreaks }}
+            </li>
+        {% endif %}
+        <li class="cube-link">
+            <h5>{% trans 'Full cube list' %} </h5>
+            <a href="{{ cube.url }}" target="_blank">{% trans 'on CubeCobra' %}</a>
+        </li>
+    </ul>
+</article>
+{% endblock %}

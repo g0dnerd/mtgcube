@@ -1,43 +1,10 @@
-{% load i18n %}
+{% load i18n static %}
 
 {% block javascript %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    function updateTimetable(eventId) {
-        var timetableElement = document.getElementById("timetable-" + eventId);
-        var url = "{% url 'tournaments:timetable' tournament_slug %}".replace(0, eventId);
-        
-        fetch("{% url 'tournaments:timetable' tournament_slug %}")
-        .then(response => response.json())
-        .then(data => {
-            if (!data.error) {
-                timetableElement.innerHTML = `<h5>{% trans 'My timetable' %}:</h5><ul>` + 
-                    data.timetable.map((draft) => {
-                        const cubeUrl = "{% url 'tournaments:cube_detail' 0 %}".replace(0, draft.cube_slug);
-                        return `
-                        <li>
-                            {% blocktrans %}
-                                Rounds ${draft.first_round} to ${draft.last_round}
-                            {% endblocktrans %}:
-                            <a href="${cubeUrl}" target="_blank">${draft.cube}</a>
-                        </li>
-                        `
-                    }).join('') + '</ul>';
-            }
-        })
-        .catch(error => console.error('Error fetching upcoming draft information:', error));
-    }
-
-    var eventId = "{{ tournament_id }}";
-    updateTimetable(eventId);
-
-    setInterval(function() {
-        updateTimetable(eventId);
-    }, 120000); // 120 seconds
-});
-</script>
+<script src="{% url 'javascript-catalog' %}"></script>
+<script src="{% static 'js/timetable.js' %}"></script>
 {% endblock %}
 
 {% block content %}
-<li class="draft-timetable" id="timetable-{{ tournament_id }}"></li>
+<li class="draft-timetable" id="timetable" data-tournament-slug="{{ tournament_slug }}"></li>
 {% endblock %}

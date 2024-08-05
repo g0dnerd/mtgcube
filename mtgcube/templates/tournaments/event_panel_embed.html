@@ -12,7 +12,7 @@
             <li class="event-description">{{tournament.description}}</li>
             <li class="event-capacity"><strong>{% trans 'Registrations' %}</strong>: {{ tournament.signed_up }}/{{ tournament.player_capacity }}</li>
             <li class="event-format"><strong>Format:</strong> {{ tournament.format_description|linebreaksbr }}</li>
-            <li class="event-time"><strong>{% trans 'Start' %}</strong>: {{tournament.start_datetime}} - <strong>{% trans 'End' %}</strong>: {{tournament.end_datetime}}</li>
+            <li class="event-time"><strong>{% trans 'Start' %}</strong>: {{ tournament.start_datetime }} - <strong>{% trans 'End' %}</strong>: {{tournament.end_datetime}}</li>
             {% if status %}
                 <button class="registration-button already-registered" type="submit" disabled>{% trans 'You registration is complete and you are good to go' %}!</button>
             {% else %}

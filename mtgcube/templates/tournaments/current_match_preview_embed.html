@@ -1,54 +1,10 @@
-{% load i18n %}
+{% load i18n static %}
 
 {% block javascript %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    function updateMatchInfo(eventId) {
-        var matchElement = document.getElementById("current-match-" + eventId);
-        
-        fetch("{% url 'tournaments:player_match_info_light' tournament.slug %}")
-        .then(response => response.json())
-        .then(data => {
-            if (!data.error) {
-                if (data.bye) {
-                    matchElement.innerHTML = `<h5>{% trans 'You have the bye this round' %}.</h5>`;
-                } else {
-                    matchElement.innerHTML = `
-                        {% trans 'My current opponent' %} {%trans 'at table' %} ${data.table}: ${data.opponent} ${data.opp_pronouns}
-                    `;
-                }
-            } else {
-                if (data.error == 'No checkin.') {
-                    matchElement.innerHTML = `
-                        {% url 'tournaments:checkin' tournament.slug as url %}
-                        {% blocktrans %}
-                            Your pairing will be revealed once you have completed the 
-                            <a href={{ url }}>check-in</a>.
-                        {% endblocktrans %}
-                    `;
-                    matchElement.style.display = 'block';
-                }
-                else if (data.error == "No match yet.") {
-                    matchElement.innerHTML = `
-                        {% trans 'Waiting for pairings' %}
-                    `;
-                    matchElement.style.display = 'block';
-                }
-            }
-        })
-        .catch(error => console.error('Error fetching current match information:', error));
-    }
-
-    var eventId = "{{ tournament.id }}";
-    updateMatchInfo(eventId);
-
-    setInterval(function() {
-        updateMatchInfo(eventId);
-    }, 120000); // 120 seconds
-});
-</script>
+<script src="{% static 'js/current_match_preview.js' %}"></script>
 {% endblock %}
 
 {% block content %}
-<li class="current-match-panel" id="current-match-{{ tournament.id }}" style="display:none;"></li>
+<li class="current-match-panel" id="current-match" data-tournament-slug="{{ tournament.slug }}" style="display:none;">
+</li>
 {% endblock %}

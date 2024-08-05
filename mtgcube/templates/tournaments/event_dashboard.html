@@ -1,80 +1,15 @@
 {% extends "tournaments/base.html" %}
-{% load i18n %}
+{% load i18n static %}
 {% block title%}My event dashboard{% endblock %}
 
 {% block javascript %}
 {{ block.super }}
-<script>
-    function fetchDraftDetails() {
-        fetch("{% url 'tournaments:player_draft_info' tournament.slug %}")
-        .then(response => response.json())
-        .then(data => {
-            const draftInfoElement = document.getElementById("draft-info-header");
-            const cubeInfoElement = document.getElementById("player-cube-info");
-            const statusElement = document.getElementById('player-signup-status');
-            if (!data.error) {
-                const currentDraftUrl = "{% url 'tournaments:draft_dashboard' tournament.slug %}";
-                if (data.current_round == 0) {
-                    draftInfoElement.innerHTML = `
-                    <h5 class="draft-disabled">
-                        {% trans 'Waiting for draft to start' %}
-                    </h5>
-                    `;
-                } else {
-                    draftInfoElement.innerHTML = `
-                    <h5>
-                        <a href="${currentDraftUrl}">{% trans 'My current draft' %}</a>
-                    </h5>
-                    `;
-                }
-                const cubeUrl = "{% url 'tournaments:cube_detail' 0 %}".replace(0, data.cube_slug);
-                cubeInfoElement.innerHTML = `
-                {% trans 'Cube list' %}: <a href=${cubeUrl} target="_blank">
-                    ${data.cube_name}
-                </a>
-                `;
-                if (data.current_round >= 1) {
-                    statusElement.style.display = 'none';
-                }
-            } else {
-                console.log(data.error);
-            }
-        })
-        .catch(error => console.error('Error fetching draft information:', error));
-    }
-
-    function fetchAnnouncement() {
-        fetch("{% url 'tournaments:announcement' tournament.slug %}")
-        .then(response => response.json())
-        .then(data => {
-            const announcementElement = document.getElementById('announcement');
-            if (data.error) {
-                announcementElement.style.display = 'none';
-            } else {
-                announcementElement.innerHTML = `
-                <h5>
-                    {% trans 'Event announcement' %}: ${data.announcement}
-                </h5>
-                `;
-                announcementElement.style.display = 'block';
-            }
-        })
-        .catch(error => console.error('Error fetching event information', error));
-    }
-
-    // Initial formatting
-    document.addEventListener('DOMContentLoaded', () => {
-        fetchDraftDetails();
-        fetchAnnouncement();
-        setInterval(fetchDraftDetails, 60000);
-        setInterval(fetchAnnouncement, 120000);
-    });
-</script>
-
+<script src="{% url 'javascript-catalog' %}"></script>
+<script src="{% static 'js/event_dashboard.js' %}"></script>
 {% endblock %}
 
 {% block content %}
-<div class="event-dashboard">
+<div class="event-dashboard" id="dashboard-container" data-tournament-slug="{{ tournament.slug }}">
     <h4>{% trans 'Event Dashboard' %}</h4>
     <div class="event-title" id="event-info-header">
         <h1 class="event-name">{{ tournament.name }}</h1>

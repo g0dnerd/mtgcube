@@ -12,9 +12,7 @@
             {% endfor %}
         </ul>
     {% else %}
-        {% blocktrans %}
-            <p>Once more events become available, you can sign up for them here.</p>
-        {% endblocktrans %}
+        <p>{% trans 'Once more events become available, you can sign up for them here' %}.</p>
     {% endif %}
     {% if tournaments.enrolled %}
         <ul class="enrolled-event-list">

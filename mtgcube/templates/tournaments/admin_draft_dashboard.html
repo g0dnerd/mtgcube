@@ -1,23 +1,23 @@
 {% extends "tournaments/base.html" %}
-{% load i18n tournament_utils %}
+{% load i18n tournament_utils static %}
 
 {% block javascript %}
 {{ block.super }}
+<script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
+<script src="{% static 'js/admin_match.js' %}"></script>
 {% endblock %}
 
 {% block content %}
 <h1>Admin Draft Overview</h1>
 <ul class="match-admin">
-    <li class="player-list-embed">
-        <h5>Players:</h5>
-        {% include 'tournaments/player_list_embed.html' with tournament_slug=tournament_slug draft_id=draft_id %}
-    </li>
-    <li class="seatings">
-        {% include 'tournaments/seatings_embed.html' with tournament_slug=tournament_slug draft_id=draft_id %}
-    </li>
+    {% include 'tournaments/player_list_embed.html' with tournament_slug=tournament_slug draft_id=draft_id %}
+    {% include 'tournaments/seatings_embed.html' with tournament_slug=tournament_slug draft_id=draft_id %}
     <li class="admin-match-info">
         <h5>Matches:</h5>
         <ul>
+            {% if bye %}
+                <li>{{ bye }} - BYE</li>
+            {% endif %}
             {% for match_id in match_ids %}
                 {% with form=forms|get_item:match_id %}
                     {% include 'tournaments/admin_match_embed.html' with tournament_slug=tournament_slug match_id=match_id form=form %}
@@ -27,6 +27,8 @@
             {% endfor %}
         </ul>
     </li>
+</ul>
+<ul>
     {% include 'tournaments/draft_standings_embed.html' with tournament_slug=tournament_slug draft_id=draft_id %}
     <li class="admin-draft-buttons">
         <div class="row">
