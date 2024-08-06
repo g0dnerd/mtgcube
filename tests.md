@@ -25,7 +25,7 @@
 ### Pairing
 - [ ] last player without a bye receives the bye
 - [ ] no duplicate byes
-- [ ] standings get generated even for this case  
+- [ ] pairings get correctly generated even for this case  
 (after rd. 2, 1 player has 6 pts, 4 players have 3 pts and 1 player has 0 pts):
 
     | Round | Match 1    | Match 2    | Match 3    |
