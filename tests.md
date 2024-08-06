@@ -3,16 +3,24 @@
 ## Accounts
 ### Account Creation
 - [x] redirect to originally called page
-- [x] populate display name on third-party login
-- [ ] populate email address on third-party login
+- [x] display name gets populated on third-party login
+- [ ] email address gets populated on third-party login
 
-### Account Settings
-- [ ] unique display names
+## Views
+### Pool
+- [ ] Checkin: Image upload changes status
+- [ ] Checkout: Image upload changes status
+- [ ] Checkin: Image deletion changes status
+- [ ] Checkout: Image deletion changes status
+### Standings
+- [ ] Correct round number gets displayed after a round
+- [ ] Correct round number gets displayed during a round
 
-## Tournaments
+
+## Tournament Logic
 ### Enrollment
 - [ ] registration is automatically confirmed
-- [ ] can't enroll in full events
+- [x] can't enroll in full events
 - [ ] can't enroll in past events
 ### Pairing
 - [ ] last player without a bye receives the bye
@@ -24,4 +32,14 @@
     |-------|------------|------------|------------|
     | 1     | A vs B 2-0 | C vs D 2-0 | E vs F 2-0 |
     | 2     | A vs C 2-0 | B vs E 2-0 | D vs F 2-0 |
-    | 3     | A vs D     | B vs F     | C vs E     |
+    | 3 (!) | A vs D     | B vs F     | C vs E     |
+
+- [ ] dropped players don't get paired
+### Standings
+- [ ] standings don't update after result confirmation
+- [ ] standings don't update after bye assignment
+- [ ] tiebreakers get calculated correctly
+### Results
+- [ ] duplicate result reporting doesn't break scores
+- [ ] admin confirmation for non-digital players doesn't break scores
+
