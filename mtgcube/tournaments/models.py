@@ -67,6 +67,8 @@ class Draft(models.Model):
     cube = models.ForeignKey("Cube", on_delete=models.CASCADE)
     enrollments = models.ManyToManyField("Enrollment")
     round_number = models.IntegerField("Amount of rounds", default=3)
+    first_table = models.IntegerField(default=0)
+    last_table = models.IntegerField(default=0)
     started = models.BooleanField(default=False)
     finished = models.BooleanField(default=False)
     seated = models.BooleanField(default=False)
@@ -76,7 +78,7 @@ class Draft(models.Model):
         unique_together = ["phase", "cube"]
 
     def __str__(self):
-        return f"{self.phase} - Draft {self.id} ({self.cube.name})"
+        return str(self.slug)
 
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -212,11 +214,12 @@ def user_directory_path(instance, filename):
 
 class Image(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    draft = models.ForeignKey("Draft", null=True, on_delete=models.CASCADE)
     image = models.ImageField(upload_to=user_directory_path)
     draft_idx = models.IntegerField("Draft ID", default=0)
     uploaded_at = models.DateTimeField(auto_now_add=True)
     checkin = models.BooleanField(default=True)
 
     def __str__(self):
-        img_time_fstring = self.uploaded_at.time().strftime("%H:%M:%S")
-        return f"{self.user} - Draft {self.draft_idx} ({img_time_fstring})"
+        img_time_fstring = self.uploaded_at.time().strftime("%H:%M")
+        return f"{self.user} - Draft ID {self.draft_idx} - ({img_time_fstring})"

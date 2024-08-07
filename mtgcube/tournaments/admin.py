@@ -92,27 +92,21 @@ class SideEventAdmin(admin.ModelAdmin):
 
 
 class PhaseAdmin(admin.ModelAdmin):
-    fields = [
-        "tournament",
-        "phase_idx",
-        "started",
-        "finished",
-        "round_number",
-    ]
+    model = Phase
 
 class DraftAdmin(admin.ModelAdmin):
-    fields = ["phase", "cube", "enrollments", "round_number", "seated", "started", "finished", "slug"]
+    model = Draft
 
 
 class RoundAdmin(admin.ModelAdmin):
-    fields = ["draft", "round_idx", "paired", "started", "finished"]
+    model = Round
 
 
 class CubeAdmin(admin.ModelAdmin):
-    fields = ["name", "slug", "creator", "card_number", "description", "special_rules", "url", "image"]
+    model = Cube
 
 class ImageAdmin(admin.ModelAdmin):
-    fields = ["user", "draft_idx", "image"]
+    model = Image
 
 
 admin.site.register(Tournament, TournamentAdmin)
