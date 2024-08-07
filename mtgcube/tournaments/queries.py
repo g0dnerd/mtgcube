@@ -5,7 +5,17 @@ from django.db.models import Prefetch
 
 from itertools import chain
 
-from .models import Player, Enrollment, Draft, Game, Tournament, SideEvent, Image, Round
+from .models import (
+    Player,
+    Enrollment,
+    Draft,
+    Game,
+    Tournament,
+    SideEvent,
+    Image,
+    Round,
+    Phase,
+)
 
 
 def get_or_set_cache(key, value_func, timeout=300, force_update=False):
@@ -81,7 +91,6 @@ def available_tournaments(player, force_update=False):
 
         return list(chain(mains, sides))
 
-
     return get_or_set_cache(cache_key, fetch_available_tournaments, 300, force_update)
 
 
@@ -119,7 +128,7 @@ def enrolled_tournaments(player, force_update=False):
     return get_or_set_cache(cache_key, fetch_enrolled_tournaments, 300, force_update)
 
 
-def enrollment_from_tournament(tournament, player, force_update=False):
+def enrollment_from_tournament(tournament, player, force_update=True):
     """Gets the enrollment for the given tournament and player."""
     cache_key = f"tournament_enroll_{player.user.id}_{tournament.id}"
 
@@ -132,25 +141,30 @@ def enrollment_from_tournament(tournament, player, force_update=False):
     return get_or_set_cache(cache_key, fetch_enrollment, 300, force_update)
 
 
-def current_draft(current_enrollment, force_update=False):
+def current_draft(current_enrollment):
     """Gets the currently active draft for the given player."""
-    cache_key = f"current_draft_{current_enrollment.player.user.id}"
+    phase = active_phase(current_enrollment.tournament, force_update=True)
+    if not phase:
+        return None
+    cache_key = f"current_draft_{current_enrollment.id}_{phase.phase_idx}"
 
     def fetch_current_draft():
-        draft = (
-            Draft.objects.filter(Q(finished=False) & Q(enrollments=current_enrollment))
-            .select_related("phase")
-            .order_by("phase__phase_idx")
-            .first()
-        )
-        return None if not draft else draft
+        try:
+            draft = (
+                Draft.objects.get(
+                    Q(finished=False) & Q(enrollments=current_enrollment), phase=phase
+                )
+            )
+        except Draft.DoesNotExist:
+            return None
+        return draft
 
-    return get_or_set_cache(cache_key, fetch_current_draft, 300, force_update)
+    return get_or_set_cache(cache_key, fetch_current_draft, timeout=None)
 
 
-def non_player_games(current_enrollment, current_round, force_update=False):
+def non_player_games(current_enrollment, current_round):
     """Returns all active matches in the current draft that the player is not part of."""
-    cache_key = f"non_player_games{current_enrollment.player.user.id}"
+    cache_key = f"non_player_games{current_enrollment.id}_{current_round.round_idx}"
 
     def fetch_non_player_games():
         non_player_games = Game.objects.filter(
@@ -160,14 +174,16 @@ def non_player_games(current_enrollment, current_round, force_update=False):
         ).order_by("table")
         return None if not non_player_games else non_player_games
 
-    return get_or_set_cache(cache_key, fetch_non_player_games, 120, force_update)
+    return get_or_set_cache(cache_key, fetch_non_player_games, timeout=None)
 
 
-def bye_this_round(draft: Draft, current_enrollment=None, force_update=False):
+def bye_this_round(draft: Draft, current_enrollment=None):
     """Checks if the current draft has a bye this round.
     If an enrollment is given, checks if the current enrollment is the bye this round.
     """
     rd = current_round(draft, force_update=True)
+    if not rd:
+        return False if current_enrollment else None
     cache_key = f"bye_this_round_{draft.id}_{rd.round_idx}"
 
     def fetch_bye_this_round():
@@ -180,11 +196,11 @@ def bye_this_round(draft: Draft, current_enrollment=None, force_update=False):
         except Enrollment.DoesNotExist:
             return None
 
-    return get_or_set_cache(cache_key, fetch_bye_this_round, 120, force_update)
+    return get_or_set_cache(cache_key, fetch_bye_this_round, None)
 
 
 def timetable(tournament, current_enrollment, force_update=False):
-    cache_key = f"timetable_{current_enrollment.player.user.id}"
+    cache_key = f"timetable_{current_enrollment.id}"
 
     def fetch_timetable():
         timetable = Draft.objects.filter(
@@ -202,7 +218,8 @@ def images(user, draft, checkin: bool):
 
 def active_drafts_for_tournament(event, force_update=False):
     """Returns all active drafts for the given tournament."""
-    cache_key = f"active_drafts_{event.id}"
+    phase = active_phase(event, force_update=True)
+    cache_key = f"active_drafts_{event.id}_{phase.phase_idx}"
 
     def fetch_active_drafts():
         d = Draft.objects.filter(
@@ -210,13 +227,14 @@ def active_drafts_for_tournament(event, force_update=False):
             phase__started=True,
             phase__finished=False,
             finished=False,
-        ).order_by("-phase__phase_idx")
+            phase=phase,
+        )
         return None if not d else d
 
-    return get_or_set_cache(cache_key, fetch_active_drafts, 120, force_update)
+    return get_or_set_cache(cache_key, fetch_active_drafts, 300, force_update)
 
 
-def get_tournament(tournament_id=None, tournament_slug=None, force_update=False):
+def get_tournament(tournament_id=None, tournament_slug=None, force_update=True):
     """Returns the tournament with the given id or slug."""
     cache_key = (
         f"tournament_{tournament_id}"
@@ -246,13 +264,9 @@ def get_tournament(tournament_id=None, tournament_slug=None, force_update=False)
     return get_or_set_cache(cache_key, fetch_tournament, 300, force_update)
 
 
-def get_draft(id=None, slug=None, force_update=False):
+def get_draft(id=None, slug=None, force_update=True):
     """Returns the draft with the given id or slug."""
-    cache_key = (
-        f"draft_{id}"
-        if id
-        else f"draft_{slug}"
-    )
+    cache_key = f"draft_{id}" if id else f"draft_{slug}"
 
     def fetch_draft():
         if id:
@@ -267,21 +281,21 @@ def get_draft(id=None, slug=None, force_update=False):
                 return None
         return draft
 
-    return get_or_set_cache(cache_key, fetch_draft, 300, force_update)
+    return get_or_set_cache(cache_key, fetch_draft, 60, force_update)
 
 
-def matches_from_draft(draft, force_update=False):
+def matches_from_draft(draft, current_round, force_update=True):
     """Returns all matches in the given draft."""
-    cache_key = f"matches_{draft.id}"
+    cache_key = f"matches_{draft.id}_{current_round.round_idx}"
 
     def fetch_matches():
         m = Game.objects.filter(round__draft=draft).order_by("table")
         return None if not m else m
 
-    return get_or_set_cache(cache_key, fetch_matches, 300, force_update)
+    return get_or_set_cache(cache_key, fetch_matches, 30, force_update)
 
 
-def match_from_id(match_id, force_update=False):
+def get_match(match_id, force_update=True):
     """Returns the match with the given id."""
     cache_key = f"match_{match_id}"
 
@@ -291,7 +305,7 @@ def match_from_id(match_id, force_update=False):
         except Game.DoesNotExist:
             return None
 
-    return get_or_set_cache(cache_key, fetch_match, 300, force_update)
+    return get_or_set_cache(cache_key, fetch_match, 30, force_update)
 
 
 def enrollments_for_tournament(tournament, force_update=False):
@@ -299,7 +313,13 @@ def enrollments_for_tournament(tournament, force_update=False):
     cache_key = f"tournament_enrollments_{tournament.id}"
 
     def fetch_enrollments():
-        e = Enrollment.objects.filter(tournament=tournament).all()
+        # Get all enrollments for the given tournament that are also enrolled in a draft for the same tournament
+        e = Enrollment.objects.filter(tournament=tournament)
+
+        # Get all enrollments for the given tournament that are also enrolled in a draft for the same tournament
+        d = Draft.objects.filter(enrollments__in=e)
+        e = e.filter(draft__in=d).distinct()
+
         return None if not e else e
 
     return get_or_set_cache(cache_key, fetch_enrollments, 60, force_update)
@@ -311,7 +331,9 @@ def current_round(current_draft, force_update=False):
 
     def fetch_current_round():
         try:
-            rd = Round.objects.filter(draft=current_draft).order_by("-round_idx").first()
+            rd = (
+                Round.objects.filter(draft=current_draft).order_by("-round_idx").first()
+            )
         except Round.DoesNotExist:
             return None
         return rd
@@ -319,9 +341,11 @@ def current_round(current_draft, force_update=False):
     return get_or_set_cache(cache_key, fetch_current_round, 30, force_update)
 
 
-def current_match(current_enroll, current_round, force_update=False):
+def current_match(current_enroll, current_round, force_update=True):
     """Returns the current match for the given enrollment and round."""
-    cache_key = f'current_match_{current_enroll.player.user.id}_{current_round.round_idx}'
+    cache_key = (
+        f"current_match_{current_enroll.player.user.id}_{current_round.round_idx}"
+    )
 
     def fetch_current_match():
         match = Game.objects.filter(
@@ -330,7 +354,8 @@ def current_match(current_enroll, current_round, force_update=False):
         ).first()
         return None if not match else match
 
-    return get_or_set_cache(cache_key, fetch_current_match, 60, force_update)
+    return get_or_set_cache(cache_key, fetch_current_match, 300, force_update)
+
 
 def admin_round_prefetch(draft, force_update=False):
     """Returns the current round for the given draft and prefetches the games."""
@@ -348,7 +373,7 @@ def admin_round_prefetch(draft, force_update=False):
             .first()
         )
         return None if not rd else rd
-    
+
     return get_or_set_cache(cache_key, fetch_current_round_prefetch, 30, force_update)
 
 
@@ -371,7 +396,7 @@ def draft_standings(draft):
     if not rd or rd.round_idx == 1 and not rd.finished:
         return None
     rd_idx = rd.round_idx - 1 if not rd.finished else rd.round_idx
-    print(f'Getting standings for round {rd_idx}')
+    print(f"Getting standings for round {rd_idx}")
     cache_key = f"draft_standings_{draft.id}_{rd_idx}"
 
     def fetch_draft_standings():
@@ -394,19 +419,19 @@ def draft_standings(draft):
         ]
 
         return standings_out
-    
+
     return get_or_set_cache(cache_key, fetch_draft_standings, timeout=None)
 
 
-def tournament_standings(tournament, force_update=False):
+def tournament_standings(tournament):
     """Returns the current round's standings for the given tournament."""
     cache_key = f"tournament_standings_{tournament.id}_{tournament.current_round}"
 
     def fetch_tournament_standings():
         if tournament.current_round <= 1:
             return None
-    
-        players = enrollments_for_tournament(tournament, force_update)
+
+        players = enrollments_for_tournament(tournament)
         sorted_players = sorted(
             players, key=lambda x: (x.score, x.omw, x.pgw, x.ogw), reverse=True
         )
@@ -423,10 +448,25 @@ def tournament_standings(tournament, force_update=False):
         ]
 
         return standings_out
-    
-    return get_or_set_cache(cache_key, fetch_tournament_standings, timeout=None, force_update=force_update)
+
+    return get_or_set_cache(cache_key, fetch_tournament_standings, timeout=None)
 
 
 def reset_cache(tournament):
     """Resets the cache for the given tournament."""
     cache.clear()
+
+
+def active_phase(tournament, force_update=False):
+    """Returns the active phase for the given tournament."""
+    cache_key = f"active_phase_{tournament.id}"
+
+    def fetch_active_phase():
+        try:
+            return Phase.objects.get(
+                tournament=tournament, started=True, finished=False
+            )
+        except Phase.DoesNotExist:
+            return None
+
+    return get_or_set_cache(cache_key, fetch_active_phase, 30, force_update)

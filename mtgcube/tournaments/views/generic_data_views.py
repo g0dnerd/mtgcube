@@ -7,7 +7,7 @@ from .. import queries
 
 class SeatingsView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
-        draft = queries.get_draft(slug=kwargs['draft_slug'], force_update=True)
+        draft = queries.get_draft(slug=kwargs['draft_slug'])
 
         if not draft.seated:
             return JsonResponse({"error": "No seatings yet."}, status=200)
@@ -65,9 +65,9 @@ class DraftStandingsView(LoginRequiredMixin, View):
 
 class EventStandingsView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
-        tournament = queries.get_tournament(tournament_slug=kwargs['slug'], force_update=True)
+        tournament = queries.get_tournament(tournament_slug=kwargs['slug'])
 
-        standings = queries.tournament_standings(tournament, force_update=True)
+        standings = queries.tournament_standings(tournament)
         if not standings:
             return JsonResponse({"error": "No event standings yet."})
 

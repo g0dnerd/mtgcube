@@ -18,7 +18,9 @@ class AdminDraftInfoEmbedView(LoginRequiredMixin, View):
         ]
 
         current_round = queries.current_round(draft, force_update=True)
-        matches = queries.matches_from_draft(draft, force_update=True)
+        matches = None
+        if current_round:
+            matches = queries.matches_from_draft(draft, current_round)
 
         # Check if there are matches in progress
         in_progress = False
@@ -30,7 +32,9 @@ class AdminDraftInfoEmbedView(LoginRequiredMixin, View):
 
         if not current_round:
             paired = False
+            rd_finished = False
         else:
+            rd_finished = current_round.finished
             paired = current_round.paired
 
         return JsonResponse(
@@ -40,7 +44,7 @@ class AdminDraftInfoEmbedView(LoginRequiredMixin, View):
                 "players": players,
                 "seated": draft.seated,
                 "started": draft.started,
-                "finished": draft.finished,
+                "finished": rd_finished,
                 "paired": paired,
                 "in_progress": in_progress,
             }
@@ -55,7 +59,7 @@ class AdminMatchInfoEmbedView(LoginRequiredMixin, View):
 
         match_id = self.kwargs["match_id"]
 
-        match = queries.match_from_id(match_id, force_update=True)
+        match = queries.get_match(match_id)
 
         return JsonResponse(
             {

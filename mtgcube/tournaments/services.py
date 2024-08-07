@@ -38,8 +38,9 @@ def pair_round_new(draft):
         player.paired = False
         player.bye_this_round = False
         player.save()
-
-    startingTable = 1 # TODO
+    
+    startingTable = draft.first_table
+    
     openTable = startingTable
 
     # Contains lists of players sorted by how many points they currently have
@@ -341,13 +342,30 @@ def finish_draft_round(current_round: Round):
         p.draft_place = idx + 1
         p.save()
 
+    if current_round.round_idx == draft.round_number:
+        draft.finished = True
+        draft.save()
+        for p in sorted_players:
+            p.checked_in = False
+            p.checked_out = False
+            p.save()
+
 
 def finish_event_round(tournament):
     update_tournament_tiebreakers(tournament)
+
+
     players = queries.enrollments_for_tournament(tournament, force_update=True)
+
+    phase = queries.active_phase(tournament, force_update=True)
+    if tournament.current_round % phase.round_number == 0:
+        phase.finished = True
+        phase.save()
 
     tournament.current_round += 1
     tournament.save()
+    print(f'Tournament is now in round {tournament.current_round}')
+
 
     # Update draft standings
     sorted_players = sorted(

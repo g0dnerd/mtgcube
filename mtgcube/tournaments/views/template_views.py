@@ -184,25 +184,21 @@ class DraftDashboardView(LoginRequiredMixin, View):
             bye = True
             form = None
             confirm_form = None
-        draft = queries.current_draft(current_enroll)
+        draft = queries.get_draft(slug=kwargs["draft_slug"])
 
         current_round = queries.current_round(draft, force_update=True)
-        if not current_round:
+        if not current_round or current_round.finished:
             current_round = None
             match = None
+            form = None
+            confirm_form = None
         else:
-            match = queries.current_match(
-                current_enroll, current_round, force_update=True
-            )
+            match = queries.current_match(current_enroll, current_round)
             if not bye:
                 form = ReportResultForm(initial={"match_id": match.id})
                 confirm_form = ConfirmResultForm(initial={"confirm_match_id": match.id})
 
-
-        return render(
-            request,
-            "tournaments/current_draft.html",
-            context={
+        context={
                 "draft": draft,
                 "tournament": tournament,
                 "round": current_round,
@@ -210,7 +206,14 @@ class DraftDashboardView(LoginRequiredMixin, View):
                 "match": match,
                 "form": form,
                 "confirm_form": confirm_form,
-            },
+            }
+        
+        print(context)
+
+        return render(
+            request,
+            "tournaments/current_draft.html",
+            context,
         )
     
     def post(self, request, *args, **kwargs):
@@ -246,10 +249,7 @@ class MyPoolCheckinView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         user = request.user
         tournament = queries.get_tournament(tournament_slug=kwargs["slug"])
-
-        player = queries.get_player(user)
-        current_enroll = queries.enrollment_from_tournament(tournament, player)
-        current_draft = queries.current_draft(current_enroll)
+        current_draft = queries.get_draft(slug=kwargs['draft_slug'])
         if not current_draft:
             messages.error(request, "No draft.")
             return redirect("tournaments:index")
@@ -267,10 +267,7 @@ class MyPoolCheckoutView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         user = request.user
         tournament = queries.get_tournament(tournament_slug=kwargs["slug"])
-
-        player = queries.get_player(user)
-        current_enroll = queries.enrollment_from_tournament(tournament, player)
-        current_draft = queries.current_draft(current_enroll)
+        current_draft = queries.get_draft(slug=kwargs['draft_slug'])
         if not current_draft:
             messages.error(request, "No draft.")
             return redirect("tournaments:index")

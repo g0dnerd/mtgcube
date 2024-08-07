@@ -26,7 +26,7 @@ class PlayerBasicInfoView(LoginRequiredMixin, View):
 
         player = queries.get_player(user)
         tournament = queries.get_tournament(tournament_slug=kwargs['slug'])
-        current_enroll = queries.enrollment_from_tournament(tournament, player, force_update=True)
+        current_enroll = queries.enrollment_from_tournament(tournament, player)
 
         draft = queries.get_draft(slug=kwargs['draft_slug'])
 
@@ -60,28 +60,30 @@ class PlayerDraftInfoView(LoginRequiredMixin, View):
 
         return JsonResponse(draft_json)
 
-class PlayerMatchInfoView(LoginRequiredMixin, View):
+class PlayerPreviewMatchInfoView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         user = request.user
 
         player = queries.get_player(user)
         tournament = queries.get_tournament(tournament_slug=kwargs['slug'])
         current_enroll = queries.enrollment_from_tournament(tournament, player)
-        current_draft = queries.current_draft(current_enroll)
+        current_draft = queries.get_draft(slug=kwargs['draft_slug'])
         current_round = queries.current_round(current_draft, force_update=True)
 
         if not current_round:
             return JsonResponse({"error": "Not started."}, status=200,)
 
+        if current_round.finished:
+            return JsonResponse({"error": "No match yet."})
+
         if not current_enroll.checked_in:
             return JsonResponse({"error": "No checkin."}, status=200,)
 
-        if current_enroll.bye_this_round:
-            return JsonResponse({"match": {"bye": True}}, status=200)
 
-        current_match = queries.current_match(
-            current_enroll, current_round, force_update=True
-        )
+        if current_enroll.bye_this_round:
+            return JsonResponse({"bye": True}, status=200)
+
+        current_match = queries.current_match(current_enroll, current_round)
         if not current_match:
             return JsonResponse({"error": "No match yet."})
 
@@ -99,7 +101,7 @@ class PlayerMatchInfoView(LoginRequiredMixin, View):
             "current_round": current_round.round_idx,
             "opponent": opponent.player.user.name,
             "opp_pronouns": opp_pronouns,
-            "draft": current_draft,
+            "draft_slug": current_draft.slug,
         }
 
         return JsonResponse(match_json)
@@ -112,9 +114,10 @@ class PlayerFullMatchInfoView(LoginRequiredMixin, View):
         player = queries.get_player(user)
         tournament = queries.get_tournament(tournament_slug=kwargs['slug'])
         current_enroll = queries.enrollment_from_tournament(tournament, player)
+        
         if current_enroll.bye_this_round:
             return JsonResponse({"match": {"bye": True}}, status=200)
-        current_match = queries.match_from_id(kwargs['match_id'], force_update=True)
+        current_match = queries.get_match(kwargs['match_id'])
 
         if not current_match:
             return JsonResponse({"error": "No match."}, status=404)
@@ -175,20 +178,17 @@ class PlayerOtherPairingsInfoView(LoginRequiredMixin, View):
             if bye:
                 bye = bye.player.user.name
         current_round = queries.current_round(current_draft, force_update=True)
-        if not current_round:
-            return JsonResponse({"error": "Not started."}, status=404)
 
-        if not current_round or not current_round.paired:
-            return JsonResponse(
-                {"error": "No pairings yet."}, status=200
-            )
+        if not current_round or current_round.finished or not current_round.paired:
+            return JsonResponse({"error": "Not started"}, status=200)
+        
+        if not current_enroll.checked_in:
+            return JsonResponse({"error": "No check-in"}, status=200,)
 
         non_player_games = queries.non_player_games(current_enroll, current_round)
         if not non_player_games:
-            return JsonResponse({"error": "No pairings yet."}, status=200)
+            return JsonResponse({"error": "No pairings found"}, status=404)
 
-        if not current_enroll.checked_in:
-            return JsonResponse({"error": "No check-in."}, status=200,)
 
         other_pairings = [
             {
@@ -257,9 +257,7 @@ class CheckinView(LoginRequiredMixin, View):
             player = queries.get_player(user)
             tournament = queries.get_tournament(tournament_slug=kwargs['slug'])
             current_enroll = queries.enrollment_from_tournament(tournament, player)
-            current_draft = queries.current_draft(
-                current_enroll, force_update=True
-            )
+            current_draft = queries.get_draft(slug=kwargs['draft_slug'])
             if not current_draft:
                 return JsonResponse({"error": "No draft."}, status=404)
 
@@ -292,7 +290,7 @@ class CheckoutView(LoginRequiredMixin, View):
             player = queries.get_player(user)
             tournament = queries.get_tournament(tournament_slug=kwargs['slug'])
             current_enroll = queries.enrollment_from_tournament(tournament, player)
-            current_draft = queries.current_draft(current_enroll)
+            current_draft = queries.get_draft(slug=kwargs['draft_slug'])
             if not current_draft:
                 return JsonResponse({"error": "No draft."}, status=404)
 
@@ -325,7 +323,7 @@ class DeleteImageCheckinView(LoginRequiredMixin, View):
         player = queries.get_player(user)
         tournament = queries.get_tournament(tournament_slug=kwargs['slug'])
         current_enroll = queries.enrollment_from_tournament(tournament, player)
-        current_draft = queries.current_draft(current_enroll)
+        current_draft = queries.get_draft(slug=kwargs['draft_slug'])
         if not current_draft:
             return JsonResponse({"error": True}, status=404)
 
@@ -334,7 +332,7 @@ class DeleteImageCheckinView(LoginRequiredMixin, View):
             current_enroll.checked_in = False
             current_enroll.save()
 
-        return redirect(reverse_lazy("tournaments:my_pool_checkin", kwargs={"slug": kwargs['slug']}))
+        return redirect(reverse_lazy("tournaments:my_pool_checkin", kwargs={"slug": kwargs["slug"], "draft_slug": kwargs["draft_slug"]}))
 
 
 class DeleteImageCheckoutView(LoginRequiredMixin, View):
@@ -348,7 +346,7 @@ class DeleteImageCheckoutView(LoginRequiredMixin, View):
         player = queries.get_player(user)
         tournament = queries.get_tournament(tournament_slug=kwargs['slug'])
         current_enroll = queries.enrollment_from_tournament(tournament, player)
-        current_draft = queries.current_draft(current_enroll)
+        current_draft = queries.get_draft(slug=kwargs['draft_slug'])
         if not current_draft:
             return JsonResponse({"error": True}, status=404)
 
@@ -357,4 +355,4 @@ class DeleteImageCheckoutView(LoginRequiredMixin, View):
             current_enroll.checked_out = False
             current_enroll.save()
         
-        return redirect(reverse_lazy("tournaments:my_pool_checkout", kwargs={"slug": kwargs['slug']}))
+        return redirect(reverse_lazy("tournaments:my_pool_checkout", kwargs={"slug": kwargs["slug"], "draft_slug": kwargs["draft_slug"]}))

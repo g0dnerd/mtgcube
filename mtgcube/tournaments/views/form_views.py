@@ -29,7 +29,7 @@ class ConfirmResultView(FormView, LoginRequiredMixin):
     def form_valid(self, form):
         match_id = form.cleaned_data["confirm_match_id"]
 
-        match = queries.match_from_id(match_id)
+        match = queries.get_match(match_id)
 
         if match:
             services.finish_match(match)
@@ -50,7 +50,7 @@ class PlayerReportResultView(FormView, LoginRequiredMixin):
         player1_wins = form.cleaned_data["player1_wins"]
         player2_wins = form.cleaned_data["player2_wins"]
         player = queries.get_player(self.request.user)
-        match = queries.match_from_id(match_id)
+        match = queries.get_match(match_id)
         try:
             services.report_result(
                 match,
@@ -77,7 +77,7 @@ class AdminReportResultView(FormView, AdminDataMixin):
         match_id = form.cleaned_data["match_id"]
         player1_wins = form.cleaned_data["player1_wins"]
         player2_wins = form.cleaned_data["player2_wins"]
-        match = queries.match_from_id(match_id)
+        match = queries.get_match(match_id)
         services.report_result(
             match,
             player1_wins,
@@ -99,7 +99,7 @@ class SeatDraftView(FormView, AdminDataMixin):
 
     def post(self, request, *args, **kwargs):
         slug = kwargs.get("draft_slug")
-        draft = queries.get_draft(slug=slug, force_update=True)
+        draft = queries.get_draft(slug=slug)
         if not draft.seated:
             services.seat_draft(draft)
         return redirect(self.get_success_url())
@@ -115,7 +115,7 @@ class PairRoundView(FormView, AdminDataMixin):
 
     def post(self, request, *args, **kwargs):
         slug = kwargs.get("draft_slug")
-        draft = queries.get_draft(slug=slug, force_update=True)
+        draft = queries.get_draft(slug=slug)
         services.pair_round_new(draft)
         return redirect(self.get_success_url())
 
@@ -130,7 +130,7 @@ class FinishRoundView(FormView, AdminDataMixin):
 
     def post(self, request, *args, **kwargs):
         slug = kwargs.get("draft_slug")
-        draft = queries.get_draft(slug=slug, force_update=True)
+        draft = queries.get_draft(slug=slug)
         current_rd = queries.current_round(draft, force_update=True)
         services.finish_draft_round(current_rd)
         return redirect(self.get_success_url())
@@ -146,7 +146,7 @@ class ResetDraftView(FormView, AdminDataMixin):
 
     def post(self, request, *args, **kwargs):
         slug = kwargs.get("draft_slug")
-        draft = queries.get_draft(slug=slug, force_update=True)
+        draft = queries.get_draft(slug=slug)
         services.clear_histories(draft)
         return redirect(self.get_success_url())
 
