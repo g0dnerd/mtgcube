@@ -3,12 +3,33 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function getUploadHtml(data) {
         if (!data.checked_in) {
+            var containerElement = document.getElementById("match-info-list");
+            if (containerElement) {
+                if (document.getElementById("match-info-list").dataset.bye == 'True') {
+                    var oppHeaderElement = document.getElementById("opponent-header");
+                    var oppTextElement = document.getElementById("opponent-text");
+                    var oppElement = document.getElementById("my-opponent");
+                    var child = oppTextElement.firstChild;
+                    child.textContent = '';
+                    child.nextSibling.textContent = '';
+                    child.nextSibling.nextSibling.textContent = '';
+                    var checkInUrl = `/event-dashboard/${tournamentSlug}/${draftSlug}/checkin-upload/`;
+                    oppElement.innerHTML = gettext('Your pairing will be revealed once you have ') + `<a href="${checkInUrl}">` + gettext('checked in') + `</a>` + '.';
+                    oppHeaderElement.style.display = 'block';
+                }
+            }
             var checkinUrl = `/event-dashboard/${tournamentSlug}/${draftSlug}/checkin-upload/`;
+            var checkinPoolUrl = `/event-dashboard/${tournamentSlug}/${draftSlug}/checkin-pool/`
             return `
                 <div class="pool-info-check-in-missing">
                     <h5>${gettext('You are not yet checked in')}. ${gettext('Please')} <a href="${checkinUrl}">${gettext('upload your pool')}</a> ${gettext('once you have finished drafting.')}</h5>
                 </div>
             `;
+        } else {
+            var oppHeaderElement = document.getElementById("opponent-header");
+            if (oppHeaderElement) {
+                oppHeaderElement.style.display = 'block';
+            }
         }
         
         var checkinPoolUrl = `/event-dashboard/${tournamentSlug}/${draftSlug}/checkin-pool/`;
@@ -58,7 +79,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     var tournamentSlug = document.getElementById('deck-upload').dataset.tournamentSlug;
     var draftSlug = document.getElementById('deck-upload').dataset.draftSlug;
-    console.log(draftSlug);
     var poolElement = document.getElementById("deck-upload");
     updateStatusInfo(tournamentSlug, draftSlug);
     setInterval(function() {

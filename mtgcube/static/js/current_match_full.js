@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!data.error) {
                 var winner = data.winner ? `${data.winner} wins` : '';
                 oppElement.innerHTML = `${data.opponent} ${data.opp_pronouns}`;
-                resultElement.innerHTML = data.result !== "Pending" ? `<p class="match-result">Result: ${winner} ${data.result}</p>` : '';
+                resultElement.innerHTML = data.result !== "Pending" ? `<p class="match-result">${gettext('Result')}: ${winner} ${data.result}</p>` : '';
 
                 oppHeaderElement.style.display = 'block';
 
@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     child.nextSibling.textContent = '';
                     child.nextSibling.nextSibling.textContent = '';
                     var checkInUrl = `/event-dashboard/${tournamentSlug}/${draftSlug}/checkin-upload/`;
-                    oppElement.innerHTML = gettext('Your pairing will be revealed once you have') + `<a href="${checkInUrl}">` + gettext('checked in') + `</a>` + '.';
+                    oppElement.innerHTML = gettext('Your pairing will be revealed once you have ') + `<a href="${checkInUrl}">` + gettext('checked in') + `</a>` + '.';
                     oppHeaderElement.style.display = 'block';
                 }
             }
@@ -46,12 +46,14 @@ document.addEventListener('DOMContentLoaded', function() {
         .catch(error => console.error('Error updating match info:', error));
     }
 
-    var tournamentSlug = document.getElementById('match-details').dataset.tournamentSlug;
-    var draftSlug = document.getElementById('match-details').dataset.draftSlug;
-    var matchId = document.getElementById('match-details').dataset.matchId;
-    updateMatchInfo(tournamentSlug, draftSlug, matchId);
-
-    setInterval(function() {
+    if (document.getElementById("match-info-list").dataset.bye == 'False') {
+        var tournamentSlug = document.getElementById('match-details').dataset.tournamentSlug;
+        var draftSlug = document.getElementById('match-details').dataset.draftSlug;
+        var matchId = document.getElementById('match-details').dataset.matchId;
         updateMatchInfo(tournamentSlug, draftSlug, matchId);
-    }, 120000); // 120 seconds
+
+        setInterval(function() {
+            updateMatchInfo(tournamentSlug, draftSlug, matchId);
+        }, 120000); // 120 seconds
+    }
 });

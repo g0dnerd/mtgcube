@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <li>${data.bye} - BYE</li>
                     `);
                 }
-                headerElement.innerHTML = `<h5>${gettext('Other pairings')}:</h5>`;
+                headerElement.innerHTML = `${gettext('Other pairings')}:`;
                 pairingsElement.innerHTML = pairingsHtml;
             }
         })

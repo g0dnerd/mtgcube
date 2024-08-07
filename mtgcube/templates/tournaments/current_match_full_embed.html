@@ -5,35 +5,39 @@
 {% endblock %}
 
 {% block content %}
-<li class="match-info">
-    <div id="match-details" data-match-id="{{ match.id }}" data-draft-slug="{{ draft.slug }}" data-tournament-slug="{{ tournament_slug }}">
-        {% if bye %}
-            <div id="opponent-header">
-                <h5>{% trans "You have the bye this round" %}!</h5>
+<li class="match-info" id="match-info-list" data-bye="{{ bye }}">
+    {% if bye == "True" %}
+        <div id="match-details">
+            <div id="opponent-header" style="display:none;">
+                <h5 id="opponent-text">{% trans "You have the bye this round" %}!
+                    <span id="my-table" id="table-info"></span>
+                    <span id="my-opponent"></span>
+                </h5>
             </div>
-        {% else %}
+        </div>
+    {% else %}
+        <div id="match-details" data-match-id="{{ match.id }}" data-draft-slug="{{ draft.slug }}" data-tournament-slug="{{ tournament_slug }}">
             <div id="opponent-header" style="display:none;">
                 <h5 id="opponent-text">{% trans 'My opponent at table' %}
                     <span id="my-table" id="table-info">{{ match.table }}</span>:
                     <span id="my-opponent"></span>
                 </h5>
             </div>
-        {% endif %}
-    </div>
-    <p class="match-result" id="result-info" style="display:none;"></p>
-    <form class="report-result" id="report-result-form-{{ match.id }}" method="post" enctype="multipart/form-data" style="display:none;">
-        {% csrf_token %}
-        {{ form.match_id }}
-        <label for="player1-wins-{{ match.id }}">{{ match.player1.player.user.name }} {% trans 'wins' %}</label>
-        {{ form.player1_wins }}
-        <label for="player2-wins-{{ match.id }}">{{ match.player2.player.user.name }} {% trans 'wins' %}</label>
-        {{ form.player2_wins }}
-        <button type="submit">{% trans 'Submit Result' %}</button>
-    </form>
-    <form class="confirm-result" id="confirm-result-form-{{ match.id }}" method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        {{ confirm_form.confirm_match_id }}
-        <button class="confirm-result" id="confirm-result-btn" style="display:none;">{% trans 'Confirm result' %}</button>
-    </form>
-</li>
+        </div>
+        <p class="match-result" id="result-info" style="display:none;"></p>
+        <form class="report-result" id="report-result-form-{{ match.id }}" method="post" enctype="multipart/form-data" style="display:none;">
+            {% csrf_token %}
+            {{ form.match_id }}
+            <label for="player1-wins-{{ match.id }}">{{ match.player1.player.user.name }} {% trans 'wins' %}</label>
+            {{ form.player1_wins }}
+            <label for="player2-wins-{{ match.id }}">{{ match.player2.player.user.name }} {% trans 'wins' %}</label>
+            {{ form.player2_wins }}
+            <button type="submit">{% trans 'Submit Result' %}</button>
+        </form>
+        <form class="confirm-result" id="confirm-result-form-{{ match.id }}" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ confirm_form.confirm_match_id }}
+            <button class="confirm-result" id="confirm-result-btn" style="display:none;">{% trans 'Confirm result' %}</button>
+        </form>
+{% endif %}
 {% endblock %}
