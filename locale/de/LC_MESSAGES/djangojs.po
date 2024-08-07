@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-05 22:10+0200\n"
+"POT-Creation-Date: 2024-08-07 15:21+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: mtgcube/static/js/admin_match.js:36 mtgcube/static/js/pairings.js:14
+#: mtgcube/static/js/admin_match.js:35 mtgcube/static/js/pairings.js:14
 msgid "Table"
 msgstr "Tisch"
 
@@ -26,17 +26,21 @@ msgstr "Tisch"
 msgid "reported by"
 msgstr "hochgeladen durch"
 
-#: mtgcube/static/js/admin_match.js:55 mtgcube/static/js/admin_match.js:56
+#: mtgcube/static/js/admin_match.js:54 mtgcube/static/js/admin_match.js:55
 msgid "wins"
 msgstr "gewinnt"
 
-#: mtgcube/static/js/current_match_full.js:40
-#: mtgcube/static/js/current_match_preview.js:20
-msgid "Your pairing will be revealed once you have"
-msgstr "Dein:e Gegner:in wird dir hier angezeigt, sobald du"
+#: mtgcube/static/js/current_match_full.js:16
+msgid "Result"
+msgstr "Ergebnis"
 
 #: mtgcube/static/js/current_match_full.js:40
-#: mtgcube/static/js/current_match_preview.js:20
+#: mtgcube/static/js/current_match_preview.js:20 mtgcube/static/js/pool.js:17
+msgid "Your pairing will be revealed once you have "
+msgstr "Dein:e Gegner:in wird dir hier angezeigt, sobald du "
+
+#: mtgcube/static/js/current_match_full.js:40
+#: mtgcube/static/js/current_match_preview.js:20 mtgcube/static/js/pool.js:17
 #, fuzzy
 #| msgid "check-in"
 msgid "checked in"
@@ -96,39 +100,39 @@ msgstr "Event-Standings nach Runde"
 msgid "Other pairings"
 msgstr "Andere Matches"
 
-#: mtgcube/static/js/pool.js:9
+#: mtgcube/static/js/pool.js:25
 msgid "You are not yet checked in"
 msgstr "Du bist noch nicht eingecheckt"
 
-#: mtgcube/static/js/pool.js:9
+#: mtgcube/static/js/pool.js:25
 msgid "Please"
 msgstr "Bitte"
 
-#: mtgcube/static/js/pool.js:9 mtgcube/static/js/pool.js:34
+#: mtgcube/static/js/pool.js:25 mtgcube/static/js/pool.js:55
 msgid "upload your pool"
 msgstr "lade deinen Pool hoch"
 
-#: mtgcube/static/js/pool.js:9
+#: mtgcube/static/js/pool.js:25
 msgid "once you have finished drafting."
 msgstr "sobald du fertig gedraftet hast."
 
-#: mtgcube/static/js/pool.js:17
+#: mtgcube/static/js/pool.js:38
 msgid "You are checked in and good to go"
 msgstr "Du hast erfolgreich eingecheckt"
 
-#: mtgcube/static/js/pool.js:18 mtgcube/static/js/pool.js:27
+#: mtgcube/static/js/pool.js:39 mtgcube/static/js/pool.js:48
 msgid "My pool"
 msgstr "Mein Pool"
 
-#: mtgcube/static/js/pool.js:26
+#: mtgcube/static/js/pool.js:47
 msgid "You have checked out and are good to go!"
 msgstr "Du hast erfolgreich ausgecheckt"
 
-#: mtgcube/static/js/pool.js:34
+#: mtgcube/static/js/pool.js:55
 msgid "To check out, please"
 msgstr "Um auszuchecken,"
 
-#: mtgcube/static/js/pool.js:34
+#: mtgcube/static/js/pool.js:55
 msgid "after you have finished all your matches."
 msgstr "sobald du dein letztes Match beendet hast."
 

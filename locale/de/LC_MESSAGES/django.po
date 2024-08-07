@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-05 22:14+0200\n"
+"POT-Creation-Date: 2024-08-07 15:27+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -357,7 +357,7 @@ msgstr ""
 "        "
 
 #: mtgcube/templates/tournaments/admin_match_embed.html:15
-#: mtgcube/templates/tournaments/current_match_full_embed.html:31
+#: mtgcube/templates/tournaments/current_match_full_embed.html:35
 msgid "Submit Result"
 msgstr "Ergebnis hochladen"
 
@@ -456,20 +456,26 @@ msgstr "Mein aktueller Draft"
 msgid "My current draft in round"
 msgstr "Mein aktueller Draft in Runde"
 
+#: mtgcube/templates/tournaments/current_draft.html:23
+#, fuzzy
+#| msgid "Waiting for seatings"
+msgid "Waiting for pairings"
+msgstr "Warten auf Pairings"
+
 #: mtgcube/templates/tournaments/current_match_full_embed.html:12
 msgid "You have the bye this round"
 msgstr "Du hast diese Runde einen Bye"
 
-#: mtgcube/templates/tournaments/current_match_full_embed.html:16
+#: mtgcube/templates/tournaments/current_match_full_embed.html:21
 msgid "My opponent at table"
 msgstr "Mein:e Gegner:in an Tisch"
 
-#: mtgcube/templates/tournaments/current_match_full_embed.html:27
-#: mtgcube/templates/tournaments/current_match_full_embed.html:29
+#: mtgcube/templates/tournaments/current_match_full_embed.html:31
+#: mtgcube/templates/tournaments/current_match_full_embed.html:33
 msgid "wins"
 msgstr "gewinnt"
 
-#: mtgcube/templates/tournaments/current_match_full_embed.html:36
+#: mtgcube/templates/tournaments/current_match_full_embed.html:40
 #, fuzzy
 #| msgid "Confirm"
 msgid "Confirm result"
@@ -597,13 +603,13 @@ msgstr "Email-Einstellungen"
 msgid "Image"
 msgstr "Foto"
 
-#: mtgcube/tournaments/models.py:177
+#: mtgcube/tournaments/models.py:179
 #, fuzzy
 #| msgid "Waiting for seatings"
 msgid "(awaiting confirmation)"
 msgstr "(Bestätigung ausstehend)"
 
-#: mtgcube/tournaments/models.py:179
+#: mtgcube/tournaments/models.py:181
 #, fuzzy
 #| msgid "Confirm"
 msgid "(confirmed)"
@@ -744,11 +750,6 @@ msgstr "Information erfolgreich angepasst"
 #~ "                            <a href=%(url)s>Check-in</a> abgeschlossen "
 #~ "hast.\n"
 #~ "                        "
-
-#, fuzzy
-#~| msgid "Waiting for seatings"
-#~ msgid "Waiting for pairings"
-#~ msgstr "Warten auf Pairings"
 
 #~ msgid "Draft standings after round"
 #~ msgstr "Draft-Standings nach Runde"
