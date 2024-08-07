@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             } else {
                 if (data.seated) {
-                    var status='Drafting portion in progress.';
+                    var status='Drafting portion in progress / Waiting for pairings.';
                 } else {
                     var status='Waiting for seatings.';
                 }

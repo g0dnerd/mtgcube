@@ -7,21 +7,20 @@ document.addEventListener('DOMContentLoaded', function() {
             var finishBtn = document.getElementById("finish-btn");
             var pairBtn = document.getElementById("pair-btn");
             var seatBtn = document.getElementById("seat-btn");
-            if (data.in_progress) {
-                finishBtn.disabled = true;
-            } else {
-                finishBtn.disabled = false;
+            finishBtn.disabled = true;
+            pairBtn.disabled = true;
+            seatBtn.disabled = true;
+            if (!data.in_progress) {
                 if (data.finished) {
                     pairBtn.disabled = false;
                 } else {
-                    pairBtn.disabled = true;
+                    finishBtn.disabled = false;
                 }
-            }
-            if (data.seated) {
-                pairBtn.disabled = false;
-                seatBtn.disabled = true;
-            } else {
-                seatBtn.disabled = false;
+                if (data.seated) {
+                    pairBtn.disabled = false;
+                } else {
+                    seatBtn.disabled = false;
+                }
             }
         })
         .catch(error => console.error('Error updating match info:', error));
@@ -36,8 +35,8 @@ document.addEventListener('DOMContentLoaded', function() {
             var pairingHtml = `<strong>${gettext('Table')} ${data.table}:</strong> ${data.player1} vs ${data.player2}`;
             var resultInfo = data.result;
             if (data.result !== 'Pending') {
-                resultInfo += ` (${gettext('reported by')} ${data.reported_by})`;
                 if (!data.result_confirmed) {
+                    resultInfo += ` (${gettext('reported by')} ${data.reported_by})`;
                     resultElement.style.display = 'block';
                 }
             } else {

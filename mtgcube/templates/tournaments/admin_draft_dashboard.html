@@ -47,7 +47,7 @@
                 </form>
                 <form class="reset-draft-form" method="post" enctype="multipart/form-data">
                     {% csrf_token %}
-                    <button type="submit" name="reset-draft">Hard reset draft history</button>
+                    <button type="submit" name="reset-draft" onclick="return confirm();">Hard reset draft history</button>
                 </form>
             </div>
         </div>
