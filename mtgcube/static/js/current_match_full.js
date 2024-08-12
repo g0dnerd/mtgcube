@@ -13,7 +13,10 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!data.error) {
                 var winner = data.winner ? `${data.winner} wins` : '';
                 oppElement.innerHTML = `${data.opponent} ${data.opp_pronouns}`;
-                resultElement.innerHTML = data.result !== "Pending" ? `<p class="match-result">${gettext('Result')}: ${winner} ${data.result}</p>` : '';
+                resultElement.innerHTML =
+                    data.result !== "Pending" ? `
+                        <p class="match-result">${gettext('Result')}: ${winner} ${data.result}</p>
+                    ` : '';
 
                 oppHeaderElement.style.display = 'block';
 

@@ -19,45 +19,45 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
             var checkinUrl = `/event-dashboard/${tournamentSlug}/${draftSlug}/checkin-upload/`;
-            var checkinPoolUrl = `/event-dashboard/${tournamentSlug}/${draftSlug}/checkin-pool/`
+            var checkinPoolUrl = `/event-dashboard/${tournamentSlug}/${draftSlug}/checkin-pool/`;
             return `
                 <div class="pool-info-check-in-missing">
-                    <h5>${gettext('You are not yet checked in')}. ${gettext('Please')} <a href="${checkinUrl}">${gettext('upload your pool')}</a> ${gettext('once you have finished drafting.')}</h5>
+                    <h5>${gettext('You have not yet checked in')}. ${gettext('Please')} <a href="${checkinUrl}">${gettext('upload your pool')}</a> ${gettext('once you have finished drafting.')}</h5>
                 </div>
             `;
-        } else {
-            var oppHeaderElement = document.getElementById("opponent-header");
-            if (oppHeaderElement) {
-                oppHeaderElement.style.display = 'block';
-            }
+        }
+        var oppHeaderElement = document.getElementById("opponent-header");
+        if (oppHeaderElement) {
+            oppHeaderElement.style.display = 'block';
         }
         
+        if (data.draft_finished) {
+            if (data.checked_out) {
+                var checkoutPoolUrl = `/event-dashboard/${tournamentSlug}/${draftSlug}/checkout-pool/`;
+                return `
+                    <div class="pool-info-checked-out">
+                        <h5>${gettext('You have successfully checked out')}!</h5>
+                        <a href="${checkoutPoolUrl}">${gettext('My pool')}</a>
+                    </div>
+                `;
+            }    
+            var checkoutUrl = `/event-dashboard/${tournamentSlug}/${draftSlug}/checkout-upload/`;
+            return `
+                <div class="pool-info-check-out-missing">
+                    <h5>${gettext('You have not yet checked out')}. ${gettext('Please')} 
+                        <a href="${checkoutUrl}">${gettext('upload your pool')}</a> ${gettext('after your last match.')}
+                    </h5>
+                </div>
+            `;
+        }
+
         var checkinPoolUrl = `/event-dashboard/${tournamentSlug}/${draftSlug}/checkin-pool/`;
-        let html = `
+        return `
             <div class="pool-info-checked-in">
-                <h5>${gettext('You are checked in and good to go')}!</h5>
+                <h5>${gettext('You have successfully checked in')}!</h5>
                 <a href="${checkinPoolUrl}">${gettext('My pool')}</a>
             </div>
         `;
-
-        if (data.checked_out) {
-            var checkoutPoolUrl = `/event-dashboard/${tournamentSlug}/${draftSlug}/checkout-pool/`;
-            html = `
-                <div class="pool-info-checked-out">
-                    <h5>${gettext('You have checked out and are good to go!')}</h5>
-                    <a href="${checkoutPoolUrl}">${gettext('My pool')}</a>
-                </div>
-            `;
-        } else {
-            var checkoutUrl = `/event-dashboard/${tournamentSlug}/${draftSlug}/checkout-upload/`;
-            html += `
-                <div class="pool-info-check-out-missing">
-                    <h5>${gettext('To check out, please')} <a href="${checkoutUrl}">${gettext('upload your pool')}</a> ${gettext('after you have finished all your matches.')}</h5>
-                </div>
-            `;
-        }
-
-        return html;
     }
 
     function updateStatusInfo(tournamentSlug, draftSlug) {

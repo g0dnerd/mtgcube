@@ -17,12 +17,6 @@
         {% include 'tournaments/pool_embed.html' with tournament_slug=tournament.slug draft=draft %}
         {% if match or bye %}
             {% include 'tournaments/current_match_full_embed.html' with tournament_slug=tournament.slug draft=draft match=match bye=bye form=form confirm_form=confirm_form %}
-        {% else %}
-            <li class="match-info">
-                <div id="match-details">
-                    <h5>{% trans 'Waiting for pairings' %}</h5>
-                </div>
-            </li>
         {% endif %}
         {% include 'tournaments/seatings_embed.html' with tournament_slug=tournament.slug draft=draft %}
         {% include 'tournaments/pairings_embed.html' with tournament_slug=tournament.slug draft=draft %}

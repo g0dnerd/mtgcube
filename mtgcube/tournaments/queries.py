@@ -50,16 +50,19 @@ def get_player(user, force_update=False):
 
 def available_tournaments(player, force_update=False):
     """Gets all available tournaments for the given player."""
-    cache_key = f"available_tournaments_{player.user.id}"
+    if player:
+        cache_key = f"available_tournaments_{player.user.id}"
+    else:
+        cache_key = "available_tournaments_admin"
 
     def fetch_available_tournaments():
         # Get all tournaments the player is enrolled in
-        enrolled_tournament_ids = Enrollment.objects.filter(player=player).values_list(
-            "tournament_id", flat=True
-        )
 
         now = timezone.now()
         if player:
+            enrolled_tournament_ids = Enrollment.objects.filter(player=player).values_list(
+                "tournament_id", flat=True
+            )
             mains = (
                 Tournament.objects.exclude(
                     Q(id__in=enrolled_tournament_ids) | Q(start_datetime__lt=now)
@@ -152,7 +155,7 @@ def current_draft(current_enrollment):
         try:
             draft = (
                 Draft.objects.get(
-                    Q(finished=False) & Q(enrollments=current_enrollment), phase=phase
+                    Q(enrollments=current_enrollment), phase=phase, phase__finished=False, phase__started=True,
                 )
             )
         except Draft.DoesNotExist:
@@ -219,6 +222,8 @@ def images(user, draft, checkin: bool):
 def active_drafts_for_tournament(event, force_update=False):
     """Returns all active drafts for the given tournament."""
     phase = active_phase(event, force_update=True)
+    if not phase:
+        return None
     cache_key = f"active_drafts_{event.id}_{phase.phase_idx}"
 
     def fetch_active_drafts():
@@ -234,29 +239,29 @@ def active_drafts_for_tournament(event, force_update=False):
     return get_or_set_cache(cache_key, fetch_active_drafts, 300, force_update)
 
 
-def get_tournament(tournament_id=None, tournament_slug=None, force_update=True):
+def get_tournament(id=None, slug=None, force_update=True):
     """Returns the tournament with the given id or slug."""
     cache_key = (
-        f"tournament_{tournament_id}"
-        if tournament_id
-        else f"tournament_{tournament_slug}"
+        f"tournament_{id}"
+        if id
+        else f"tournament_{slug}"
     )
 
     def fetch_tournament():
-        if tournament_id:
+        if id:
             try:
-                tournament = SideEvent.objects.get(pk=tournament_id)
+                tournament = SideEvent.objects.get(pk=id)
             except SideEvent.DoesNotExist:
                 try:
-                    tournament = Tournament.objects.get(pk=tournament_id)
+                    tournament = Tournament.objects.get(pk=id)
                 except Tournament.DoesNotExist:
                     return None
-        elif tournament_slug:
+        elif slug:
             try:
-                tournament = SideEvent.objects.get(slug=tournament_slug)
+                tournament = SideEvent.objects.get(slug=slug)
             except SideEvent.DoesNotExist:
                 try:
-                    tournament = Tournament.objects.get(slug=tournament_slug)
+                    tournament = Tournament.objects.get(slug=slug)
                 except Tournament.DoesNotExist:
                     return None
         return tournament
@@ -396,7 +401,6 @@ def draft_standings(draft):
     if not rd or rd.round_idx == 1 and not rd.finished:
         return None
     rd_idx = rd.round_idx - 1 if not rd.finished else rd.round_idx
-    print(f"Getting standings for round {rd_idx}")
     cache_key = f"draft_standings_{draft.id}_{rd_idx}"
 
     def fetch_draft_standings():
@@ -470,3 +474,16 @@ def active_phase(tournament, force_update=False):
             return None
 
     return get_or_set_cache(cache_key, fetch_active_phase, 30, force_update)
+
+
+def get_phase_by_index(tournament, index, force_update=False):
+    """Returns the phase with the given index for the given tournament."""
+    cache_key = f"phase_by_index_{tournament.id}_{index}"
+
+    def fetch_phase_by_index():
+        try:
+            return Phase.objects.get(tournament=tournament, phase_idx=index)
+        except Phase.DoesNotExist:
+            return None
+
+    return get_or_set_cache(cache_key, fetch_phase_by_index, None, force_update)

@@ -33,13 +33,16 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             var pairingHtml = `<strong>${gettext('Table')} ${data.table}:</strong> ${data.player1} vs ${data.player2}`;
-            var resultInfo = data.result;
             if (data.result !== 'Pending') {
+                var resultInfo = `${data.player1_wins}-${data.player2_wins}`;
                 if (!data.result_confirmed) {
                     resultInfo += ` (${gettext('reported by')} ${data.reported_by})`;
                     resultElement.style.display = 'block';
+                } else {
+                    resultInfo += ` (${gettext('confirmed')})`;
                 }
             } else {
+                var resultInfo = data.result;
                 resultElement.style.display = 'block';
             }
             if (data.bye) {

@@ -14,13 +14,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (data.paired) {
                 if (data.finished) {
-                    var status='Round finished.';
+                    if (data.event_round > data.draft_round) {
+                        var status = `Waiting for round ${data.draft_round + 1} pairings.`;
+                    } else {
+                        var status = 'Round finished.';
+                    }
                 } else {
                     var status='Round in progress.';
                 }
             } else {
                 if (data.seated) {
-                    var status='Drafting portion in progress / Waiting for pairings.';
+                    if (data.draft_round == 0) {
+                        var status='Drafting portion in progress / Waiting for pairings.';
+                    }
                 } else {
                     var status='Waiting for seatings.';
                 }

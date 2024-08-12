@@ -1,17 +1,31 @@
 function fetchDraftDetails(tournamentSlug, draftSlug) {
+    const draftInfoElement = document.getElementById("draft-info-header");
+    const cubeInfoElement = document.getElementById("player-cube-info");
+    const statusElement = document.getElementById('player-signup-status');
+    if (!draftSlug) {
+        draftInfoElement.innerHTML = `
+            <h5>
+                <a class="draft-disabled"
+                    style="pointer-events: none; color: #ccc; background: transparent; border: var(--border);">
+                        ${gettext('Waiting for tournament to start')}
+                </a>
+            </h5>
+            `;
+        return;
+    }
     var url = `/event-dashboard/${tournamentSlug}/${draftSlug}/~player-draft-info/`;
     fetch(url)
     .then(response => response.json())
     .then(data => {
-        const draftInfoElement = document.getElementById("draft-info-header");
-        const cubeInfoElement = document.getElementById("player-cube-info");
-        const statusElement = document.getElementById('player-signup-status');
         if (!data.error) {
             var currentDraftUrl = `/event-dashboard/${tournamentSlug}/${draftSlug}/`;
             if (data.current_round == 0 && !data.seated) {
                 draftInfoElement.innerHTML = `
-                <h5 class="draft-disabled">
-                    ${gettext('Waiting for draft to start')}
+                <h5>
+                    <a class="draft-disabled"
+                        style="pointer-events: none; color: #ccc; background: transparent; border: var(--border);">
+                        ${gettext('Waiting for draft to start')}
+                    </a>
                 </h5>
                 `;
             } else {

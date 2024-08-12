@@ -36,7 +36,7 @@ class PlayerListView(LoginRequiredMixin, View):
         draft = queries.get_draft(slug=kwargs['draft_slug'])
 
         players = [
-            enrollment.player.user.name for enrollment in draft.enrollments.all()
+            enrollment.player.user.name for enrollment in draft.enrollments.filter(dropped=False)
         ]
 
         return JsonResponse({"players": players})
@@ -65,7 +65,7 @@ class DraftStandingsView(LoginRequiredMixin, View):
 
 class EventStandingsView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
-        tournament = queries.get_tournament(tournament_slug=kwargs['slug'])
+        tournament = queries.get_tournament(slug=kwargs['slug'])
 
         standings = queries.tournament_standings(tournament)
         if not standings:

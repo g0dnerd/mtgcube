@@ -25,7 +25,7 @@ def pair_round_new(draft):
     if current_round:
         if current_round.round_idx == draft.round_number:
             return IndexError("Draft already has all rounds.")
-        new_rd = Round(draft=draft, round_idx=current_round.round_idx + 1)
+        new_rd = Round(draft=draft, round_idx=current_round.round_idx + 1, started=True)
         new_rd.save()
     else:
         new_rd = Round(draft=draft, round_idx=1)
@@ -38,9 +38,9 @@ def pair_round_new(draft):
         player.paired = False
         player.bye_this_round = False
         player.save()
-    
+
     startingTable = draft.first_table
-    
+
     openTable = startingTable
 
     # Contains lists of players sorted by how many points they currently have
@@ -61,19 +61,30 @@ def pair_round_new(draft):
 
         # Breakers the players into groups of their current points up to the max group allowed.
         # Smaller groups mean faster calculations
-        if len(pointLists["%s_%s" % (player.draft_score, countPoints[player.draft_score])]) > 25:
+        if (
+            len(
+                pointLists[
+                    "%s_%s" % (player.draft_score, countPoints[player.draft_score])
+                ]
+            )
+            > 25
+        ):
             countPoints[player.draft_score] += 1
-            pointLists["%s_%s" % (player.draft_score, countPoints[player.draft_score])] = []
+            pointLists[
+                "%s_%s" % (player.draft_score, countPoints[player.draft_score])
+            ] = []
 
         # Add our player to the correct group
-        pointLists["%s_%s" % (player.draft_score, countPoints[player.draft_score])].append(player)
+        pointLists[
+            "%s_%s" % (player.draft_score, countPoints[player.draft_score])
+        ].append(player)
 
     # Add all points in use to pointTotals
     for points in pointLists:
         pointTotals.append(points)
 
     # Sort our point groups based on points
-    pointTotals.sort(reverse=True, key=lambda s: int(s.split('_')[0]))
+    pointTotals.sort(reverse=True, key=lambda s: int(s.split("_")[0]))
 
     print("Point totals after sorting high to low are: %s" % pointTotals, 3)
 
@@ -96,8 +107,9 @@ def pair_round_new(draft):
                     # the same list of players
                     wgt = random.randint(1, 9)
                     # If a player has more points, weigh them the highest, so they get paired first
-                    if player.draft_score > int(points.split('_')[0]) or \
-                            opponent.draft_score > int(points.split('_')[0]):
+                    if player.draft_score > int(
+                        points.split("_")[0]
+                    ) or opponent.draft_score > int(points.split("_")[0]):
                         wgt = 10
                     # Create edge
                     bracketGraph.add_edge(player, opponent, weight=wgt)
@@ -120,8 +132,16 @@ def pair_round_new(draft):
         # Check if we have an odd man out that we need to pair down
         if len(pointLists[points]) > 0:
             # Check to make sure we aren't at the last player in the event
-            print("Player %s left in %s. The index is %s and the length of totals is %s" % (
-                pointLists[points][0], points, pointTotals.index(points), len(pointTotals)), 3)
+            print(
+                "Player %s left in %s. The index is %s and the length of totals is %s"
+                % (
+                    pointLists[points][0],
+                    points,
+                    pointTotals.index(points),
+                    len(pointTotals),
+                ),
+                3,
+            )
             if pointTotals.index(points) + 1 == len(pointTotals):
                 while len(pointLists[points]) > 0:
                     # If they are the last player give them a bye
@@ -132,75 +152,6 @@ def pair_round_new(draft):
 
                 while len(pointLists[points]) > 0:
                     pointLists[nextPoints].append(pointLists[points].pop(0))
-
-def pair_round(draft):
-    """
-    Definition of Swiss Pairing:
-    1. For the first round, players are paired randomly (or fixed by the tournament organizer).
-    2. For each subsequent round, the highest-ranked player is paired with the next highest-ranked player they have not yet played.
-    3. The highest-ranked player among the remaining players is paired with the next highest-ranked player they have not yet played and so on.
-    4. If there is an odd number of players, the lowest-ranked player who has not yet had a bye is given a bye.
-    5. When ranking players, the order of tiebreakers is as follows:
-        Opponent's Match Win Percentage (OMW)
-        Player Game Win Percentage (PGW)
-        Opponent Game Win Percentage (OGW)
-        Note: Tiebreakers that are below .33 are set to .33 instead.
-        Byes are NOT included when calculating tiebreakers.
-    PROCESS:
-    1. Sort players by points and tiebreakers
-    2. Pair players in the sorted list
-    3. If a pairing is not possible because the players have already played each other, pair each player with
-        the next player down they have not already played.
-    4. If there is an odd number of players, give a bye to the lowest ranked player who has not already had a bye.
-    """
-
-    current_round = queries.current_round(draft, force_update=True)
-
-    if current_round:
-        if current_round.round_idx == draft.round_number:
-            return IndexError("Draft already has all rounds.")
-        new_rd = Round(draft=draft, round_idx=current_round.round_idx + 1)
-        new_rd.save()
-    else:
-        new_rd = Round(draft=draft, round_idx=1)
-        new_rd.save()
-
-    players = list(Enrollment.objects.filter(draft=draft, dropped=False))
-
-    random.shuffle(players)
-
-    for player in players:
-        player.paired = False
-        player.bye_this_round = False
-        player.save()
-
-    sorted_players = sorted(
-        players,
-        key=lambda x: (x.draft_score, x.draft_omw, x.draft_pgw, x.draft_ogw),
-        reverse=True,
-    )
-    pairings = []
-
-    # Assign a bye if necessary
-    if len(sorted_players) % 2 == 1:
-        for player in reversed(sorted_players):
-            if not player.had_bye:
-                assign_bye(player)
-                break
-
-    # Pair players
-    for player in sorted_players:
-        if not player.paired:
-            for opponent in sorted_players:
-                if opponent != player:
-                    if not opponent.paired:
-                        if opponent not in player.pairings.all():
-                            pairings.append((player, opponent))
-                            pair(new_rd, player, opponent, len(pairings))
-                            break
-
-    new_rd.paired = True
-    new_rd.save()
 
 
 def assign_bye(player):
@@ -345,15 +296,10 @@ def finish_draft_round(current_round: Round):
     if current_round.round_idx == draft.round_number:
         draft.finished = True
         draft.save()
-        for p in sorted_players:
-            p.checked_in = False
-            p.checked_out = False
-            p.save()
 
 
 def finish_event_round(tournament):
     update_tournament_tiebreakers(tournament)
-
 
     players = queries.enrollments_for_tournament(tournament, force_update=True)
 
@@ -364,8 +310,7 @@ def finish_event_round(tournament):
 
     tournament.current_round += 1
     tournament.save()
-    print(f'Tournament is now in round {tournament.current_round}')
-
+    print(f"Tournament is now in round {tournament.current_round}")
 
     # Update draft standings
     sorted_players = sorted(
@@ -381,16 +326,18 @@ def finish_event_round(tournament):
 
 def reset_draft_scores(draft):
     players = draft.enrollments.all()
-    for player in players:
-        player.draft_score = 0
-        player.draft_games_played = 0
-        player.draft_games_won = 0
-        player.draft_omw = 0.0
-        player.draft_pgw = 0.0
-        player.draft_ogw = 0.0
-        player.pairings.clear()
-        player.had_bye = False
-        player.save()
+    for p in players:
+        p.draft_score = 0
+        p.draft_games_played = 0
+        p.draft_games_won = 0
+        p.draft_omw = 0.0
+        p.draft_pgw = 0.0
+        p.draft_ogw = 0.0
+        p.pairings.clear()
+        p.had_bye = False
+        p.checked_in = False
+        p.checked_out = False
+        p.save()
 
 
 def clear_histories(draft):
@@ -432,13 +379,21 @@ def clear_histories(draft):
         player.paired = False
         player.had_bye = False
         player.bye_this_round = False
+        checkin_images = queries.images(player.player.user, draft, checkin=True)
+        for img in checkin_images:
+            img.delete()
+        checkout_images = queries.images(player.player.user, draft, checkin=False)
+        for img in checkout_images:
+            img.delete()
+        player.checked_in = False
+        player.checked_out = False
         player.save()
 
     for rd in rounds:
         rd.delete()
 
-def reset_tournament(tournament):
 
+def reset_tournament(tournament):
     tournament.current_round = 1
     tournament.save()
 
@@ -449,7 +404,7 @@ def reset_tournament(tournament):
         p.started = False
         p.finished = False
         p.save()
-    
+
     for d in drafts:
         clear_histories(d)
 

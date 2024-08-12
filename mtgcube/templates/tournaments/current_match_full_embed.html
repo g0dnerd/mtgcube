@@ -6,7 +6,7 @@
 
 {% block content %}
 <li class="match-info" id="match-info-list" data-bye="{{ bye }}">
-    {% if bye == "True" %}
+    {% if bye %}
         <div id="match-details">
             <div id="opponent-header" style="display:none;">
                 <h5 id="opponent-text">{% trans "You have the bye this round" %}!

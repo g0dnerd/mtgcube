@@ -30,12 +30,18 @@ class AdminDraftInfoEmbedView(LoginRequiredMixin, View):
                     in_progress = True
                     break
 
+        draft_finished = False
+
         if not current_round:
             paired = False
             rd_finished = False
+            rd_idx = 0
         else:
             rd_finished = current_round.finished
+            if rd_finished and current_round.round_idx == draft.round_number:
+                draft_finished = True
             paired = current_round.paired
+            rd_idx = current_round.round_idx
 
         return JsonResponse(
             {
@@ -47,6 +53,9 @@ class AdminDraftInfoEmbedView(LoginRequiredMixin, View):
                 "finished": rd_finished,
                 "paired": paired,
                 "in_progress": in_progress,
+                "draft_round": rd_idx,
+                "event_round": draft.phase.tournament.current_round,
+                "draft_finished": draft_finished,
             }
         )
 

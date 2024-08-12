@@ -16,7 +16,7 @@ PRONOUN_CHOICES = {
     "x": _("(they/them)"),
     "m": _("(he/him)"),
     "f": _("(she/her)"),
-    "n": _("(neither/don't want to say)"),
+    "n": "",
 }
 
 
@@ -25,7 +25,7 @@ class PlayerBasicInfoView(LoginRequiredMixin, View):
         user = request.user
 
         player = queries.get_player(user)
-        tournament = queries.get_tournament(tournament_slug=kwargs['slug'])
+        tournament = queries.get_tournament(slug=kwargs['slug'])
         current_enroll = queries.enrollment_from_tournament(tournament, player)
 
         draft = queries.get_draft(slug=kwargs['draft_slug'])
@@ -36,6 +36,7 @@ class PlayerBasicInfoView(LoginRequiredMixin, View):
             "draft_seated": draft.seated,
             "checked_in": current_enroll.checked_in,
             "checked_out": current_enroll.checked_out,
+            "draft_finished": draft.finished,
         }
 
         return JsonResponse(player_json)
@@ -65,7 +66,7 @@ class PlayerPreviewMatchInfoView(LoginRequiredMixin, View):
         user = request.user
 
         player = queries.get_player(user)
-        tournament = queries.get_tournament(tournament_slug=kwargs['slug'])
+        tournament = queries.get_tournament(slug=kwargs['slug'])
         current_enroll = queries.enrollment_from_tournament(tournament, player)
         current_draft = queries.get_draft(slug=kwargs['draft_slug'])
         current_round = queries.current_round(current_draft, force_update=True)
@@ -112,7 +113,7 @@ class PlayerFullMatchInfoView(LoginRequiredMixin, View):
         user = request.user
 
         player = queries.get_player(user)
-        tournament = queries.get_tournament(tournament_slug=kwargs['slug'])
+        tournament = queries.get_tournament(slug=kwargs['slug'])
         current_enroll = queries.enrollment_from_tournament(tournament, player)
         
         if current_enroll.bye_this_round:
@@ -169,7 +170,7 @@ class PlayerOtherPairingsInfoView(LoginRequiredMixin, View):
         user = request.user
 
         player = queries.get_player(user)
-        tournament = queries.get_tournament(tournament_slug=kwargs['slug'])
+        tournament = queries.get_tournament(slug=kwargs['slug'])
         current_enroll = queries.enrollment_from_tournament(tournament, player)
         current_draft = queries.get_draft(slug=kwargs['draft_slug'])
         bye = None
@@ -210,7 +211,7 @@ class AnnouncementView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         user = request.user
         player = queries.get_player(user)
-        tournament = queries.get_tournament(tournament_slug=kwargs['slug'])
+        tournament = queries.get_tournament(slug=kwargs['slug'])
         current_enroll = queries.enrollment_from_tournament(tournament, player)
         if not current_enroll:
             return JsonResponse({"error": "No enrollment."}, status=404)
@@ -226,7 +227,7 @@ class TimetableView(LoginRequiredMixin, View):
         user = request.user
 
         player = queries.get_player(user)
-        tournament = queries.get_tournament(tournament_slug=kwargs['slug'])
+        tournament = queries.get_tournament(slug=kwargs['slug'])
         current_enroll = queries.enrollment_from_tournament(tournament, player)
         upcoming_drafts = queries.timetable(tournament, current_enroll)
         if not upcoming_drafts:
@@ -255,7 +256,7 @@ class CheckinView(LoginRequiredMixin, View):
         if form.is_valid():
             user = request.user
             player = queries.get_player(user)
-            tournament = queries.get_tournament(tournament_slug=kwargs['slug'])
+            tournament = queries.get_tournament(slug=kwargs['slug'])
             current_enroll = queries.enrollment_from_tournament(tournament, player)
             current_draft = queries.get_draft(slug=kwargs['draft_slug'])
             if not current_draft:
@@ -288,7 +289,7 @@ class CheckoutView(LoginRequiredMixin, View):
             user = request.user
 
             player = queries.get_player(user)
-            tournament = queries.get_tournament(tournament_slug=kwargs['slug'])
+            tournament = queries.get_tournament(slug=kwargs['slug'])
             current_enroll = queries.enrollment_from_tournament(tournament, player)
             current_draft = queries.get_draft(slug=kwargs['draft_slug'])
             if not current_draft:
@@ -321,7 +322,7 @@ class DeleteImageCheckinView(LoginRequiredMixin, View):
 
         user = request.user
         player = queries.get_player(user)
-        tournament = queries.get_tournament(tournament_slug=kwargs['slug'])
+        tournament = queries.get_tournament(slug=kwargs['slug'])
         current_enroll = queries.enrollment_from_tournament(tournament, player)
         current_draft = queries.get_draft(slug=kwargs['draft_slug'])
         if not current_draft:
@@ -344,7 +345,7 @@ class DeleteImageCheckoutView(LoginRequiredMixin, View):
 
         user = request.user
         player = queries.get_player(user)
-        tournament = queries.get_tournament(tournament_slug=kwargs['slug'])
+        tournament = queries.get_tournament(slug=kwargs['slug'])
         current_enroll = queries.enrollment_from_tournament(tournament, player)
         current_draft = queries.get_draft(slug=kwargs['draft_slug'])
         if not current_draft:

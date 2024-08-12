@@ -51,17 +51,18 @@ class PlayerReportResultView(FormView, LoginRequiredMixin):
         player2_wins = form.cleaned_data["player2_wins"]
         player = queries.get_player(self.request.user)
         match = queries.get_match(match_id)
-        try:
-            services.report_result(
-                match,
-                player1_wins,
-                player2_wins,
-                reporting_player=player,
-                admin=False,
-            )
-            return redirect(self.get_success_url())
-        except ValueError as e:
-            return JsonResponse({"error": str(e)})
+        services.report_result(
+            match,
+            player1_wins,
+            player2_wins,
+            reporting_player=player,
+            admin=False,
+        )
+        return redirect(self.get_success_url())
+
+    def form_invalid(self, form):
+        messages.error(self.request, "Error: Please enter a valid game result.")
+        return redirect(reverse_lazy("tournaments:draft_dashboard", kwargs=self.kwargs))
 
 
 class AdminReportResultView(FormView, AdminDataMixin):
@@ -160,12 +161,31 @@ class FinishEventRoundView(FormView, AdminDataMixin):
         )
 
     def post(self, request, *args, **kwargs):
-        print(request.POST)
         event_id = request.POST.get("finish-event-round")
-        print(f'Event ID: {event_id}')
-        event = queries.get_tournament(tournament_id=event_id)
+        event = queries.get_tournament(id=event_id)
 
         services.finish_event_round(event)
+
+        return redirect(self.get_success_url())
+
+
+class StartPhaseView(FormView, AdminDataMixin):
+    template_name = "tournaments/admin_dashboard.html"
+
+    def get_success_url(self):
+        return reverse_lazy(
+            "tournaments:admin_dashboard", kwargs=self.kwargs
+        )
+
+    def post(self, request, *args, **kwargs):
+        tournament_id = request.POST.get("start-phase")
+        tournament = queries.get_tournament(id=tournament_id)
+
+        phase_idx = tournament.current_round // 3 + 1
+        phase = queries.get_phase_by_index(tournament, phase_idx)
+
+        phase.started = True
+        phase.save()
 
         return redirect(self.get_success_url())
 
@@ -180,7 +200,7 @@ class ResetEventView(FormView, AdminDataMixin):
 
     def post(self, request, *args, **kwargs):
         event_id = request.POST.get("reset-event")
-        event = queries.get_tournament(tournament_id=event_id)
+        event = queries.get_tournament(id=event_id)
 
         services.reset_tournament(event)
 

@@ -24,12 +24,12 @@
             <li class="event-description">{{tournament.description}}</li>
             {% with free=tournament.player_capacity|subtract:tournament.signed_up %}
                 {% if free < 1 %}
-                    <li class="event-capacity full"><strong>{% trans 'Free spots' %}</strong>: {{ free }}/{{ tournament.player_capacity }}</li>
+                    <li class="event-capacity full"><strong>{% trans 'Registrations' %}:</strong> {{ tournament.signed_up }}/{{ tournament.player_capacity }}</li>
                 {% else %}
-                    <li class="event-capacity"><strong>{% trans 'Free spots' %}</strong>: {{ free }}/{{ tournament.player_capacity }}</li>
+                    <li class="event-capacity"><strong>{% trans 'Registrations' %}:</strong> {{ tournament.signed_up }}/{{ tournament.player_capacity }}</li>
                 {% endif %}
                 <li class="event-format"><strong>{%trans 'Format' %}:</strong> {{ tournament.format_description|linebreaksbr }}</li>
-                <li class="event-time"><strong>{% trans 'Start' %}</strong>: {{tournament.start_datetime}} - <strong>{% trans 'End' %}</strong>: {{tournament.end_datetime}}</li>
+                <li class="event-time"><strong>{% trans 'Start' %}:</strong> {{tournament.start_datetime}} - <strong>{% trans 'End' %}:</strong> {{tournament.end_datetime}}</li>
                 <li class="event-signup">
                     {% if free > 0 %}
                     <button class="registration-button" type="submit" onclick="confirmationDialog('{{ tournament.id }}');">{% trans 'Register' %}</button>

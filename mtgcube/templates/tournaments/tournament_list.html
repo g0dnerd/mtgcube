@@ -1,9 +1,10 @@
 {% extends 'tournaments/base.html' %}
-{% load i18n tournament_filter tournament_utils %}
+{% load i18n tournament_filter tournament_utils allauth %}
 
 {% block title %}{% trans 'MtG Cube Tournament Vault - Home' %}{% endblock %}
 
 {% block content %}
+<div id="home-dashboard">
     <h1>{% trans 'MtG Cube Tournament Vault - Home' %}</h1>
     <h4 class="player-welcome">
         {% trans 'Welcome to the tournament vault' %}!
@@ -30,9 +31,9 @@
                                 {% endif %}
                             {% endif %}
                                     <li class="event-description">{{tournament.description}}</li>
-                                    <li class="event-capacity"><strong>{% trans 'Registrations' %}</strong>: {{ tournament.signed_up }}/{{ tournament.player_capacity }}</li>
+                                    <li class="event-capacity"><strong>{% trans 'Registrations' %}:</strong> {{ tournament.signed_up }}/{{ tournament.player_capacity }}</li>
                                     <li class="event-format"><strong>Format:</strong> {{ tournament.format_description|linebreaksbr }}</li>
-                                    <li class="event-start-time"><strong>{% trans 'Start' %}</strong>: {{tournament.start_datetime}}</li>
+                                    <li class="event-start-time"><strong>{% trans 'Start' %}:</strong> {{tournament.start_datetime}}</li>
                             {% if not status %}
                                     <li class="signup-status incomplete">{% trans 'Your registration still needs to be confirmed by a tournament official' %}.</li>
                             {% endif %}
