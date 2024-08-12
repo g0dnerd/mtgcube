@@ -42,4 +42,5 @@
 ### Results
 - [ ] duplicate result reporting doesn't break scores
 - [ ] admin confirmation for non-digital players doesn't break scores
+- [ ] admin can only finish a draft round once
 
