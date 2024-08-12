@@ -16,5 +16,14 @@ class ReportResultForm(forms.Form):
     player1_wins = forms.ChoiceField(choices=[(i, str(i)) for i in range(3)])
     player2_wins = forms.ChoiceField(choices=[(i, str(i)) for i in range(3)])
 
+    def clean(self):
+        cleaned_data = super().clean()
+        p1w = cleaned_data.get("player1_wins")
+        p2w = cleaned_data.get("player2_wins")
+        if int(p1w) + int(p2w) > 3:
+            raise forms.ValidationError(
+                _("Total wins cannot be greater than 3.")
+            )
+
 class ConfirmResultForm(forms.Form):
     confirm_match_id = forms.CharField(widget=forms.HiddenInput())

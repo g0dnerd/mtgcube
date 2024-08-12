@@ -15,7 +15,7 @@ class User(AbstractUser):
     NONBINARY = "x"
     
     PRONOUN_CHOICES = {
-        NEITHER: (""),
+        NEITHER: _("neither/don't want to say"),
         MALE: _("he/him"),
         FEMALE: _("she/her"),
         NONBINARY: _("they/them"),

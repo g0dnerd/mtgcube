@@ -9,6 +9,7 @@ app_name = "tournaments"
 
 urlpatterns = [
     path("", templates.MyEventsView.as_view(), name="index"),
+    path("testies-for-besties/", templates.TestView.as_view(), name="testies_for_besties"),
     path("registration/", templates.AvailableEvents.as_view(), name="available_events"),
     path("cube/<slug:slug>/", templates.CubeDetailView.as_view(), name="cube_detail"),
     path("event-dashboard/<slug:slug>/", templates.EventDashboardView.as_view(), name="event_dashboard"),

@@ -12,7 +12,6 @@ User = get_user_model()
 
 
 class UserDetailView(LoginRequiredMixin, DetailView):
-
     model = User
     slug_field = "username"
     slug_url_kwarg = "username"
@@ -22,7 +21,6 @@ user_detail_view = UserDetailView.as_view()
 
 
 class UserUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
-
     model = User
     fields = ["name", "pronouns"]
     success_message = _("Information successfully updated")
@@ -39,22 +37,24 @@ user_update_view = UserUpdateView.as_view()
 
 
 class UserRedirectView(LoginRequiredMixin, RedirectView):
-
     permanent = False
 
     def get_redirect_url(self):
-        return reverse("users:detail", kwargs={"username": self.request.user.username})
+        return reverse("tournaments:index")
+
 
 user_redirect_view = UserRedirectView.as_view()
+
 
 @csrf_exempt
 def google_login(request):
     from urllib.parse import urlparse
-    url = urlparse(request.headers.get('Origin'))
+
+    url = urlparse(request.headers.get("Origin"))
     domain = url.hostname
     if url.port:
-        domain += ':' + str(url.port)
-    prefix = 'https://' if request.is_secure() else 'http://'
+        domain += ":" + str(url.port)
+    prefix = "https://" if request.is_secure() else "http://"
     home_page = prefix + domain if prefix not in domain else domain
     login_url = '/accounts/google/login/'
     return redirect(home_page + login_url)
