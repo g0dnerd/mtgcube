@@ -1,11 +1,11 @@
 from django.contrib import messages
+from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.shortcuts import redirect, render
 from django.views import View
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
 from django.urls import reverse_lazy
-from django.utils.translation import gettext_lazy as _
 
 from .form_views import (
     SeatDraftView,
@@ -13,20 +13,20 @@ from .form_views import (
     FinishRoundView,
     ResetDraftView,
     AdminReportResultView,
+    AdminConfirmResultView,
     PlayerReportResultView,
     FinishEventRoundView,
     ConfirmResultView,
     EventEnrollView,
     ResetEventView,
     StartPhaseView,
+    AdminEnrollUserView,
 )
 from .. import queries as queries
 from ..models import Tournament, Cube
 from ..forms import ReportResultForm, ConfirmResultForm
 
-class TestView(View):
-    def get(self, request):
-        return render(request, "socialaccount/signup.html")
+User = get_user_model()
 
 
 class AdminTemplateMixin(UserPassesTestMixin):
@@ -53,12 +53,6 @@ class MyEventsView(LoginRequiredMixin, ListView):
             queryset = {"events": events, "status": status}
             return queryset
         
-        if not user.pronouns:
-            messages.warning(
-                self.request, _("Please complete your user information before proceeding.")
-            )
-            return redirect(reverse_lazy("users:update"))
-        
         player = queries.get_player(user)
         events = queries.enrolled_tournaments(player, force_update=True)
         if not events:
@@ -67,9 +61,13 @@ class MyEventsView(LoginRequiredMixin, ListView):
         status = {}
         for e in events:
             current_enroll = queries.enrollment_from_tournament(e, player)
+            draft = queries.current_draft(current_enroll)
+            if not draft:
+                status[e.id] = False
+                continue
             status[e.id] = current_enroll.registration_finished
 
-            queryset = {"events": events, "status": status}
+        queryset = {"events": events, "status": status}
 
         return queryset
 
@@ -103,6 +101,23 @@ class AvailableEvents(LoginRequiredMixin, ListView):
         return EventEnrollView.as_view()(request, *args, **kwargs)
 
 
+class AdminPlayerListView(AdminTemplateMixin, ListView):
+    model = User
+    context_object_name = "users"
+    template_name = "tournaments/admin_tournament_players.html"
+
+    def get_queryset(self):
+        tournament = queries.get_tournament(slug=self.kwargs["slug"])
+        enrollments = queries.enrolled_users(tournament, force_update=True)
+
+        not_enrolled = queries.not_enrolled_in_tournament(tournament, force_update=True)
+
+        return {"enrolled": enrollments, "not_enrolled": not_enrolled}
+    
+    def post(self, request, *args, **kwargs):
+        return AdminEnrollUserView.as_view()(request, *args, **kwargs)
+
+
 class AdminDraftDashboardView(AdminTemplateMixin, View):
     def get(self, request, *args, **kwargs):
         draft = queries.get_draft(slug=kwargs["draft_slug"])
@@ -121,9 +136,14 @@ class AdminDraftDashboardView(AdminTemplateMixin, View):
                 match_id: ReportResultForm(initial={"match_id": match_id})
                 for match_id in m_ids
             }
+            confirm_forms = {
+                match_id: ConfirmResultForm(initial={"match_id": match_id})
+                for match_id in m_ids
+            }
         else:  # If no rounds exist yet in the current draft
             m_ids = []
             forms = []
+            confirm_forms = []
             bye = False
 
         return render(
@@ -135,12 +155,18 @@ class AdminDraftDashboardView(AdminTemplateMixin, View):
                 "match_ids": m_ids,
                 "bye": bye,
                 "forms": forms,
+                "confirm_forms": confirm_forms,
             },
         )
 
     def post(self, request, *args, **kwargs):
         if "match_id" in request.POST:
-            return AdminReportResultView.as_view()(request, *args, **kwargs)
+            action = request.POST.get("action")
+            print(action)
+            if action == 'report':
+                return AdminReportResultView.as_view()(request, *args, **kwargs)
+            if action == 'confirm':
+                return AdminConfirmResultView.as_view()(request, *args, **kwargs)
         if "seat-draft" in request.POST:
             return SeatDraftView.as_view()(request, *args, **kwargs)
         if "pair-round" in request.POST:
@@ -254,6 +280,8 @@ class EventDashboardView(LoginRequiredMixin, View):
             return redirect("tournaments:index")
         
         draft = queries.current_draft(enrollment)
+        if not draft:
+            return redirect("tournaments:index")
 
         context = {"tournament": tournament, "draft": draft}
         return render(request, "tournaments/event_dashboard.html", context)

@@ -7,9 +7,9 @@
 <div id="draft-dashboard">
     <div class="draft-title" id="draft-info-header">
     {% if not round %}
-        <h4>{% trans 'My current draft' %}:</h4>
+        <h4>{% trans 'My current draft' %}</h4>
     {% else %}
-        <h4>{% trans 'My current draft in round' %} {{ round.round_idx }}:</h4>
+        <h4>{% trans 'My current draft in round' %} {{ round.round_idx }}</h4>
     {% endif %}
         <h1>Cube: <a href="{% url 'tournaments:cube_detail' draft.cube.slug %}" target="_blank">{{ draft.cube.name }}</a></h1>
     </div>
@@ -17,10 +17,21 @@
         {% include 'tournaments/pool_embed.html' with tournament_slug=tournament.slug draft=draft %}
         {% if match or bye %}
             {% include 'tournaments/current_match_full_embed.html' with tournament_slug=tournament.slug draft=draft match=match bye=bye form=form confirm_form=confirm_form %}
+        {% else %}
+            {% if draft.seated and not draft.paired %}
+                <li class="match-info" id="match-info-list">
+                    <div id="match-details">
+                        <h5>{% trans "Waiting for pairings" %}</h5>
+                    </div>
+                </li>
+            {% endif %}
         {% endif %}
         {% include 'tournaments/seatings_embed.html' with tournament_slug=tournament.slug draft=draft %}
         {% include 'tournaments/pairings_embed.html' with tournament_slug=tournament.slug draft=draft %}
         {% include 'tournaments/draft_standings_embed.html' with tournament_slug=tournament.slug draft=draft %}
+        <li class="cube-info-embed">
+            <h5>{% trans 'Cube' %}: <a href="{% url 'tournaments:cube_detail' draft.cube.slug %}" target="_blank">{{ draft.cube.name }}</a></h5>
+        </li>
     </ul>
 </div>
 {% endblock %}

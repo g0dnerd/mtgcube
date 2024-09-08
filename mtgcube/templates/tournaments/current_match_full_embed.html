@@ -36,7 +36,7 @@
         </form>
         <form class="confirm-result" id="confirm-result-form-{{ match.id }}" method="post" enctype="multipart/form-data">
             {% csrf_token %}
-            {{ confirm_form.confirm_match_id }}
+            {{ confirm_form.match_id }}
             <button class="confirm-result" id="confirm-result-btn" style="display:none;">{% trans 'Confirm result' %}</button>
         </form>
 {% endif %}

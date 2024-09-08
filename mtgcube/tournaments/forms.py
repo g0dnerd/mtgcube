@@ -26,4 +26,4 @@ class ReportResultForm(forms.Form):
             )
 
 class ConfirmResultForm(forms.Form):
-    confirm_match_id = forms.CharField(widget=forms.HiddenInput())
+    match_id = forms.CharField(widget=forms.HiddenInput())

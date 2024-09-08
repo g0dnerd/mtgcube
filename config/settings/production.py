@@ -62,7 +62,6 @@ SECRET_KEY = env("SECRET_KEY")
 # SECURITY WARNING: App Engine's security features ensure that it is safe to
 # have ALLOWED_HOSTS = ['*'] when the app is deployed. If you deploy a Django
 # app not on App Engine, make sure to set an appropriate host here.
-
 ALLOWED_HOSTS = [
     "*",
     "https://vault.mtg-cube.de/",
@@ -77,7 +76,6 @@ ALLOWED_HOSTS = [
 # [START dbconfig]
 # [START gaeflex_py_django_database_config]
 # Use django-environ to parse the connection string
-
 DATABASES = {"default": env.db()}
 
 # If the flag as been set, configure to use proxy
@@ -97,7 +95,7 @@ if os.getenv("TRAMPOLINE_CI", None):
         }
     }
 
-DEBUG = True
+DEBUG = False
 
 # email backend configuration
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
@@ -140,8 +138,6 @@ SECURE_HSTS_INCLUDE_SUBDOMAINS = env.bool(
 # SECURE_CONTENT_TYPE_NOSNIFF = env.bool(
 #     "DJANGO_SECURE_CONTENT_TYPE_NOSNIFF", default=True
 # )
-#
-# SESSION_COOKIE_DOMAIN = "https://cube.paulkukowski.de"
 
 # Static files (CSS, JavaScript, Images)
 # [START staticurl]

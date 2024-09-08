@@ -84,6 +84,7 @@ class CustomSocialSignupForm(SocialSignupForm):
 
     def __init__(self, *args, **kwargs):
         super(CustomSocialSignupForm, self).__init__(*args, **kwargs)
+
         self.helper = FormHelper(self)
         # Add magic stuff to redirect back.
         self.helper.layout.append(

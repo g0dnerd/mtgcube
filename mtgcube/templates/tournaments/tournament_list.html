@@ -5,10 +5,7 @@
 
 {% block content %}
 <div id="home-dashboard">
-    <h1>{% trans 'MtG Cube Tournament Vault - Home' %}</h1>
-    <h4 class="player-welcome">
-        {% trans 'Welcome to the tournament vault' %}!
-    </h4>
+    <h1>{% trans 'Home' %}</h1>
     {% if request.user.is_authenticated %}
         {% if tournaments.events %}
             <ul class="event-list">
@@ -20,24 +17,27 @@
                     {% else %}
                         <li class="side-event-information-panel">
                     {% endif %}
-                            <ul class="event-info">
-                                <li class="event-title">{{ tournament.name }}</li>
-                        {% with status=tournaments.status|get_item:tournament.id %}
+                        <ul class="event-info">
+                            <li class="event-title">{{ tournament.name }}</li>
+                            {% with status=tournaments.status|get_item:tournament.id %}
                             {% if status %}
                                 {% if not tournament|is_side_event %}
                                     <li class="main-event-link"><a href="{{ url }}">{% trans 'Go to event dashboard' %}</a></li>
                                 {% else %}
                                     <li class="side-event-link"><a href="{{ url }}">{% trans 'Go to event dashboard' %}</a></li>
                                 {% endif %}
+                            {% else %}
+                                {% if not tournament|is_side_event %}
+                                    <li class="main-event-link disabled"><a class="disabled">{% trans 'Waiting for tournament to start' %}</a></li>
+                                {% else %}
+                                    <li class="side-event-link disabled"><a class="disabled">{% trans 'Waiting for tournament to start' %}</a></li>
+                                {% endif %}
                             {% endif %}
-                                    <li class="event-description">{{tournament.description}}</li>
-                                    <li class="event-capacity"><strong>{% trans 'Registrations' %}:</strong> {{ tournament.signed_up }}/{{ tournament.player_capacity }}</li>
-                                    <li class="event-format"><strong>Format:</strong> {{ tournament.format_description|linebreaksbr }}</li>
-                                    <li class="event-start-time"><strong>{% trans 'Start' %}:</strong> {{tournament.start_datetime}}</li>
-                            {% if not status %}
-                                    <li class="signup-status incomplete">{% trans 'Your registration still needs to be confirmed by a tournament official' %}.</li>
-                            {% endif %}
-                        {% endwith %}
+                            <li class="event-description">{{tournament.description}}</li>
+                            <li class="event-capacity"><strong>{% trans 'Registrations' %}:</strong> {{ tournament.signed_up }}/{{ tournament.player_capacity }}</li>
+                            <li class="event-format"><strong>Format:</strong> {{ tournament.format_description|safe|linebreaksbr }}</li>
+                            <li class="event-start-time"><strong>{% trans 'Start' %}:</strong> {{tournament.start_datetime}}</li>
+                            {% endwith %}
                             </ul>
                         </li>
                 {% endfor %}

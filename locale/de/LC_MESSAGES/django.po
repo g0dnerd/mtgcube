@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-07 15:27+0200\n"
+"POT-Creation-Date: 2024-08-12 09:05+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -115,7 +115,8 @@ msgstr ""
 #: mtgcube/templates/account/login.html:7
 #: mtgcube/templates/account/login.html:11
 #: mtgcube/templates/account/login.html:51 mtgcube/templates/base.html:54
-#: mtgcube/templates/tournaments/tournament_list.html:56
+#: mtgcube/templates/tournaments/tournament_list.html:57
+#: mtgcube/users/forms.py:102
 msgid "Sign In"
 msgstr "Anmelden"
 
@@ -152,7 +153,7 @@ msgstr "Passwort vergessen?"
 #: mtgcube/templates/account/logout.html:5
 #: mtgcube/templates/account/logout.html:8
 #: mtgcube/templates/account/logout.html:17 mtgcube/templates/base.html:45
-#: mtgcube/templates/tournaments/tournament_list.html:51
+#: mtgcube/templates/tournaments/tournament_list.html:52
 msgid "Sign Out"
 msgstr "Abmelden"
 
@@ -234,12 +235,14 @@ msgid "Set Password"
 msgstr "Passwort festlegen"
 
 #: mtgcube/templates/account/signup.html:6
+#: mtgcube/templates/socialaccount/signup.html:6
 msgid "Signup"
 msgstr "Registrierung"
 
 #: mtgcube/templates/account/signup.html:9
 #: mtgcube/templates/account/signup.html:19 mtgcube/templates/base.html:50
-#: mtgcube/templates/tournaments/tournament_list.html:55
+#: mtgcube/templates/socialaccount/signup.html:10
+#: mtgcube/templates/tournaments/tournament_list.html:56
 msgid "Sign Up"
 msgstr "Registrierung"
 
@@ -303,7 +306,7 @@ msgstr ""
 "href=\"%(email_url)s\">deineEmail-Adresse ändern</a>."
 
 #: mtgcube/templates/base.html:34
-#: mtgcube/templates/tournaments/tournament_list.html:14
+#: mtgcube/templates/tournaments/tournament_list.html:15
 msgid "My events"
 msgstr "Meine Events"
 
@@ -312,12 +315,12 @@ msgid "Sign up for an event"
 msgstr "Für ein Event anmelden"
 
 #: mtgcube/templates/base.html:41
-#: mtgcube/templates/tournaments/tournament_list.html:50
+#: mtgcube/templates/tournaments/tournament_list.html:51
 msgid "My Profile"
 msgstr "Mein Profil"
 
 #: mtgcube/templates/pages/home.html:7
-#: mtgcube/templates/tournaments/tournament_list.html:9
+#: mtgcube/templates/tournaments/tournament_list.html:10
 msgid "Welcome to the tournament vault"
 msgstr "Willkommen im Vault"
 
@@ -355,6 +358,19 @@ msgstr ""
 "            <a href=\"%(url)s\">Melde dich an</a>, um Zugang zum Vault zu "
 "erhalten.\n"
 "        "
+
+#: mtgcube/templates/socialaccount/signup.html:13
+#, fuzzy, python-format
+#| msgid ""
+#| "You are about to use your %(provider_name)s account to login to\n"
+#| "    %(site_name)s. As a final step, please complete the following form:"
+msgid ""
+"You are about to use your %(provider_name)s account to login to\n"
+"%(site_name)s. As a final step, please complete the following form:"
+msgstr ""
+"Du verwendest dein %(provider_name)s-Konto, um dich bei\n"
+"%(site_name)s anzumelden. Zum Abschluss bitte das folgende Formular "
+"ausfüllen:"
 
 #: mtgcube/templates/tournaments/admin_match_embed.html:15
 #: mtgcube/templates/tournaments/current_match_full_embed.html:35
@@ -456,12 +472,6 @@ msgstr "Mein aktueller Draft"
 msgid "My current draft in round"
 msgstr "Mein aktueller Draft in Runde"
 
-#: mtgcube/templates/tournaments/current_draft.html:23
-#, fuzzy
-#| msgid "Waiting for seatings"
-msgid "Waiting for pairings"
-msgstr "Warten auf Pairings"
-
 #: mtgcube/templates/tournaments/current_match_full_embed.html:12
 msgid "You have the bye this round"
 msgstr "Du hast diese Runde einen Bye"
@@ -486,7 +496,9 @@ msgid "Event Dashboard"
 msgstr "Turnier-Dashboard"
 
 #: mtgcube/templates/tournaments/event_panel_embed.html:13
-#: mtgcube/templates/tournaments/tournament_list.html:33
+#: mtgcube/templates/tournaments/registration_embed.html:27
+#: mtgcube/templates/tournaments/registration_embed.html:29
+#: mtgcube/templates/tournaments/tournament_list.html:34
 #, fuzzy
 #| msgid "Register"
 msgid "Registrations"
@@ -494,7 +506,7 @@ msgstr "Anmeldungen"
 
 #: mtgcube/templates/tournaments/event_panel_embed.html:15
 #: mtgcube/templates/tournaments/registration_embed.html:32
-#: mtgcube/templates/tournaments/tournament_list.html:35
+#: mtgcube/templates/tournaments/tournament_list.html:36
 msgid "Start"
 msgstr "Start"
 
@@ -510,7 +522,7 @@ msgid "You registration is complete and you are good to go"
 msgstr "Deine Registrierung ist vollständig und es kann losgehen"
 
 #: mtgcube/templates/tournaments/event_panel_embed.html:19
-#: mtgcube/templates/tournaments/tournament_list.html:37
+#: mtgcube/templates/tournaments/tournament_list.html:38
 msgid "Your registration still needs to be confirmed by a tournament official"
 msgstr ""
 "Deine Registrierung muss noch von einem Turnieradministrator bestätigt werden"
@@ -536,11 +548,6 @@ msgstr "Löschen"
 #| msgid "My check-in pool & decklist submissions"
 msgid "My check-out pool & decklist submissions"
 msgstr "Mein Deck- & Pool-Check-Out"
-
-#: mtgcube/templates/tournaments/registration_embed.html:27
-#: mtgcube/templates/tournaments/registration_embed.html:29
-msgid "Free spots"
-msgstr "Freie Plätze"
 
 #: mtgcube/templates/tournaments/registration_embed.html:31
 msgid "Format"
@@ -569,18 +576,18 @@ msgid "The event is full"
 msgstr "Das Turnier ist voll"
 
 #: mtgcube/templates/tournaments/tournament_list.html:4
-#: mtgcube/templates/tournaments/tournament_list.html:7
+#: mtgcube/templates/tournaments/tournament_list.html:8
 msgid "MtG Cube Tournament Vault - Home"
 msgstr "MtG Cube Turnier-Vault - Home"
 
-#: mtgcube/templates/tournaments/tournament_list.html:27
-#: mtgcube/templates/tournaments/tournament_list.html:29
+#: mtgcube/templates/tournaments/tournament_list.html:28
+#: mtgcube/templates/tournaments/tournament_list.html:30
 #, fuzzy
 #| msgid "Event Dashboard"
 msgid "Go to event dashboard"
 msgstr "Zum Turnier-Dashboard"
 
-#: mtgcube/templates/tournaments/tournament_list.html:46
+#: mtgcube/templates/tournaments/tournament_list.html:47
 #, python-format
 msgid ""
 "<p>You are not yet <a href=\"%(url)s\">registered</a> for any events.</p>"
@@ -602,6 +609,10 @@ msgstr "Email-Einstellungen"
 #: mtgcube/tournaments/forms.py:9
 msgid "Image"
 msgstr "Foto"
+
+#: mtgcube/tournaments/forms.py:25
+msgid "Total wins cannot be greater than 3."
+msgstr "Gesamtanzahl an Spielen kann nicht größer als 3 sein."
 
 #: mtgcube/tournaments/models.py:179
 #, fuzzy
@@ -627,11 +638,9 @@ msgstr "(he/him)"
 msgid "(she/her)"
 msgstr "(she/her)"
 
-#: mtgcube/tournaments/views/player_data_views.py:19
-#, fuzzy
-#| msgid "Neither/don't want to say"
-msgid "(neither/don't want to say)"
-msgstr "(weder noch/keine Angabe)"
+#: mtgcube/tournaments/views/template_views.py:58
+msgid "Please complete your user information before proceeding."
+msgstr "Bitte vervollständige deine Daten, bevor du fortfährst."
 
 #: mtgcube/users/admin.py:18
 msgid "Personal info"
@@ -649,57 +658,70 @@ msgstr "Wichtige Daten"
 msgid "Users"
 msgstr "Nutzer"
 
-#: mtgcube/users/forms.py:20
+#: mtgcube/users/forms.py:24
 msgid "This username has already been taken."
 msgstr "Dieser Nutzername ist bereits vergeben"
 
-#: mtgcube/users/forms.py:30
+#: mtgcube/users/forms.py:34
 msgid "The name you want other players to see"
 msgstr "Ein Name, den andere Spieler:innen sehen können"
 
-#: mtgcube/users/forms.py:36
+#: mtgcube/users/forms.py:40 mtgcube/users/forms.py:74
 msgid "My Pronouns"
 msgstr "Meine Pronomen"
 
-#: mtgcube/users/forms.py:39
+#: mtgcube/users/forms.py:43 mtgcube/users/forms.py:77
 msgid "Neither/don't want to say"
 msgstr "Weder noch/keine Angabe"
+
+#: mtgcube/users/forms.py:68
+msgid "Your username. Other players can see this."
+msgstr ""
 
 #: mtgcube/users/models.py:10
 msgid "Display Name"
 msgstr "Anzeigename"
 
+#: mtgcube/users/models.py:18
+#, fuzzy
+#| msgid "Neither/don't want to say"
+msgid "neither/don't want to say"
+msgstr "weder noch/keine Angabe"
+
 #: mtgcube/users/models.py:19
 #, fuzzy
 #| msgid "(he/him)"
 msgid "he/him"
-msgstr "(he/him)"
+msgstr "he/him"
 
 #: mtgcube/users/models.py:20
 #, fuzzy
 #| msgid "(she/her)"
 msgid "she/her"
-msgstr "(she/her)"
+msgstr "she/her"
 
 #: mtgcube/users/models.py:21
 #, fuzzy
 #| msgid "(they/them)"
 msgid "they/them"
-msgstr "(they/them)"
+msgstr "they/them"
 
-#: mtgcube/users/views.py:28
+#: mtgcube/users/views.py:26
 msgid "Information successfully updated"
 msgstr "Information erfolgreich angepasst"
+
+#, fuzzy
+#~| msgid "Waiting for seatings"
+#~ msgid "Waiting for pairings"
+#~ msgstr "Warten auf Pairings"
+
+#~ msgid "Free spots"
+#~ msgstr "Freie Plätze"
 
 #~ msgid ""
 #~ "As soon as one of your drafts starts, you will be able to see it here."
 #~ msgstr ""
 #~ "Sobald einer deiner Drafts startet, wirst du ihn hier ansehen können."
-
-#, fuzzy
-#~| msgid "Neither/don't want to say"
-#~ msgid "neither/don't want to say"
-#~ msgstr "weder noch/keine Angabe"
 
 #, fuzzy
 #~| msgid ""
@@ -781,9 +803,6 @@ msgstr "Information erfolgreich angepasst"
 
 #~ msgid "Other pairings"
 #~ msgstr "Andere Matches"
-
-#~ msgid "You are not yet checked in"
-#~ msgstr "Du hast noch nicht eingecheckt"
 
 #, fuzzy, python-format
 #~| msgid ""
@@ -903,11 +922,6 @@ msgstr "Information erfolgreich angepasst"
 #~| msgid "Draft standings after round"
 #~ msgid "Draft has no standings yet."
 #~ msgstr "Draft hat noch keine Standings."
-
-#, fuzzy
-#~| msgid "You are not yet checked in"
-#~ msgid "Round has not yet been paired."
-#~ msgstr "Die Runde wurde noch nicht gepaired."
 
 #, fuzzy
 #~| msgid "Other pairings"

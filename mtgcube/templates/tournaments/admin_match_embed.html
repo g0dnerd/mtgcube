@@ -3,16 +3,23 @@
 {% block content %}
     <li class="admin-match-info-panel" id="match-info-{{ match_id }}">
         <div id="match-panel" data-match-id="{{ match_id }}" data-tournament-slug="{{ tournament_slug }}">
-            <div class="pairing" id="pairing-{{ match_id }}"></div>
+            <div class="pairing" id="pairing-{{ match_id }}" style="display:none;">
+                <form class="d-none" id="confirm-result-form-{{ match_id }}" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{ confirm_form.match_id }}
+                    <span id="pairing-info-{{ match_id }}" style="min-width: fit-content;"></span>
+                    <button id="confirm-result-btn-{{ match_id }}" name="action" value="confirm" type="submit" style="max-width: max-content; margin-left:10px; display:none;">{% trans 'Confirm Result' %}</button>
+                </form>
+            </div>
             <div class="match-result" id="result-{{ match_id }}">
-                <form class="report-result" id="report-result-form-{{ match_id }}" method="post" enctype="multipart/form-data" style="display:none;">
+                <form class="d-none" id="report-result-form-{{ match_id }}" method="post" enctype="multipart/form-data">
                     {% csrf_token %}
                     {{ form.match_id }}
-                    <label for="player1-wins-{{ match_id }}"></label>
+                    <label id="p1-label-{{ match_id }}" for="player1-wins-{{ match_id }}" style="min-width: 150px;"></label>
                     {{ form.player1_wins }}
-                    <label for="player2-wins-{{ match_id }}"></label>
+                    <label id="p2-label-{{ match_id }}" for="player2-wins-{{ match_id }}" style="min-width: 150px; padding-left:10px;"></label>
                     {{ form.player2_wins }}
-                    <button type="submit">{% trans 'Submit Result' %}</button>
+                    <button id="report-result-btn-{{ match_id }}" name="action" value="report" type="submit" style="max-width: max-content; margin-left:10px; display:none;">{% trans 'Submit Result' %}</button>
                 </form>
             </div>
         </div>

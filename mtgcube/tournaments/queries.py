@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.db.models import Q
 from django.utils import timezone
@@ -17,6 +18,7 @@ from .models import (
     Phase,
 )
 
+User = get_user_model()
 
 def get_or_set_cache(key, value_func, timeout=300, force_update=False):
     """Helper function to get an item from the cache, or set it if it doesn't exist."""
@@ -319,15 +321,42 @@ def enrollments_for_tournament(tournament, force_update=False):
 
     def fetch_enrollments():
         # Get all enrollments for the given tournament that are also enrolled in a draft for the same tournament
-        e = Enrollment.objects.filter(tournament=tournament)
+        enrollments = Enrollment.objects.filter(tournament=tournament)
 
         # Get all enrollments for the given tournament that are also enrolled in a draft for the same tournament
-        d = Draft.objects.filter(enrollments__in=e)
-        e = e.filter(draft__in=d).distinct()
+        drafts = Draft.objects.filter(enrollments__in=enrollments)
+        enrollments = enrollments.filter(draft__in=drafts).distinct()
 
-        return None if not e else e
+        return None if not enrollments else enrollments
 
     return get_or_set_cache(cache_key, fetch_enrollments, 60, force_update)
+
+
+def enrolled_users(tournament, force_update=False):
+    """Returns all users that are enrolled in the given tournament."""
+    cache_key = f"enrolled_users_{tournament.id}"
+
+    def fetch_enrolled():
+        enrollments = (
+            Enrollment.objects.filter(tournament=tournament)
+            .select_related("player__user")
+        )
+
+        users = [e.player.user for e in enrollments]
+        return users
+
+    return get_or_set_cache(cache_key, fetch_enrolled, 60, force_update)
+
+
+def not_enrolled_in_tournament(tournament, force_update=False):
+    """Returns all users that are not enrolled in the given tournament."""
+    cache_key = f"not_enrolled_in_tournament_{tournament.id}"
+
+    def fetch_not_enrolled():
+        enrolled = enrolled_users(tournament, force_update=True)
+        return User.objects.filter(is_superuser=False).exclude(pk__in=[e.pk for e in enrolled])
+
+    return get_or_set_cache(cache_key, fetch_not_enrolled, 60, force_update)
 
 
 def current_round(current_draft, force_update=False):
@@ -407,7 +436,7 @@ def draft_standings(draft):
         players = draft.enrollments.all()
         sorted_players = sorted(
             players,
-            key=lambda x: (x.draft_score, x.draft_omw, x.draft_pgw, x.draft_ogw),
+            key=lambda x: (x.draft_score, x.draft_omw, x.draft_pgw, x.draft_ogw, x.player.user.name),
             reverse=True,
         )
 
@@ -415,9 +444,9 @@ def draft_standings(draft):
             {
                 "name": enrollment.player.user.name,
                 "score": enrollment.draft_score,
-                "omw": enrollment.draft_omw,
-                "pgw": enrollment.draft_pgw,
-                "ogw": enrollment.draft_ogw,
+                "omw": round(enrollment.draft_omw, 2),
+                "pgw": round(enrollment.draft_pgw, 2),
+                "ogw": round(enrollment.draft_ogw, 2),
             }
             for enrollment in sorted_players
         ]
@@ -437,16 +466,16 @@ def tournament_standings(tournament):
 
         players = enrollments_for_tournament(tournament)
         sorted_players = sorted(
-            players, key=lambda x: (x.score, x.omw, x.pgw, x.ogw), reverse=True
+            players, key=lambda x: (x.score, x.omw, x.pgw, x.ogw, x.player.user.name), reverse=True
         )
 
         standings_out = [
             {
                 "name": enrollment.player.user.name,
                 "score": enrollment.score,
-                "omw": enrollment.omw,
-                "pgw": enrollment.pgw,
-                "ogw": enrollment.ogw,
+                "omw": round(enrollment.omw, 2),
+                "pgw": round(enrollment.pgw, 2),
+                "ogw": round(enrollment.ogw, 2),
             }
             for enrollment in sorted_players
         ]

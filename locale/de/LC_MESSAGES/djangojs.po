@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-07 15:21+0200\n"
+"POT-Creation-Date: 2024-08-12 12:10+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -26,20 +26,24 @@ msgstr "Tisch"
 msgid "reported by"
 msgstr "hochgeladen durch"
 
-#: mtgcube/static/js/admin_match.js:54 mtgcube/static/js/admin_match.js:55
+#: mtgcube/static/js/admin_match.js:42
+msgid "confirmed"
+msgstr ""
+
+#: mtgcube/static/js/admin_match.js:57 mtgcube/static/js/admin_match.js:58
 msgid "wins"
 msgstr "gewinnt"
 
-#: mtgcube/static/js/current_match_full.js:16
+#: mtgcube/static/js/current_match_full.js:18
 msgid "Result"
 msgstr "Ergebnis"
 
-#: mtgcube/static/js/current_match_full.js:40
+#: mtgcube/static/js/current_match_full.js:43
 #: mtgcube/static/js/current_match_preview.js:20 mtgcube/static/js/pool.js:17
 msgid "Your pairing will be revealed once you have "
 msgstr "Dein:e Gegner:in wird dir hier angezeigt, sobald du "
 
-#: mtgcube/static/js/current_match_full.js:40
+#: mtgcube/static/js/current_match_full.js:43
 #: mtgcube/static/js/current_match_preview.js:20 mtgcube/static/js/pool.js:17
 #, fuzzy
 #| msgid "check-in"
@@ -76,19 +80,25 @@ msgstr "Draft-Standings"
 msgid "Draft standings will display here after the first round finishes"
 msgstr "Hier werden Standings angezeigt, sobald die erste Runde beendet ist."
 
-#: mtgcube/static/js/event_dashboard.js:14
+#: mtgcube/static/js/event_dashboard.js:10
+#, fuzzy
+#| msgid "Waiting for draft to start"
+msgid "Waiting for tournament to start"
+msgstr "Dein Draft hat noch nicht gestartet"
+
+#: mtgcube/static/js/event_dashboard.js:27
 msgid "Waiting for draft to start"
 msgstr "Dein Draft hat noch nicht gestartet"
 
-#: mtgcube/static/js/event_dashboard.js:20
+#: mtgcube/static/js/event_dashboard.js:34
 msgid "My current draft"
 msgstr "Mein aktueller Draft"
 
-#: mtgcube/static/js/event_dashboard.js:26
+#: mtgcube/static/js/event_dashboard.js:40
 msgid "Cube list"
 msgstr "Cube-Liste"
 
-#: mtgcube/static/js/event_dashboard.js:51
+#: mtgcube/static/js/event_dashboard.js:65
 msgid "Event announcement"
 msgstr "Turnier-Benachrichtigung"
 
@@ -101,14 +111,16 @@ msgid "Other pairings"
 msgstr "Andere Matches"
 
 #: mtgcube/static/js/pool.js:25
-msgid "You are not yet checked in"
-msgstr "Du bist noch nicht eingecheckt"
+#, fuzzy
+#| msgid "You have the bye this round"
+msgid "You have not yet checked in"
+msgstr "Du hast noch nicht eingecheckt"
 
-#: mtgcube/static/js/pool.js:25
+#: mtgcube/static/js/pool.js:25 mtgcube/static/js/pool.js:47
 msgid "Please"
 msgstr "Bitte"
 
-#: mtgcube/static/js/pool.js:25 mtgcube/static/js/pool.js:55
+#: mtgcube/static/js/pool.js:25 mtgcube/static/js/pool.js:48
 msgid "upload your pool"
 msgstr "lade deinen Pool hoch"
 
@@ -116,29 +128,39 @@ msgstr "lade deinen Pool hoch"
 msgid "once you have finished drafting."
 msgstr "sobald du fertig gedraftet hast."
 
-#: mtgcube/static/js/pool.js:38
-msgid "You are checked in and good to go"
-msgstr "Du hast erfolgreich eingecheckt"
+#: mtgcube/static/js/pool.js:39
+msgid "You have successfully checked out"
+msgstr "Du hast erfolgreich ausgecheckt"
 
-#: mtgcube/static/js/pool.js:39 mtgcube/static/js/pool.js:48
+#: mtgcube/static/js/pool.js:40 mtgcube/static/js/pool.js:58
 msgid "My pool"
 msgstr "Mein Pool"
 
 #: mtgcube/static/js/pool.js:47
-msgid "You have checked out and are good to go!"
-msgstr "Du hast erfolgreich ausgecheckt"
+#, fuzzy
+#| msgid "You have the bye this round"
+msgid "You have not yet checked out"
+msgstr "Du hast noch nicht ausgecheckt"
 
-#: mtgcube/static/js/pool.js:55
-msgid "To check out, please"
-msgstr "Um auszuchecken,"
+#: mtgcube/static/js/pool.js:48
+msgid "after your last match."
+msgstr "nach deinem letzten Match."
 
-#: mtgcube/static/js/pool.js:55
-msgid "after you have finished all your matches."
-msgstr "sobald du dein letztes Match beendet hast."
+#: mtgcube/static/js/pool.js:57
+msgid "You have successfully checked in"
+msgstr "Du hast erfolgreich eingecheckt"
 
 #: mtgcube/static/js/timetable.js:10
 msgid "My timetable"
 msgstr "Mein Draftplan"
+
+#: mtgcube/static/js/timetable.js:15
+msgid "Rounds"
+msgstr "Runde"
+
+#: mtgcube/static/js/timetable.js:15
+msgid "to"
+msgstr "bis"
 
 #~ msgid "at table"
 #~ msgstr "an Tisch"

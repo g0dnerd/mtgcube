@@ -9,11 +9,11 @@ app_name = "tournaments"
 
 urlpatterns = [
     path("", templates.MyEventsView.as_view(), name="index"),
-    path("testies-for-besties/", templates.TestView.as_view(), name="testies_for_besties"),
     path("registration/", templates.AvailableEvents.as_view(), name="available_events"),
     path("cube/<slug:slug>/", templates.CubeDetailView.as_view(), name="cube_detail"),
     path("event-dashboard/<slug:slug>/", templates.EventDashboardView.as_view(), name="event_dashboard"),
     path("admin-dashboard/<slug:slug>/", templates.AdminDashboardView.as_view(), name="admin_dashboard"),
+    path("admin-dashboard/<slug:slug>/player-list/", templates.AdminPlayerListView.as_view(), name="admin_player_list"),
     path("admin-dashboard/<slug:slug>/<slug:draft_slug>/", templates.AdminDraftDashboardView.as_view(), name="admin_draft_dashboard"),
     path("admin-dashboard/<slug:slug>/<slug:draft_slug>/~draft/", admin.AdminDraftInfoEmbedView.as_view(), name="admin_draft_embed"),
     path("admin-dashboard/<slug:slug>/~match/<int:match_id>/", admin.AdminMatchInfoEmbedView.as_view(), name="admin_match_embed"),

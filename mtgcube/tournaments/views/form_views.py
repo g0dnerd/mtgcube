@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.contrib.auth import get_user_model
 from django.views.generic.edit import FormView
 from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
 from django.http import JsonResponse
@@ -8,6 +9,7 @@ from django.shortcuts import redirect
 from .. import queries, services
 from ..forms import ReportResultForm, ConfirmResultForm
 
+User = get_user_model()
 
 class AdminDataMixin(UserPassesTestMixin):
     def test_func(self):
@@ -88,6 +90,27 @@ class AdminReportResultView(FormView, AdminDataMixin):
         )
         services.finish_match(match)
         return super().form_valid(form)
+
+
+class AdminConfirmResultView(FormView, LoginRequiredMixin):
+    form_class = ConfirmResultForm
+    template_name = "tournaments/admin_draft_dashboard.html"
+
+    def get_success_url(self):
+        return reverse_lazy(
+            "tournaments:admin_draft_dashboard", kwargs={"slug": self.kwargs["slug"], "draft_slug": self.kwargs["draft_slug"]}
+        )
+
+    def form_valid(self, form):
+        match_id = form.cleaned_data["match_id"]
+
+        match = queries.get_match(match_id)
+
+        if match:
+            services.finish_match(match)
+            return redirect(self.get_success_url())
+        else:
+            return JsonResponse({"error": "Game not found"}, status=404)
 
 
 class SeatDraftView(FormView, AdminDataMixin):
@@ -223,3 +246,30 @@ class EventEnrollView(FormView, LoginRequiredMixin):
         messages.success(request, f"You successfully registered for {tournament.name}!")
 
         return redirect(self.get_success_url())
+    
+class AdminEnrollUserView(FormView, AdminDataMixin):
+    template_name = "tournaments/admin_tournament_players.html"
+
+    def get_success_url(self):
+        return reverse_lazy(
+            "tournaments:admin_player_list",
+            kwargs={"slug": self.kwargs["slug"]}
+            )
+
+    def post(self, request, *args, **kwargs):
+        user_id = request.POST.get("user-id")
+        user = User.objects.get(id=int(user_id))
+        tournament_slug = kwargs['slug']
+        tournament = queries.get_tournament(slug=tournament_slug)
+
+        try:
+            services.enroll_for_event(user, tournament)
+        except ValueError as e:
+            messages.error(request, str(e))
+            return redirect("tournaments:admin_tournaments_players")
+        
+        messages.success(request, f"{user.name} was successfully registered for {tournament.name}!")
+
+        return redirect(self.get_success_url())
+
+

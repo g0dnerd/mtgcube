@@ -26,8 +26,12 @@ document.addEventListener('DOMContentLoaded', function() {
         .catch(error => console.error('Error updating match info:', error));
     }
     function updateMatchInfo(tournamentSlug, matchId) {
-        var infoElement = document.getElementById("pairing-" + matchId);
+        var pairingElement = document.getElementById("pairing-" + matchId);
+        var pairingTextElement = document.getElementById("pairing-info-" + matchId);
         var resultElement = document.getElementById("report-result-form-" + matchId);
+        var confirmElement = document.getElementById("confirm-result-form-" + matchId);
+        var reportBtn = document.getElementById("report-result-btn-" + matchId);
+        var confirmBtn = document.getElementById("confirm-result-btn-" + matchId);
         var url = `/admin-dashboard/${tournamentSlug}/~match/${matchId}/`;
         fetch(url)
         .then(response => response.json())
@@ -37,25 +41,30 @@ document.addEventListener('DOMContentLoaded', function() {
                 var resultInfo = `${data.player1_wins}-${data.player2_wins}`;
                 if (!data.result_confirmed) {
                     resultInfo += ` (${gettext('reported by')} ${data.reported_by})`;
-                    resultElement.style.display = 'block';
+                    confirmElement.className = confirmElement.className.replace('d-none', 'd-flex flex-row align-items-center mb-2 ');
+                    pairingElement.style.display = 'block';
+                    confirmBtn.style.display = 'inline-block';
                 } else {
                     resultInfo += ` (${gettext('confirmed')})`;
+                    confirmElement.className = confirmElement.className.replace('d-none', 'd-flex flex-row align-items-center mb-2 ');
+                    pairingElement.style.display = 'block';
                 }
             } else {
                 var resultInfo = data.result;
-                resultElement.style.display = 'block';
+                resultElement.className = resultElement.className.replace('d-none', 'd-flex flex-row align-items-center mb-2 ');
+                reportBtn.style.display = 'block';
             }
             if (data.bye) {
                 pairingHtml += ` - BYE`;
             }
             pairingHtml += `: ${resultInfo}`;
-            infoElement.innerHTML = pairingHtml;
+            pairingTextElement.innerHTML = pairingHtml;
 
             var player1Label = resultElement.querySelector(`label[for="player1-wins-${matchId}"]`);
             var player2Label = resultElement.querySelector(`label[for="player2-wins-${matchId}"]`);
 
-            player1Label.innerHTML = `${data.player1} ${gettext('wins')}`;
-            player2Label.innerHTML = `${data.player2} ${gettext('wins')}`;
+            player1Label.innerHTML = `<strong>${gettext('Table')} ${data.table}:</strong> ${data.player1}`;
+            player2Label.innerHTML = data.player2;
         })
         .catch(error => console.error('Error updating match info:', error));
     }

@@ -19,7 +19,7 @@
                 <li>{{ bye }} - BYE</li>
             {% endif %}
             {% for match_id in match_ids %}
-                {% with form=forms|get_item:match_id %}
+                {% with form=forms|get_item:match_id confirm_form=confirm_forms|get_item:match_id %}
                     {% include 'tournaments/admin_match_embed.html' with tournament_slug=tournament_slug match_id=match_id form=form %}
                 {% endwith %}
             {% empty %}

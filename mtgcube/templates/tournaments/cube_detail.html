@@ -6,7 +6,7 @@
 {% block content %}
 <article class="single-cube">
     <h1>{{ cube.name }} ({{ cube.card_number }} {% trans 'cards' %})</h1>
-    <h4 class="creator">{% trans 'Creator' %}: {{ cube.creator.name }} {{ creator_pronouns }}</h4>
+    <h4 class="creator">{% trans 'Creator' %}: {{ cube.creator.name }}</h4>
     <div class="image_container cube_image"><img src="{{ cube.image.url }}"/></div>
     <ul>
         <li class="cube-description">

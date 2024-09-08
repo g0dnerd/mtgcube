@@ -223,11 +223,11 @@ def update_draft_tiebreakers(draft):
 
     for player in players:
         player.draft_pmw = max(
-            round((player.draft_score // 3) / current_round, 2), 0.33
+            round((player.draft_score // 3) / current_round, 4), 0.33
         )
         try:
             player.draft_pgw = max(
-                round(player.draft_games_won / player.draft_games_played, 2), 0.33
+                round(player.draft_games_won / player.draft_games_played, 4), 0.33
             )
         except ZeroDivisionError:
             player.draft_pgw = 1.0
@@ -243,8 +243,8 @@ def update_draft_tiebreakers(draft):
             for opponent in player.pairings.all():
                 player.draft_omw += opponent.draft_pmw
                 player.draft_ogw += opponent.draft_pgw
-            player.draft_omw = max(round(player.draft_omw / current_round, 2), 0.33)
-            player.draft_ogw = max(round(player.draft_ogw / current_round, 2), 0.33)
+            player.draft_omw = max(round(player.draft_omw / current_round, 4), 0.33)
+            player.draft_ogw = max(round(player.draft_ogw / current_round, 4), 0.33)
             player.save()
 
 
@@ -253,9 +253,9 @@ def update_tournament_tiebreakers(tournament):
     current_round = tournament.current_round
 
     for p in players:
-        p.pmw = max(round((p.score // 3) / current_round, 2), 0.33)
+        p.pmw = max(round((p.score // 3) / current_round, 4), 0.33)
         try:
-            p.pgw = max(round(p.games_won / p.games_played, 2), 0.33)
+            p.pgw = max(round(p.games_won / p.games_played, 4), 0.33)
         except ZeroDivisionError:
             p.pgw = 1.0
         p.omw = 0.0
@@ -268,8 +268,8 @@ def update_tournament_tiebreakers(tournament):
             opp = m.player1 if m.player2 == p else m.player2
             p.omw += opp.pmw
             p.ogw += opp.pgw
-        p.omw = max(round(p.omw / current_round, 2), 0.33)
-        p.ogw = max(round(p.ogw / current_round, 2), 0.33)
+        p.omw = max(round(p.omw / current_round, 4), 0.33)
+        p.ogw = max(round(p.ogw / current_round, 4), 0.33)
         p.save()
 
 

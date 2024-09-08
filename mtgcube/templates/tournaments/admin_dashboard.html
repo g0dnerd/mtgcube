@@ -6,6 +6,7 @@
 {% block content %}
 <h1>{{ tournament.name }} - Admin Event Overview</h1>
 <ul class="tournament-admin">
+    <h5><a href="{% url 'tournaments:admin_player_list' tournament.slug %}">Manage Players</a></h5>
     <li class="admin-draft-overview">
         <ul>
             {% for draft_id in draft_ids %}

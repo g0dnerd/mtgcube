@@ -1,0 +1,37 @@
+{% extends "tournaments/base.html" %}
+
+{% load i18n %}
+
+{% block title %}Admin Tournament View - Players{% endblock %}
+
+{% block content %}
+<h1>Admin Tournament View - Players</h1>
+<h5>Enrolled users:</h5>
+<ul>
+    {% for e in users.enrolled %}
+        <li class="d-flex flex-row">
+            {{ e.name }}
+        </li>
+    {% empty %}
+        None
+    {% endfor %}
+</ul>
+<h5>Other users:</h5>
+<ul style="columns:3;">
+    {% for e in users.not_enrolled %}
+        {% if not e.is_superuser %}
+            <li class="d-flex flex-row align-items-center mb-2">
+                <span class="name-section" style="min-width: 150px;">{{ e.name }}</span>
+                <form class="enroll-form d-inline-block ms-3" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <button class="btn btn-gray btn-sm" name="user-id" value="{{ e.id }}" type="submit" onclick="return confirm();">
+                        {% trans 'Register' %}
+                    </button>
+                </form>
+            </li>
+        {% endif %}
+    {% empty %}
+        None
+    {% endfor %}
+</ul>
+{% endblock %}

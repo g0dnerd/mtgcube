@@ -220,6 +220,7 @@ FORM_RENDERER = "django.forms.renderers.TemplatesSetting"
 
 # http://django-crispy-forms.readthedocs.io/en/latest/install.html#template-packs
 CRISPY_TEMPLATE_PACK = "bootstrap5"
+CRISPY_ALLOWED_TEMPLATE_PACKS = ('bootstrap', 'uni_form', 'bootstrap3', 'bootstrap4', 'bootstrap5', 'semantic-ui')
 
 # FIXTURES
 # ------------------------------------------------------------------------------
@@ -281,13 +282,15 @@ ACCOUNT_ALLOW_REGISTRATION = env.bool("DJANGO_ACCOUNT_ALLOW_REGISTRATION", True)
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_AUTHENTICATION_METHOD = "username"
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
-ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_EMAIL_REQUIRED = False
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_EMAIL_VERIFICATION = "none"
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_ADAPTER = "users.adapters.AccountAdapter"
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
 SOCIALACCOUNT_ADAPTER = "users.adapters.SocialAccountAdapter"
+SOCIALACCOUNT_AUTO_SIGNUP = False
+SOCIALACCOUNT_EMAIL_REQUIRED = False
 SECURE_REFERRER_POLICY= "strict-origin-when-cross-origin"
 SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
 
@@ -306,8 +309,6 @@ SOCIALACCOUNT_LOGIN_ON_GET = True
 CACHE_MIDDLEWARE_ANONYMOUS_ONLY = True
 CACHE_MIDDLEWARE_KEY_PREFIX = "mtg"
 
-
-# Your stuff...
 # ------------------------------------------------------------------------------
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
@@ -322,6 +323,10 @@ SOCIALACCOUNT_PROVIDERS = {
         'FETCH_USERINFO': True
 
     }
+}
+
+SOCIALACCOUNT_FORMS = {
+    'signup': 'users.forms.CustomSocialSignupForm'
 }
 
 # Terms & Conditions (termsandconditions) Settings #######

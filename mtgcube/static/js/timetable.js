@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         const cubeUrl = `/cube/${draft.cube_slug}/`;
                         return `
                         <li>
-                            ${gettext(`Rounds ${draft.first_round} to ${draft.last_round}:`)} <a href="${cubeUrl}" target="_blank">${draft.cube}</a>
+                            ${gettext('Rounds')} ${draft.first_round} ${gettext('to')} ${draft.last_round}: <a href="${cubeUrl}" target="_blank">${draft.cube}</a>
                         </li>
                         `
                     }).join('') + '</ul>';
