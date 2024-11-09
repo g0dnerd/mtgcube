@@ -9,7 +9,6 @@ staticfiles/
 mtgcube/media/
 *.css
 cloud-sql-proxy
-*.yaml
 
 config/wsgi.py
 mtgcube/asgi.py
