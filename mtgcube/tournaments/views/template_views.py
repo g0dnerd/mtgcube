@@ -108,6 +108,7 @@ class AdminPlayerListView(AdminTemplateMixin, ListView):
 
     def get_queryset(self):
         tournament = queries.get_tournament(slug=self.kwargs["slug"])
+        queries.player_records(tournament)
         enrollments = queries.enrolled_users(tournament, force_update=True)
 
         not_enrolled = queries.not_enrolled_in_tournament(tournament, force_update=True)

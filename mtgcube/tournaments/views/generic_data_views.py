@@ -65,7 +65,7 @@ class DraftStandingsView(LoginRequiredMixin, View):
 
 class EventStandingsView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
-        tournament = queries.get_tournament(slug=kwargs['slug'])
+        tournament = queries.get_tournament(slug=kwargs['slug'], force_update=True)
 
         standings = queries.tournament_standings(tournament)
         if not standings:

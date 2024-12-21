@@ -459,6 +459,7 @@ def draft_standings(draft):
 def tournament_standings(tournament):
     """Returns the current round's standings for the given tournament."""
     cache_key = f"tournament_standings_{tournament.id}_{tournament.current_round}"
+    print("cache_key", cache_key)
 
     def fetch_tournament_standings():
         if tournament.current_round <= 1:
@@ -516,3 +517,26 @@ def get_phase_by_index(tournament, index, force_update=False):
             return None
 
     return get_or_set_cache(cache_key, fetch_phase_by_index, None, force_update)
+
+def player_records(tournament):
+    players = enrollments_for_tournament(tournament, force_update=True)
+    for enrollment in players:
+        print(f'Player {enrollment.player}:')
+        games = enrollment_match_history(enrollment, tournament, force_update=True)
+        player_record = {}
+        drafts = Draft.objects.filter(Q(enrollments=enrollment))
+        for d in drafts:
+            player_record[d.slug] = {1: "", 2: "", 3: ""}
+        for g in games:
+            draft = g.round.draft
+            player_role = 1
+            if g.player2 == enrollment:
+                player_role = 2
+            p_wins = g.player1_wins if player_role == 1 else g.player2_wins
+            op_wins = g.player2_wins if player_role == 1 else g.player1_wins
+            outcome = 1 if p_wins > op_wins else -1 if p_wins < op_wins else 0
+            player_record[draft.slug][g.round.round_idx] = outcome
+        
+        from operator import countOf
+        for d, r in player_record.items():
+            print(f'{d}: {countOf(r.values(), 1)} - {countOf(r.values(), -1)} - {countOf(r.values(), 0)}')
