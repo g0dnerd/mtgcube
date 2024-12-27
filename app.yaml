@@ -20,10 +20,10 @@ env: flex
 entrypoint: gunicorn -b :$PORT config.wsgi
 
 beta_settings:
-    cloud_sql_instances: mtgcube:europe-west1:mtg-cube-db-instance
+    cloud_sql_instances: vault-446014:europe-west1:mtg-cube-db-instance
 
 runtime_config:
     operating_system: "ubuntu22"
-    python_version: "3.12"
+    python_version: "3.11"
 # [END gaeflex_py_django_app_yaml]
 # [END runtime]
