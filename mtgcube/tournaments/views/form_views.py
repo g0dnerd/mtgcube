@@ -265,12 +265,10 @@ class AdminEnrollUserView(FormView, AdminDataMixin):
 
     try:
       services.enroll_for_event(user, tournament)
+      messages.success(
+        request, f"{user.name} was successfully registered for {tournament.name}!"
+      )
     except ValueError as e:
-      messages.error(request, str(e))
-      return redirect("tournaments:admin_tournaments_players")
-
-    messages.success(
-      request, f"{user.name} was successfully registered for {tournament.name}!"
-    )
+      messages.error(request, f"Error: {e}")
 
     return redirect(self.get_success_url())

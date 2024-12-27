@@ -425,18 +425,22 @@ def enroll_for_event(user, tournament):
   enroll = queries.enrollment_from_tournament(tournament, user_player)
   if enroll:
     raise ValueError("User is already enrolled in this event.")
-  if timezone.now() >= tournament.start_datetime:
-    raise ValueError("Event has already started")
 
-  try:
-    tournament.tournament
-    Enrollment.objects.create(
-      tournament=tournament, player=user_player, registration_finished=True
-    )
-  except AttributeError:
-    Enrollment.objects.create(
-      tournament=tournament, player=user_player, registration_finished=True
-    )
+  # if timezone.now() >= tournament.start_datetime:
+  #   raise ValueError("Event has already started")
+
+  # try:
+  # tournament.tournament # NOTE: what does this meeeean
+
+  Enrollment.objects.create(
+    tournament=tournament, player=user_player, registration_finished=True
+  )
+  
+  # TODO: ???
+  # except AttributeError:
+  # Enrollment.objects.create(
+  #   tournament=tournament, player=user_player, registration_finished=True
+  # )
 
   tournament.signed_up += 1
   tournament.save()
