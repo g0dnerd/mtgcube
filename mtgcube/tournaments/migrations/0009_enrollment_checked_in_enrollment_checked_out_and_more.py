@@ -5,25 +5,24 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+  dependencies = [
+    ("tournaments", "0008_image"),
+  ]
 
-    dependencies = [
-        ('tournaments', '0008_image'),
-    ]
-
-    operations = [
-        migrations.AddField(
-            model_name='enrollment',
-            name='checked_in',
-            field=models.BooleanField(default=False),
-        ),
-        migrations.AddField(
-            model_name='enrollment',
-            name='checked_out',
-            field=models.BooleanField(default=False),
-        ),
-        migrations.AlterField(
-            model_name='image',
-            name='image',
-            field=models.ImageField(upload_to=tournaments.models.user_directory_path),
-        ),
-    ]
+  operations = [
+    migrations.AddField(
+      model_name="enrollment",
+      name="checked_in",
+      field=models.BooleanField(default=False),
+    ),
+    migrations.AddField(
+      model_name="enrollment",
+      name="checked_out",
+      field=models.BooleanField(default=False),
+    ),
+    migrations.AlterField(
+      model_name="image",
+      name="image",
+      field=models.ImageField(upload_to=tournaments.models.user_directory_path),
+    ),
+  ]

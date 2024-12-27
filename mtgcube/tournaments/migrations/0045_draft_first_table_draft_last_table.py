@@ -4,20 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+  dependencies = [
+    ("tournaments", "0044_image_draft_id_to_foreign_key"),
+  ]
 
-    dependencies = [
-        ('tournaments', '0044_image_draft_id_to_foreign_key'),
-    ]
-
-    operations = [
-        migrations.AddField(
-            model_name='draft',
-            name='first_table',
-            field=models.IntegerField(default=0),
-        ),
-        migrations.AddField(
-            model_name='draft',
-            name='last_table',
-            field=models.IntegerField(default=0),
-        ),
-    ]
+  operations = [
+    migrations.AddField(
+      model_name="draft",
+      name="first_table",
+      field=models.IntegerField(default=0),
+    ),
+    migrations.AddField(
+      model_name="draft",
+      name="last_table",
+      field=models.IntegerField(default=0),
+    ),
+  ]

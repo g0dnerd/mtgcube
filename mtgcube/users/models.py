@@ -3,47 +3,45 @@ from django.db.models import CharField
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
+
 class User(AbstractUser):
-    """Default user."""
+  """Default user."""
 
-    #: First and last name do not cover name patterns around the globe
-    name = CharField(_("Display Name"), default="", max_length=255)
+  #: First and last name do not cover name patterns around the globe
+  name = CharField(_("Display Name"), default="", max_length=255)
 
-    NEITHER = "n"
-    MALE = "m"
-    FEMALE = "f"
-    NONBINARY = "x"
-    
-    PRONOUN_CHOICES = {
-        NEITHER: _("neither/don't want to say"),
-        MALE: _("he/him"),
-        FEMALE: _("she/her"),
-        NONBINARY: _("they/them"),
-    }
+  NEITHER = "n"
+  MALE = "m"
+  FEMALE = "f"
+  NONBINARY = "x"
 
-    pronouns = CharField(
-        "My Pronouns",
-        max_length=1,
-        choices=PRONOUN_CHOICES,
-        default=NEITHER
-    )
+  PRONOUN_CHOICES = {
+    NEITHER: _("neither/don't want to say"),
+    MALE: _("he/him"),
+    FEMALE: _("she/her"),
+    NONBINARY: _("they/them"),
+  }
 
-    first_name = None  # type: ignore
-    last_name = None  # type: ignore
+  pronouns = CharField(
+    "My Pronouns", max_length=1, choices=PRONOUN_CHOICES, default=NEITHER
+  )
 
-    def get_absolute_url(self):
-        """Get url for user's detail view.
+  first_name = None  # type: ignore
+  last_name = None  # type: ignore
 
-        Returns:
-            str: URL for user detail.
+  def get_absolute_url(self):
+    """Get url for user's detail view.
 
-        """
-        return reverse("users:detail", kwargs={"username": self.username})
-    
-    def save(self, *args, **kwargs):
-        """Override the original save method to set the name."""
-        super(User, self).save(*args, **kwargs)
+    Returns:
+        str: URL for user detail.
 
-        if self.name == "":
-            self.name = self.username
-            self.save()
+    """
+    return reverse("users:detail", kwargs={"username": self.username})
+
+  def save(self, *args, **kwargs):
+    """Override the original save method to set the name."""
+    super(User, self).save(*args, **kwargs)
+
+    if self.name == "":
+      self.name = self.username
+      self.save()

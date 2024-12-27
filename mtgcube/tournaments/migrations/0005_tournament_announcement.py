@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+  dependencies = [
+    ("tournaments", "0004_remove_round_round_length_and_more"),
+  ]
 
-    dependencies = [
-        ('tournaments', '0004_remove_round_round_length_and_more'),
-    ]
-
-    operations = [
-        migrations.AddField(
-            model_name='tournament',
-            name='announcement',
-            field=models.CharField(blank=True, max_length=255),
-        ),
-    ]
+  operations = [
+    migrations.AddField(
+      model_name="tournament",
+      name="announcement",
+      field=models.CharField(blank=True, max_length=255),
+    ),
+  ]

@@ -5,17 +5,26 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+  dependencies = [
+    ("tournaments", "0021_tournament_location"),
+  ]
 
-    dependencies = [
-        ('tournaments', '0021_tournament_location'),
-    ]
-
-    operations = [
-        migrations.CreateModel(
-            name='SideEvent',
-            fields=[
-                ('phase_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='tournaments.phase')),
-            ],
-            bases=('tournaments.phase',),
+  operations = [
+    migrations.CreateModel(
+      name="SideEvent",
+      fields=[
+        (
+          "phase_ptr",
+          models.OneToOneField(
+            auto_created=True,
+            on_delete=django.db.models.deletion.CASCADE,
+            parent_link=True,
+            primary_key=True,
+            serialize=False,
+            to="tournaments.phase",
+          ),
         ),
-    ]
+      ],
+      bases=("tournaments.phase",),
+    ),
+  ]

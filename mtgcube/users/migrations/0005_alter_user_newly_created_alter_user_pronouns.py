@@ -4,20 +4,29 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+  dependencies = [
+    ("users", "0004_user_newly_created_user_privacy_agreed_and_more"),
+  ]
 
-    dependencies = [
-        ('users', '0004_user_newly_created_user_privacy_agreed_and_more'),
-    ]
-
-    operations = [
-        migrations.AlterField(
-            model_name='user',
-            name='newly_created',
-            field=models.BooleanField(default=True),
-        ),
-        migrations.AlterField(
-            model_name='user',
-            name='pronouns',
-            field=models.CharField(choices=[('n', "neither/don't want to say"), ('m', 'he/him'), ('f', 'she/her'), ('x', 'they/them')], default="neither/don't want to say", max_length=255, verbose_name='My Pronouns'),
-        ),
-    ]
+  operations = [
+    migrations.AlterField(
+      model_name="user",
+      name="newly_created",
+      field=models.BooleanField(default=True),
+    ),
+    migrations.AlterField(
+      model_name="user",
+      name="pronouns",
+      field=models.CharField(
+        choices=[
+          ("n", "neither/don't want to say"),
+          ("m", "he/him"),
+          ("f", "she/her"),
+          ("x", "they/them"),
+        ],
+        default="neither/don't want to say",
+        max_length=255,
+        verbose_name="My Pronouns",
+      ),
+    ),
+  ]

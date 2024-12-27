@@ -5,15 +5,16 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+  dependencies = [
+    ("tournaments", "0033_cube_image"),
+  ]
 
-    dependencies = [
-        ('tournaments', '0033_cube_image'),
-    ]
-
-    operations = [
-        migrations.AlterField(
-            model_name='cube',
-            name='image',
-            field=models.ImageField(blank=True, upload_to=tournaments.models.cube_directory_path),
-        ),
-    ]
+  operations = [
+    migrations.AlterField(
+      model_name="cube",
+      name="image",
+      field=models.ImageField(
+        blank=True, upload_to=tournaments.models.cube_directory_path
+      ),
+    ),
+  ]

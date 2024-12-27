@@ -8,6 +8,6 @@ register = template.Library()
 
 @register.simple_tag
 def versioned_static(path):
-    file_url = static(path)
-    now = int(time.time())
-    return f"{file_url}?v={now}"
+  file_url = static(path)
+  now = int(time.time())
+  return f"{file_url}?v={now}"

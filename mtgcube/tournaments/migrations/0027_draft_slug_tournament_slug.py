@@ -4,20 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+  dependencies = [
+    ("tournaments", "0026_phase_started"),
+  ]
 
-    dependencies = [
-        ('tournaments', '0026_phase_started'),
-    ]
-
-    operations = [
-        migrations.AddField(
-            model_name='draft',
-            name='slug',
-            field=models.SlugField(null=True),
-        ),
-        migrations.AddField(
-            model_name='tournament',
-            name='slug',
-            field=models.SlugField(null=True),
-        ),
-    ]
+  operations = [
+    migrations.AddField(
+      model_name="draft",
+      name="slug",
+      field=models.SlugField(null=True),
+    ),
+    migrations.AddField(
+      model_name="tournament",
+      name="slug",
+      field=models.SlugField(null=True),
+    ),
+  ]

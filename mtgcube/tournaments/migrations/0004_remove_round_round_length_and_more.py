@@ -4,23 +4,22 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+  dependencies = [
+    ("tournaments", "0003_draft_seated"),
+  ]
 
-    dependencies = [
-        ('tournaments', '0003_draft_seated'),
-    ]
-
-    operations = [
-        migrations.RemoveField(
-            model_name='round',
-            name='round_length',
-        ),
-        migrations.RemoveField(
-            model_name='round',
-            name='round_timer_start',
-        ),
-        migrations.AddField(
-            model_name='round',
-            name='started',
-            field=models.BooleanField(default=False),
-        ),
-    ]
+  operations = [
+    migrations.RemoveField(
+      model_name="round",
+      name="round_length",
+    ),
+    migrations.RemoveField(
+      model_name="round",
+      name="round_timer_start",
+    ),
+    migrations.AddField(
+      model_name="round",
+      name="started",
+      field=models.BooleanField(default=False),
+    ),
+  ]

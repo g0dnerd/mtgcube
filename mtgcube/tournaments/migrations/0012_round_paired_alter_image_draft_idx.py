@@ -4,20 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+  dependencies = [
+    ("tournaments", "0011_rename_draft_image_draft_idx"),
+  ]
 
-    dependencies = [
-        ('tournaments', '0011_rename_draft_image_draft_idx'),
-    ]
-
-    operations = [
-        migrations.AddField(
-            model_name='round',
-            name='paired',
-            field=models.BooleanField(default=False),
-        ),
-        migrations.AlterField(
-            model_name='image',
-            name='draft_idx',
-            field=models.IntegerField(default=0, verbose_name='Draft ID'),
-        ),
-    ]
+  operations = [
+    migrations.AddField(
+      model_name="round",
+      name="paired",
+      field=models.BooleanField(default=False),
+    ),
+    migrations.AlterField(
+      model_name="image",
+      name="draft_idx",
+      field=models.IntegerField(default=0, verbose_name="Draft ID"),
+    ),
+  ]

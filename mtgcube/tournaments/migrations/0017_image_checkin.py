@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+  dependencies = [
+    ("tournaments", "0016_enrollment_draft_games_played_and_more"),
+  ]
 
-    dependencies = [
-        ('tournaments', '0016_enrollment_draft_games_played_and_more'),
-    ]
-
-    operations = [
-        migrations.AddField(
-            model_name='image',
-            name='checkin',
-            field=models.BooleanField(default=True),
-        ),
-    ]
+  operations = [
+    migrations.AddField(
+      model_name="image",
+      name="checkin",
+      field=models.BooleanField(default=True),
+    ),
+  ]

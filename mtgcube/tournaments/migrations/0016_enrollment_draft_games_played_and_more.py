@@ -4,45 +4,44 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+  dependencies = [
+    ("tournaments", "0015_remove_round_seated_draft_seated"),
+  ]
 
-    dependencies = [
-        ('tournaments', '0015_remove_round_seated_draft_seated'),
-    ]
-
-    operations = [
-        migrations.AddField(
-            model_name='enrollment',
-            name='draft_games_played',
-            field=models.IntegerField(default=0),
-        ),
-        migrations.AddField(
-            model_name='enrollment',
-            name='draft_games_won',
-            field=models.IntegerField(default=0),
-        ),
-        migrations.AddField(
-            model_name='enrollment',
-            name='draft_ogw',
-            field=models.FloatField(default=0),
-        ),
-        migrations.AddField(
-            model_name='enrollment',
-            name='draft_omw',
-            field=models.FloatField(default=0),
-        ),
-        migrations.AddField(
-            model_name='enrollment',
-            name='draft_pgw',
-            field=models.FloatField(default=0),
-        ),
-        migrations.AddField(
-            model_name='enrollment',
-            name='draft_pmw',
-            field=models.FloatField(default=0),
-        ),
-        migrations.AddField(
-            model_name='enrollment',
-            name='draft_score',
-            field=models.IntegerField(default=0),
-        ),
-    ]
+  operations = [
+    migrations.AddField(
+      model_name="enrollment",
+      name="draft_games_played",
+      field=models.IntegerField(default=0),
+    ),
+    migrations.AddField(
+      model_name="enrollment",
+      name="draft_games_won",
+      field=models.IntegerField(default=0),
+    ),
+    migrations.AddField(
+      model_name="enrollment",
+      name="draft_ogw",
+      field=models.FloatField(default=0),
+    ),
+    migrations.AddField(
+      model_name="enrollment",
+      name="draft_omw",
+      field=models.FloatField(default=0),
+    ),
+    migrations.AddField(
+      model_name="enrollment",
+      name="draft_pgw",
+      field=models.FloatField(default=0),
+    ),
+    migrations.AddField(
+      model_name="enrollment",
+      name="draft_pmw",
+      field=models.FloatField(default=0),
+    ),
+    migrations.AddField(
+      model_name="enrollment",
+      name="draft_score",
+      field=models.IntegerField(default=0),
+    ),
+  ]

@@ -4,20 +4,24 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+  dependencies = [
+    ("users", "0002_user_pronouns"),
+  ]
 
-    dependencies = [
-        ('users', '0002_user_pronouns'),
-    ]
-
-    operations = [
-        migrations.AlterField(
-            model_name='user',
-            name='name',
-            field=models.CharField(blank=True, max_length=255, verbose_name='Display Name'),
-        ),
-        migrations.AlterField(
-            model_name='user',
-            name='pronouns',
-            field=models.CharField(blank=True, choices=[('m', 'he/him'), ('f', 'she/her'), ('x', 'they/them')], max_length=255, verbose_name='My Pronouns'),
-        ),
-    ]
+  operations = [
+    migrations.AlterField(
+      model_name="user",
+      name="name",
+      field=models.CharField(blank=True, max_length=255, verbose_name="Display Name"),
+    ),
+    migrations.AlterField(
+      model_name="user",
+      name="pronouns",
+      field=models.CharField(
+        blank=True,
+        choices=[("m", "he/him"), ("f", "she/her"), ("x", "they/them")],
+        max_length=255,
+        verbose_name="My Pronouns",
+      ),
+    ),
+  ]

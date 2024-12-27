@@ -4,22 +4,21 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
+  dependencies = [
+    ("users", "0007_alter_user_name"),
+  ]
 
-    dependencies = [
-        ('users', '0007_alter_user_name'),
-    ]
-
-    operations = [
-        migrations.RemoveField(
-            model_name='user',
-            name='newly_created',
-        ),
-        migrations.RemoveField(
-            model_name='user',
-            name='privacy_agreed',
-        ),
-        migrations.RemoveField(
-            model_name='user',
-            name='tos_agreed',
-        ),
-    ]
+  operations = [
+    migrations.RemoveField(
+      model_name="user",
+      name="newly_created",
+    ),
+    migrations.RemoveField(
+      model_name="user",
+      name="privacy_agreed",
+    ),
+    migrations.RemoveField(
+      model_name="user",
+      name="tos_agreed",
+    ),
+  ]

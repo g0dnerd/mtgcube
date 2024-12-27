@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+  dependencies = [
+    ("tournaments", "0019_remove_player_name"),
+  ]
 
-    dependencies = [
-        ('tournaments', '0019_remove_player_name'),
-    ]
-
-    operations = [
-        migrations.AddField(
-            model_name='player',
-            name='name',
-            field=models.CharField(default='', max_length=50),
-        ),
-    ]
+  operations = [
+    migrations.AddField(
+      model_name="player",
+      name="name",
+      field=models.CharField(default="", max_length=50),
+    ),
+  ]

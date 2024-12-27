@@ -5,23 +5,39 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+  dependencies = [
+    ("tournaments", "0023_phase_is_sideevent_delete_sideevent"),
+  ]
 
-    dependencies = [
-        ('tournaments', '0023_phase_is_sideevent_delete_sideevent'),
-    ]
-
-    operations = [
-        migrations.RemoveField(
-            model_name='phase',
-            name='is_sideevent',
+  operations = [
+    migrations.RemoveField(
+      model_name="phase",
+      name="is_sideevent",
+    ),
+    migrations.CreateModel(
+      name="SideEvent",
+      fields=[
+        (
+          "tournament_ptr",
+          models.OneToOneField(
+            auto_created=True,
+            on_delete=django.db.models.deletion.CASCADE,
+            parent_link=True,
+            primary_key=True,
+            serialize=False,
+            to="tournaments.tournament",
+          ),
         ),
-        migrations.CreateModel(
-            name='SideEvent',
-            fields=[
-                ('tournament_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='tournaments.tournament')),
-                ('description', models.CharField(blank=True, max_length=255)),
-                ('tournament', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='side_events', to='tournaments.tournament')),
-            ],
-            bases=('tournaments.tournament',),
+        ("description", models.CharField(blank=True, max_length=255)),
+        (
+          "tournament",
+          models.ForeignKey(
+            on_delete=django.db.models.deletion.CASCADE,
+            related_name="side_events",
+            to="tournaments.tournament",
+          ),
         ),
-    ]
+      ],
+      bases=("tournaments.tournament",),
+    ),
+  ]

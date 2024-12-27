@@ -4,20 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+  dependencies = [
+    ("tournaments", "0039_alter_cube_description"),
+  ]
 
-    dependencies = [
-        ('tournaments', '0039_alter_cube_description'),
-    ]
-
-    operations = [
-        migrations.AddField(
-            model_name='enrollment',
-            name='draft_place',
-            field=models.PositiveIntegerField(default=0),
-        ),
-        migrations.AddField(
-            model_name='enrollment',
-            name='tournament_place',
-            field=models.PositiveIntegerField(default=0),
-        ),
-    ]
+  operations = [
+    migrations.AddField(
+      model_name="enrollment",
+      name="draft_place",
+      field=models.PositiveIntegerField(default=0),
+    ),
+    migrations.AddField(
+      model_name="enrollment",
+      name="tournament_place",
+      field=models.PositiveIntegerField(default=0),
+    ),
+  ]

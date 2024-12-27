@@ -5,15 +5,16 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+  dependencies = [
+    ("tournaments", "0042_enrollment_dropped"),
+  ]
 
-    dependencies = [
-        ('tournaments', '0042_enrollment_dropped'),
-    ]
-
-    operations = [
-        migrations.AddField(
-            model_name='image',
-            name='draft',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='tournaments.draft'),
-        ),
-    ]
+  operations = [
+    migrations.AddField(
+      model_name="image",
+      name="draft",
+      field=models.ForeignKey(
+        null=True, on_delete=django.db.models.deletion.CASCADE, to="tournaments.draft"
+      ),
+    ),
+  ]

@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+  dependencies = [
+    ("tournaments", "0034_alter_cube_image"),
+  ]
 
-    dependencies = [
-        ('tournaments', '0034_alter_cube_image'),
-    ]
-
-    operations = [
-        migrations.AddField(
-            model_name='cube',
-            name='slug',
-            field=models.SlugField(null=True),
-        ),
-    ]
+  operations = [
+    migrations.AddField(
+      model_name="cube",
+      name="slug",
+      field=models.SlugField(null=True),
+    ),
+  ]

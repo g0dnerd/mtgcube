@@ -4,19 +4,18 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+  dependencies = [
+    ("tournaments", "0013_alter_game_result_reported_by"),
+  ]
 
-    dependencies = [
-        ('tournaments', '0013_alter_game_result_reported_by'),
-    ]
-
-    operations = [
-        migrations.RemoveField(
-            model_name='draft',
-            name='seated',
-        ),
-        migrations.AddField(
-            model_name='round',
-            name='seated',
-            field=models.BooleanField(default=False),
-        ),
-    ]
+  operations = [
+    migrations.RemoveField(
+      model_name="draft",
+      name="seated",
+    ),
+    migrations.AddField(
+      model_name="round",
+      name="seated",
+      field=models.BooleanField(default=False),
+    ),
+  ]

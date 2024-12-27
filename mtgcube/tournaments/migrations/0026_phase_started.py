@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+  dependencies = [
+    ("tournaments", "0025_remove_phase_current_round_phase_finished"),
+  ]
 
-    dependencies = [
-        ('tournaments', '0025_remove_phase_current_round_phase_finished'),
-    ]
-
-    operations = [
-        migrations.AddField(
-            model_name='phase',
-            name='started',
-            field=models.BooleanField(default=False),
-        ),
-    ]
+  operations = [
+    migrations.AddField(
+      model_name="phase",
+      name="started",
+      field=models.BooleanField(default=False),
+    ),
+  ]

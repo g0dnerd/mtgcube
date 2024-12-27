@@ -1,6 +1,7 @@
 """
 Base settings to build other settings files upon.
 """
+
 # from django.utils.translation import ugettext_lazy as _
 from pathlib import Path
 
@@ -14,8 +15,8 @@ env = environ.Env(DEBUG=(bool, False))
 
 READ_DOT_ENV_FILE = env.bool("DJANGO_READ_DOT_ENV_FILE", default=False)
 if READ_DOT_ENV_FILE:
-    # OS environment variables take precedence over variables from .env
-    env.read_env(str(ROOT_DIR / ".env"))
+  # OS environment variables take precedence over variables from .env
+  env.read_env(str(ROOT_DIR / ".env"))
 
 # GENERAL
 # ------------------------------------------------------------------------------
@@ -40,8 +41,8 @@ USE_TZ = True
 LOCALE_PATHS = [str(ROOT_DIR / "locale")]
 
 LANGUAGES = (
-    ('en', ('English')),
-    ('de', ('German')),
+  ("en", ("English")),
+  ("de", ("German")),
 )
 
 # DATABASES
@@ -49,10 +50,10 @@ LANGUAGES = (
 # https://docs.djangoproject.com/en/dev/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': ROOT_DIR / 'db.sqlite3',
-    }
+  "default": {
+    "ENGINE": "django.db.backends.sqlite3",
+    "NAME": ROOT_DIR / "db.sqlite3",
+  }
 }
 DATABASES["default"]["ATOMIC_REQUESTS"] = True
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
@@ -65,37 +66,37 @@ ROOT_URLCONF = "config.urls"
 WSGI_APPLICATION = "config.wsgi.application"
 
 ACCOUNT_FORMS = {
-    'signup': 'mtgcube.users.forms.CustomSignupForm',
+  "signup": "mtgcube.users.forms.CustomSignupForm",
 }
 
 # APPS
 # ------------------------------------------------------------------------------
 DJANGO_APPS = [
-    "django.contrib.auth",
-    "django.contrib.contenttypes",
-    "django.contrib.sessions",
-    "django.contrib.sites",
-    "django.contrib.messages",
-    "django.contrib.staticfiles",
-    "django.contrib.admin",
-    "django.forms",
+  "django.contrib.auth",
+  "django.contrib.contenttypes",
+  "django.contrib.sessions",
+  "django.contrib.sites",
+  "django.contrib.messages",
+  "django.contrib.staticfiles",
+  "django.contrib.admin",
+  "django.forms",
 ]
 THIRD_PARTY_APPS = [
-    "corsheaders",
-    "crispy_forms",
-    "crispy_bootstrap5",
-    "allauth",
-    "allauth.account",
-    "allauth.socialaccount",
-    'allauth.socialaccount.providers.google',
-    'allauth.socialaccount.providers.facebook',
-    'dynamic_breadcrumbs',
-    'termsandconditions',
+  "corsheaders",
+  "crispy_forms",
+  "crispy_bootstrap5",
+  "allauth",
+  "allauth.account",
+  "allauth.socialaccount",
+  "allauth.socialaccount.providers.google",
+  "allauth.socialaccount.providers.facebook",
+  "dynamic_breadcrumbs",
+  "termsandconditions",
 ]
 
 LOCAL_APPS = [
-    "tournaments",
-    "mtgcube.users.apps.UsersConfig",
+  "tournaments",
+  "mtgcube.users.apps.UsersConfig",
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -109,8 +110,8 @@ MIGRATION_MODULES = {"sites": "mtgcube.contrib.sites.migrations"}
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#authentication-backends
 AUTHENTICATION_BACKENDS = [
-    "django.contrib.auth.backends.ModelBackend",
-    "allauth.account.auth_backends.AuthenticationBackend",
+  "django.contrib.auth.backends.ModelBackend",
+  "allauth.account.auth_backends.AuthenticationBackend",
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#auth-user-model
 AUTH_USER_MODEL = "users.User"
@@ -123,38 +124,36 @@ LOGIN_URL = "account_login"
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#password-hashers
 PASSWORD_HASHERS = [
-    # https://docs.djangoproject.com/en/dev/topics/auth/passwords/#using-argon2-with-django
-    "django.contrib.auth.hashers.Argon2PasswordHasher",
-    "django.contrib.auth.hashers.PBKDF2PasswordHasher",
-    "django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher",
-    "django.contrib.auth.hashers.BCryptSHA256PasswordHasher",
+  # https://docs.djangoproject.com/en/dev/topics/auth/passwords/#using-argon2-with-django
+  "django.contrib.auth.hashers.Argon2PasswordHasher",
+  "django.contrib.auth.hashers.PBKDF2PasswordHasher",
+  "django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher",
+  "django.contrib.auth.hashers.BCryptSHA256PasswordHasher",
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#auth-password-validators
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
-    },
-    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
-    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
-    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
+  {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+  {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+  {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+  {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
 # MIDDLEWARE
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#middleware
 MIDDLEWARE = [
-    "corsheaders.middleware.CorsMiddleware",
-    "django.middleware.security.SecurityMiddleware",
-    "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.common.CommonMiddleware",
-    "django.middleware.locale.LocaleMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
-    "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "termsandconditions.middleware.TermsAndConditionsRedirectMiddleware",
-    "django.contrib.messages.middleware.MessageMiddleware",
-    "django.middleware.common.BrokenLinkEmailsMiddleware",
-    "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "allauth.account.middleware.AccountMiddleware",
+  "corsheaders.middleware.CorsMiddleware",
+  "django.middleware.security.SecurityMiddleware",
+  "django.contrib.sessions.middleware.SessionMiddleware",
+  "django.middleware.common.CommonMiddleware",
+  "django.middleware.locale.LocaleMiddleware",
+  "django.middleware.csrf.CsrfViewMiddleware",
+  "django.contrib.auth.middleware.AuthenticationMiddleware",
+  "termsandconditions.middleware.TermsAndConditionsRedirectMiddleware",
+  "django.contrib.messages.middleware.MessageMiddleware",
+  "django.middleware.common.BrokenLinkEmailsMiddleware",
+  "django.middleware.clickjacking.XFrameOptionsMiddleware",
+  "allauth.account.middleware.AccountMiddleware",
 ]
 
 
@@ -168,8 +167,8 @@ STATIC_URL = "/static/"
 STATICFILES_DIRS = [str(APPS_DIR / "static")]
 # https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#staticfiles-finders
 STATICFILES_FINDERS = [
-    "django.contrib.staticfiles.finders.FileSystemFinder",
-    "django.contrib.staticfiles.finders.AppDirectoriesFinder",
+  "django.contrib.staticfiles.finders.FileSystemFinder",
+  "django.contrib.staticfiles.finders.AppDirectoriesFinder",
 ]
 
 # MEDIA
@@ -183,33 +182,33 @@ MEDIA_URL = "/media/"
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#templates
 TEMPLATES = [
-    {
-        # https://docs.djangoproject.com/en/dev/ref/settings/#std:setting-TEMPLATES-BACKEND
-        "BACKEND": "django.template.backends.django.DjangoTemplates",
-        # https://docs.djangoproject.com/en/dev/ref/settings/#template-dirs
-        "DIRS": [str(APPS_DIR / "templates")],
-        "OPTIONS": {
-            # https://docs.djangoproject.com/en/dev/ref/settings/#template-loaders
-            # https://docs.djangoproject.com/en/dev/ref/templates/api/#loader-types
-            "loaders": [
-                "django.template.loaders.filesystem.Loader",
-                "django.template.loaders.app_directories.Loader",
-            ],
-            # https://docs.djangoproject.com/en/dev/ref/settings/#template-context-processors
-            "context_processors": [
-                "django.template.context_processors.debug",
-                "django.template.context_processors.request",
-                "django.contrib.auth.context_processors.auth",
-                "django.template.context_processors.i18n",
-                "django.template.context_processors.media",
-                "django.template.context_processors.static",
-                "django.template.context_processors.tz",
-                "django.contrib.messages.context_processors.messages",
-                "mtgcube.utils.context_processors.settings_context",
-                "dynamic_breadcrumbs.context_processors.breadcrumbs",
-            ],
-        },
-    }
+  {
+    # https://docs.djangoproject.com/en/dev/ref/settings/#std:setting-TEMPLATES-BACKEND
+    "BACKEND": "django.template.backends.django.DjangoTemplates",
+    # https://docs.djangoproject.com/en/dev/ref/settings/#template-dirs
+    "DIRS": [str(APPS_DIR / "templates")],
+    "OPTIONS": {
+      # https://docs.djangoproject.com/en/dev/ref/settings/#template-loaders
+      # https://docs.djangoproject.com/en/dev/ref/templates/api/#loader-types
+      "loaders": [
+        "django.template.loaders.filesystem.Loader",
+        "django.template.loaders.app_directories.Loader",
+      ],
+      # https://docs.djangoproject.com/en/dev/ref/settings/#template-context-processors
+      "context_processors": [
+        "django.template.context_processors.debug",
+        "django.template.context_processors.request",
+        "django.contrib.auth.context_processors.auth",
+        "django.template.context_processors.i18n",
+        "django.template.context_processors.media",
+        "django.template.context_processors.static",
+        "django.template.context_processors.tz",
+        "django.contrib.messages.context_processors.messages",
+        "mtgcube.utils.context_processors.settings_context",
+        "dynamic_breadcrumbs.context_processors.breadcrumbs",
+      ],
+    },
+  }
 ]
 
 DYNAMIC_BREADCRUMBS_PATH_MAX_COMPONENT_LENGTH = 100
@@ -220,7 +219,14 @@ FORM_RENDERER = "django.forms.renderers.TemplatesSetting"
 
 # http://django-crispy-forms.readthedocs.io/en/latest/install.html#template-packs
 CRISPY_TEMPLATE_PACK = "bootstrap5"
-CRISPY_ALLOWED_TEMPLATE_PACKS = ('bootstrap', 'uni_form', 'bootstrap3', 'bootstrap4', 'bootstrap5', 'semantic-ui')
+CRISPY_ALLOWED_TEMPLATE_PACKS = (
+  "bootstrap",
+  "uni_form",
+  "bootstrap3",
+  "bootstrap4",
+  "bootstrap5",
+  "semantic-ui",
+)
 
 # FIXTURES
 # ------------------------------------------------------------------------------
@@ -242,7 +248,7 @@ X_FRAME_OPTIONS = "DENY"
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#email-backend
 EMAIL_BACKEND = env(
-    "DJANGO_EMAIL_BACKEND", default="django.core.mail.backends.smtp.EmailBackend"
+  "DJANGO_EMAIL_BACKEND", default="django.core.mail.backends.smtp.EmailBackend"
 )
 # https://docs.djangoproject.com/en/dev/ref/settings/#email-timeout
 EMAIL_TIMEOUT = 5
@@ -258,22 +264,22 @@ ADMIN_URL = "admin/"
 # See https://docs.djangoproject.com/en/dev/topics/logging for
 # more details on how to customize your logging configuration.
 LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "formatters": {
-        "verbose": {
-            "format": "%(levelname)s %(asctime)s %(module)s "
-            "%(process)d %(thread)d %(message)s"
-        }
-    },
-    "handlers": {
-        "console": {
-            "level": "DEBUG",
-            "class": "logging.StreamHandler",
-            "formatter": "verbose",
-        }
-    },
-    "root": {"level": "INFO", "handlers": ["console"]},
+  "version": 1,
+  "disable_existing_loggers": False,
+  "formatters": {
+    "verbose": {
+      "format": "%(levelname)s %(asctime)s %(module)s "
+      "%(process)d %(thread)d %(message)s"
+    }
+  },
+  "handlers": {
+    "console": {
+      "level": "DEBUG",
+      "class": "logging.StreamHandler",
+      "formatter": "verbose",
+    }
+  },
+  "root": {"level": "INFO", "handlers": ["console"]},
 }
 
 # django-allauth
@@ -291,7 +297,7 @@ ACCOUNT_ADAPTER = "users.adapters.AccountAdapter"
 SOCIALACCOUNT_ADAPTER = "users.adapters.SocialAccountAdapter"
 SOCIALACCOUNT_AUTO_SIGNUP = False
 SOCIALACCOUNT_EMAIL_REQUIRED = False
-SECURE_REFERRER_POLICY= "strict-origin-when-cross-origin"
+SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
 
 CORS_ALLOW_ALL_ORIGINS = True
@@ -311,33 +317,28 @@ CACHE_MIDDLEWARE_KEY_PREFIX = "mtg"
 
 # ------------------------------------------------------------------------------
 SOCIALACCOUNT_PROVIDERS = {
-    'google': {
-        'SCOPE': [
-            'profile',
-            'email',
-        ],
-        'AUTH_PARAMS': {
-            'access_type': 'online',
-        },
-        'OAUTH_PKCE_ENABLED': True,
-        'FETCH_USERINFO': True
-
-    }
+  "google": {
+    "SCOPE": [
+      "profile",
+      "email",
+    ],
+    "AUTH_PARAMS": {
+      "access_type": "online",
+    },
+    "OAUTH_PKCE_ENABLED": True,
+    "FETCH_USERINFO": True,
+  }
 }
 
-SOCIALACCOUNT_FORMS = {
-    'signup': 'users.forms.CustomSocialSignupForm'
-}
+SOCIALACCOUNT_FORMS = {"signup": "users.forms.CustomSocialSignupForm"}
 
 # Terms & Conditions (termsandconditions) Settings #######
 DEFAULT_TERMS_SLUG = "privacy-policy"
 ACCEPT_TERMS_PATH = "/terms/accept/"
-TERMS_BASE_TEMPLATE = 'terms_base.html'
+TERMS_BASE_TEMPLATE = "terms_base.html"
 TERMS_EXCLUDE_URL_PREFIX_LIST = {"/admin", "/terms"}
 TERMS_EXCLUDE_URL_LIST = {"/termsrequired/", "/accounts/logout/", "/securetoo/"}
-TERMS_EXCLUDE_URL_CONTAINS_LIST = (
-    {}
-)  # Useful if you are using internationalization and your URLs could change per language
+TERMS_EXCLUDE_URL_CONTAINS_LIST = {}  # Useful if you are using internationalization and your URLs could change per language
 TERMS_CACHE_SECONDS = 0
 # TERMS_EXCLUDE_USERS_WITH_PERM = "auth.can_skip_t&c"
 TERMS_IP_HEADER_NAME = "REMOTE_ADDR"

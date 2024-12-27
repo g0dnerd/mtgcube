@@ -7,130 +7,193 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+  initial = True
 
-    initial = True
+  dependencies = [
+    migrations.swappable_dependency(settings.AUTH_USER_MODEL),
+  ]
 
-    dependencies = [
-        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-    ]
-
-    operations = [
-        migrations.CreateModel(
-            name='Cube',
-            fields=[
-                ('id', models.AutoField(primary_key=True, serialize=False)),
-                ('name', models.CharField(max_length=200, unique=True)),
-                ('description', models.CharField(max_length=255)),
-                ('url', models.URLField(unique=True, verbose_name='URL')),
-            ],
+  operations = [
+    migrations.CreateModel(
+      name="Cube",
+      fields=[
+        ("id", models.AutoField(primary_key=True, serialize=False)),
+        ("name", models.CharField(max_length=200, unique=True)),
+        ("description", models.CharField(max_length=255)),
+        ("url", models.URLField(unique=True, verbose_name="URL")),
+      ],
+    ),
+    migrations.CreateModel(
+      name="Phase",
+      fields=[
+        ("id", models.AutoField(primary_key=True, serialize=False)),
+        ("phase_idx", models.IntegerField(default=1, verbose_name="Phase Number")),
+        (
+          "round_number",
+          models.IntegerField(default=3, verbose_name="Amount of rounds"),
         ),
-        migrations.CreateModel(
-            name='Phase',
-            fields=[
-                ('id', models.AutoField(primary_key=True, serialize=False)),
-                ('phase_idx', models.IntegerField(default=1, verbose_name='Phase Number')),
-                ('round_number', models.IntegerField(default=3, verbose_name='Amount of rounds')),
-                ('current_round', models.IntegerField(default=1)),
-            ],
+        ("current_round", models.IntegerField(default=1)),
+      ],
+    ),
+    migrations.CreateModel(
+      name="Tournament",
+      fields=[
+        ("id", models.AutoField(primary_key=True, serialize=False)),
+        ("name", models.CharField(max_length=50, unique=True)),
+        ("start_datetime", models.DateTimeField(default=django.utils.timezone.now)),
+        ("end_datetime", models.DateTimeField(default=django.utils.timezone.now)),
+      ],
+    ),
+    migrations.CreateModel(
+      name="Enrollment",
+      fields=[
+        (
+          "id",
+          models.BigAutoField(
+            auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+          ),
         ),
-        migrations.CreateModel(
-            name='Tournament',
-            fields=[
-                ('id', models.AutoField(primary_key=True, serialize=False)),
-                ('name', models.CharField(max_length=50, unique=True)),
-                ('start_datetime', models.DateTimeField(default=django.utils.timezone.now)),
-                ('end_datetime', models.DateTimeField(default=django.utils.timezone.now)),
-            ],
+        ("enrolled_on", models.DateTimeField(auto_now_add=True)),
+        ("score", models.IntegerField(default=0)),
+        ("games_played", models.IntegerField(default=0)),
+        ("games_won", models.IntegerField(default=0)),
+        ("pmw", models.FloatField(default=0)),
+        ("omw", models.FloatField(default=0)),
+        ("pgw", models.FloatField(default=0)),
+        ("ogw", models.FloatField(default=0)),
+        ("paired", models.BooleanField(default=False)),
+        ("had_bye", models.BooleanField(default=False)),
+        ("judge_note", models.CharField(blank=True, max_length=450)),
+        ("pairings", models.ManyToManyField(blank=True, to="tournaments.enrollment")),
+      ],
+    ),
+    migrations.CreateModel(
+      name="Draft",
+      fields=[
+        ("id", models.AutoField(primary_key=True, serialize=False)),
+        (
+          "round_number",
+          models.IntegerField(default=3, verbose_name="Amount of rounds"),
         ),
-        migrations.CreateModel(
-            name='Enrollment',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('enrolled_on', models.DateTimeField(auto_now_add=True)),
-                ('score', models.IntegerField(default=0)),
-                ('games_played', models.IntegerField(default=0)),
-                ('games_won', models.IntegerField(default=0)),
-                ('pmw', models.FloatField(default=0)),
-                ('omw', models.FloatField(default=0)),
-                ('pgw', models.FloatField(default=0)),
-                ('ogw', models.FloatField(default=0)),
-                ('paired', models.BooleanField(default=False)),
-                ('had_bye', models.BooleanField(default=False)),
-                ('judge_note', models.CharField(blank=True, max_length=450)),
-                ('pairings', models.ManyToManyField(blank=True, to='tournaments.enrollment')),
-            ],
+        (
+          "cube",
+          models.ForeignKey(
+            on_delete=django.db.models.deletion.CASCADE, to="tournaments.cube"
+          ),
         ),
-        migrations.CreateModel(
-            name='Draft',
-            fields=[
-                ('id', models.AutoField(primary_key=True, serialize=False)),
-                ('round_number', models.IntegerField(default=3, verbose_name='Amount of rounds')),
-                ('cube', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='tournaments.cube')),
-                ('enrollments', models.ManyToManyField(to='tournaments.enrollment')),
-                ('phase', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='tournaments.phase')),
-            ],
-            options={
-                'unique_together': {('phase', 'cube')},
-            },
+        ("enrollments", models.ManyToManyField(to="tournaments.enrollment")),
+        (
+          "phase",
+          models.ForeignKey(
+            on_delete=django.db.models.deletion.CASCADE, to="tournaments.phase"
+          ),
         ),
-        migrations.CreateModel(
-            name='Player',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=50, unique=True)),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
-            ],
+      ],
+      options={
+        "unique_together": {("phase", "cube")},
+      },
+    ),
+    migrations.CreateModel(
+      name="Player",
+      fields=[
+        (
+          "id",
+          models.BigAutoField(
+            auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+          ),
         ),
-        migrations.AddField(
-            model_name='enrollment',
-            name='player',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='tournaments.player'),
+        ("name", models.CharField(max_length=50, unique=True)),
+        (
+          "user",
+          models.OneToOneField(
+            on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL
+          ),
         ),
-        migrations.CreateModel(
-            name='Round',
-            fields=[
-                ('id', models.AutoField(primary_key=True, serialize=False)),
-                ('round_idx', models.IntegerField(default=1, verbose_name='Round number')),
-                ('round_length', models.IntegerField(default=50, verbose_name='Round length in minutes')),
-                ('round_timer_start', models.DateTimeField(blank=True, null=True)),
-                ('finished', models.BooleanField(default=False)),
-                ('draft', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='tournaments.draft')),
-            ],
-            options={
-                'unique_together': {('draft', 'round_idx')},
-            },
+      ],
+    ),
+    migrations.AddField(
+      model_name="enrollment",
+      name="player",
+      field=models.ForeignKey(
+        on_delete=django.db.models.deletion.CASCADE, to="tournaments.player"
+      ),
+    ),
+    migrations.CreateModel(
+      name="Round",
+      fields=[
+        ("id", models.AutoField(primary_key=True, serialize=False)),
+        ("round_idx", models.IntegerField(default=1, verbose_name="Round number")),
+        (
+          "round_length",
+          models.IntegerField(default=50, verbose_name="Round length in minutes"),
         ),
-        migrations.CreateModel(
-            name='Game',
-            fields=[
-                ('id', models.AutoField(primary_key=True, serialize=False)),
-                ('table', models.IntegerField(default=0)),
-                ('player1_wins', models.IntegerField(default=0)),
-                ('player2_wins', models.IntegerField(default=0)),
-                ('result', models.CharField(blank=True, max_length=200, null=True)),
-                ('result_reported_by', models.IntegerField(default=0)),
-                ('result_confirmed', models.BooleanField(default=False)),
-                ('player1', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='player1', to='tournaments.enrollment')),
-                ('player2', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='player2', to='tournaments.enrollment')),
-                ('round', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='tournaments.round')),
-            ],
+        ("round_timer_start", models.DateTimeField(blank=True, null=True)),
+        ("finished", models.BooleanField(default=False)),
+        (
+          "draft",
+          models.ForeignKey(
+            on_delete=django.db.models.deletion.CASCADE, to="tournaments.draft"
+          ),
         ),
-        migrations.AddField(
-            model_name='phase',
-            name='tournament',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='tournaments.tournament'),
+      ],
+      options={
+        "unique_together": {("draft", "round_idx")},
+      },
+    ),
+    migrations.CreateModel(
+      name="Game",
+      fields=[
+        ("id", models.AutoField(primary_key=True, serialize=False)),
+        ("table", models.IntegerField(default=0)),
+        ("player1_wins", models.IntegerField(default=0)),
+        ("player2_wins", models.IntegerField(default=0)),
+        ("result", models.CharField(blank=True, max_length=200, null=True)),
+        ("result_reported_by", models.IntegerField(default=0)),
+        ("result_confirmed", models.BooleanField(default=False)),
+        (
+          "player1",
+          models.ForeignKey(
+            on_delete=django.db.models.deletion.CASCADE,
+            related_name="player1",
+            to="tournaments.enrollment",
+          ),
         ),
-        migrations.AddField(
-            model_name='enrollment',
-            name='tournament',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='tournaments.tournament'),
+        (
+          "player2",
+          models.ForeignKey(
+            on_delete=django.db.models.deletion.CASCADE,
+            related_name="player2",
+            to="tournaments.enrollment",
+          ),
         ),
-        migrations.AlterUniqueTogether(
-            name='phase',
-            unique_together={('tournament', 'phase_idx')},
+        (
+          "round",
+          models.ForeignKey(
+            on_delete=django.db.models.deletion.CASCADE, to="tournaments.round"
+          ),
         ),
-        migrations.AlterUniqueTogether(
-            name='enrollment',
-            unique_together={('player', 'tournament')},
-        ),
-    ]
+      ],
+    ),
+    migrations.AddField(
+      model_name="phase",
+      name="tournament",
+      field=models.ForeignKey(
+        on_delete=django.db.models.deletion.CASCADE, to="tournaments.tournament"
+      ),
+    ),
+    migrations.AddField(
+      model_name="enrollment",
+      name="tournament",
+      field=models.ForeignKey(
+        on_delete=django.db.models.deletion.CASCADE, to="tournaments.tournament"
+      ),
+    ),
+    migrations.AlterUniqueTogether(
+      name="phase",
+      unique_together={("tournament", "phase_idx")},
+    ),
+    migrations.AlterUniqueTogether(
+      name="enrollment",
+      unique_together={("player", "tournament")},
+    ),
+  ]

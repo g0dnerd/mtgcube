@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+  dependencies = [
+    ("tournaments", "0037_cube_card_number"),
+  ]
 
-    dependencies = [
-        ('tournaments', '0037_cube_card_number'),
-    ]
-
-    operations = [
-        migrations.AddField(
-            model_name='cube',
-            name='special_rules',
-            field=models.TextField(blank=True),
-        ),
-    ]
+  operations = [
+    migrations.AddField(
+      model_name="cube",
+      name="special_rules",
+      field=models.TextField(blank=True),
+    ),
+  ]

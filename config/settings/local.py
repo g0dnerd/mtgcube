@@ -8,19 +8,19 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 
 # https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = [
-    "*",
-    "https://vault.mtg-cube.de/",
-    "https://mtg-cube.de/",
-    "https://storage.googleapis.com/",
-    "http://localhost:8080",
-    "localhost",
+  "*",
+  "https://vault.mtg-cube.de/",
+  "https://mtg-cube.de/",
+  "https://storage.googleapis.com/",
+  "http://localhost:8080",
+  "localhost",
 ]
 
 DEBUG = True
 
 SECRET_KEY = env(
-    "DJANGO_SECRET_KEY",
-    default="AjNIClMIgFyRwJUO2jyRy1r97WipjVimYj0GMHzgyNSxF361leDFWduPbio1uJJc",
+  "DJANGO_SECRET_KEY",
+  default="AjNIClMIgFyRwJUO2jyRy1r97WipjVimYj0GMHzgyNSxF361leDFWduPbio1uJJc",
 )
 
 # django-debug-toolbar
@@ -31,8 +31,8 @@ INSTALLED_APPS += ["debug_toolbar"]  # noqa F405
 MIDDLEWARE += ["debug_toolbar.middleware.DebugToolbarMiddleware"]  # noqa F405
 # https://django-debug-toolbar.readthedocs.io/en/latest/configuration.html#debug-toolbar-config
 DEBUG_TOOLBAR_CONFIG = {
-    "DISABLE_PANELS": ["debug_toolbar.panels.redirects.RedirectsPanel"],
-    "SHOW_TEMPLATE_CONTEXT": True,
+  "DISABLE_PANELS": ["debug_toolbar.panels.redirects.RedirectsPanel"],
+  "SHOW_TEMPLATE_CONTEXT": True,
 }
 # https://django-debug-toolbar.readthedocs.io/en/latest/installation.html#internal-ips
 INTERNAL_IPS = ["127.0.0.1", "10.0.2.2"]
@@ -43,21 +43,21 @@ SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://*.mtg-cube.de",
-    "https://vault.mtg-cube.de",
-    "https://*.mtg-cube.de/",
-    "https://vault.mtg-cube.de/",
-    "https://*.mtg-cube.de",
-    "https://www.vault.mtg-cube.de",
-    "https://*.mtg-cube.de/",
-    "https://www.vault.mtg-cube.de/",
+  "https://*.mtg-cube.de",
+  "https://vault.mtg-cube.de",
+  "https://*.mtg-cube.de/",
+  "https://vault.mtg-cube.de/",
+  "https://*.mtg-cube.de",
+  "https://www.vault.mtg-cube.de",
+  "https://*.mtg-cube.de/",
+  "https://www.vault.mtg-cube.de/",
 ]
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SECURE_HSTS_SECONDS = 60
 # https://docs.djangoproject.com/en/dev/ref/settings/#secure-hsts-include-subdomains
 SECURE_HSTS_INCLUDE_SUBDOMAINS = env.bool(
-    "DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS", default=True
+  "DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS", default=True
 )
 
 SOCIALACCOUNT_STORE_TOKENS = True

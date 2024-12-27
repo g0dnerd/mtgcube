@@ -4,15 +4,17 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+  dependencies = [
+    (
+      "tournaments",
+      "0030_remove_sideevent_description_tournament_description_and_more",
+    ),
+  ]
 
-    dependencies = [
-        ('tournaments', '0030_remove_sideevent_description_tournament_description_and_more'),
-    ]
-
-    operations = [
-        migrations.AddField(
-            model_name='tournament',
-            name='player_capacity',
-            field=models.IntegerField(default=0),
-        ),
-    ]
+  operations = [
+    migrations.AddField(
+      model_name="tournament",
+      name="player_capacity",
+      field=models.IntegerField(default=0),
+    ),
+  ]
