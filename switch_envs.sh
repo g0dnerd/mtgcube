@@ -19,8 +19,16 @@ elif [ "$1" == "local" ]; then
   unset GOOGLE_CLOUD_PROJECT
   unset USE_CLOUD_SQL_AUTH_PROXY
   echo "Environment variables unset for local."
+elif [ "$1" == "heroku" ]; then
+  search_word="settings.production"
+  replace_word="settings.heroku"
+  search_word="settings.local"
+  replace_word="settings.heroku"
+  unset GOOGLE_CLOUD_PROJECT
+  unset USE_CLOUD_SQL_AUTH_PROXY
+  echo "Environment variables unset for heroku."
 else
-  echo "Invalid argument. Use 'local' or 'prod'."
+  echo "Invalid argument. Use 'local', 'prod' or 'heroku'."
   exit 1
 fi
 

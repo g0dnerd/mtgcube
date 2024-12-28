@@ -11,9 +11,13 @@ ALLOWED_HOSTS = [
   "*",
   "https://vault.mtg-cube.de/",
   "https://mtg-cube.de/",
+  "https://vault-446014.ew.r.appspot.com/",
+  "vault-446014.ew.r.appspot.com/",
   "https://storage.googleapis.com/",
   "http://localhost:8080",
+  "http://localhost:8000",
   "localhost",
+  "localhost:8080",
 ]
 
 DEBUG = True
@@ -51,6 +55,9 @@ CSRF_TRUSTED_ORIGINS = [
   "https://www.vault.mtg-cube.de",
   "https://*.mtg-cube.de/",
   "https://www.vault.mtg-cube.de/",
+  "https://vault-446014.ew.r.appspot.com/",
+  "http://localhost:8080",
+  "http://127.0.0.1:8080"
 ]
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

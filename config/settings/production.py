@@ -66,9 +66,13 @@ ALLOWED_HOSTS = [
   "*",
   "https://vault.mtg-cube.de/",
   "https://mtg-cube.de/",
+  "https://vault-446014.ew.r.appspot.com/",
+  "vault-446014.ew.r.appspot.com/",
   "https://storage.googleapis.com/",
   "http://localhost:8080",
+  "http://localhost:8000",
   "localhost",
+  "localhost:8080",
 ]
 
 # Database
@@ -107,7 +111,7 @@ DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
 EMAIL_PORT = 465
 
-SECURE_SSL_REDIRECT = False
+SECURE_SSL_REDIRECT = True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
@@ -122,6 +126,9 @@ CSRF_TRUSTED_ORIGINS = [
   "https://www.vault.mtg-cube.de",
   "https://*.mtg-cube.de/",
   "https://www.vault.mtg-cube.de/",
+  "https://vault-446014.ew.r.appspot.com/",
+  "http://localhost:8080",
+  "http://127.0.0.1:8080"
 ]
 
 # CSRF_COOKIE_DOMAIN = 'https://*.paulkukowski.de'
@@ -151,6 +158,3 @@ GS_DEFAULT_ACL = None
 GS_QUERYSTRING_AUTH = False
 # [END gaeflex_py_django_static_config]
 # [END staticurl]
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/stable/ref/settings/#default-auto-field

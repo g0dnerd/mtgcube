@@ -25,5 +25,9 @@ beta_settings:
 runtime_config:
     operating_system: "ubuntu22"
     python_version: "3.11"
+
+automatic_scaling:
+    min_num_instances: 1
+    max_num_instances: 2
 # [END gaeflex_py_django_app_yaml]
 # [END runtime]
