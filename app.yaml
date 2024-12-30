@@ -1,4 +1,3 @@
-
 # Copyright 2021 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,14 +19,14 @@ env: flex
 entrypoint: gunicorn -b :$PORT config.wsgi
 
 beta_settings:
-    cloud_sql_instances: vault-446014:europe-west1:mtg-cube-db-instance
+  cloud_sql_instances: mtg-cube-2025:europe-west1:vault-db
 
 runtime_config:
-    operating_system: "ubuntu22"
-    python_version: "3.11"
+  operating_system: "ubuntu22"
+  python_version: "3.11"
 
 automatic_scaling:
-    min_num_instances: 1
-    max_num_instances: 2
+  max_num_instances: 6
+  min_num_instances: 1
 # [END gaeflex_py_django_app_yaml]
 # [END runtime]
