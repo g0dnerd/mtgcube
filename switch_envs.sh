@@ -11,7 +11,7 @@ if [ "$1" == "prod" ]; then
   search_word="settings.local"
   replace_word="settings.production"
   export GOOGLE_CLOUD_PROJECT=vault-446014
-  export USE_CLOUD_SQL_AUTH_PROXY=True
+  export USE_CLOUD_SQL_AUTH_PROXY=true
   echo "Environment variables set for production."
 elif [ "$1" == "local" ]; then
   search_word="settings.production"
@@ -19,14 +19,6 @@ elif [ "$1" == "local" ]; then
   unset GOOGLE_CLOUD_PROJECT
   unset USE_CLOUD_SQL_AUTH_PROXY
   echo "Environment variables unset for local."
-elif [ "$1" == "heroku" ]; then
-  search_word="settings.production"
-  replace_word="settings.heroku"
-  search_word="settings.local"
-  replace_word="settings.heroku"
-  unset GOOGLE_CLOUD_PROJECT
-  unset USE_CLOUD_SQL_AUTH_PROXY
-  echo "Environment variables unset for heroku."
 else
   echo "Invalid argument. Use 'local', 'prod' or 'heroku'."
   exit 1

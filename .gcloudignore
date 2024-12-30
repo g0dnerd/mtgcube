@@ -18,3 +18,9 @@ __pycache__/
 # Ignored by the build system
 /setup.cfg
 .venv
+
+cloud-sql-proxy
+
+.vscode
+/static
+/staticfiles
