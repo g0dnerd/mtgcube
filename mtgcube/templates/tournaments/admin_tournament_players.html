@@ -24,7 +24,7 @@
                 <span class="name-section" style="min-width: 150px;">{{ e.name }}</span>
                 <form class="enroll-form d-inline-block ms-3" method="post" enctype="multipart/form-data">
                     {% csrf_token %}
-                    <button class="btn btn-gray btn-sm" name="user-id" value="{{ e.id }}" type="submit" onclick="return confirm();">
+                    <button class="btn btn-gray btn-sm" name="user-id" value="{{ e.id }}" type="submit" onclick="return confirm('Register {{e.username}}?');">
                         {% trans 'Register' %}
                     </button>
                 </form>
