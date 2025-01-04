@@ -10,7 +10,7 @@ fi
 if [ "$1" == "prod" ]; then
   search_word="settings.local"
   replace_word="settings.production"
-  export GOOGLE_CLOUD_PROJECT=vault-446014
+  export GOOGLE_CLOUD_PROJECT=mtg-cube-2025
   export USE_CLOUD_SQL_AUTH_PROXY=true
   echo "Environment variables set for production."
 elif [ "$1" == "local" ]; then
