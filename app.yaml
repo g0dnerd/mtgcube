@@ -27,6 +27,6 @@ runtime_config:
 
 automatic_scaling:
   max_num_instances: 6
-  min_num_instances: 1
+  min_num_instances: 2
 # [END gaeflex_py_django_app_yaml]
 # [END runtime]
