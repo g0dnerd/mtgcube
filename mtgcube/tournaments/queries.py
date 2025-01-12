@@ -68,7 +68,7 @@ def available_tournaments(player, force_update=False):
             ).values_list("tournament_id", flat=True)
             mains = (
                 Tournament.objects.exclude(
-                    Q(id__in=enrolled_tournament_ids) | Q(start_datetime__lt=now)
+                    Q(id__in=enrolled_tournament_ids) | Q(end_datetime__lt=now)
                 )
                 .filter(sideevent__isnull=True, public=True)
                 .distinct()
@@ -76,7 +76,7 @@ def available_tournaments(player, force_update=False):
             )
             sides = (
                 SideEvent.objects.exclude(
-                    Q(id__in=enrolled_tournament_ids) | Q(start_datetime__lt=now)
+                    Q(id__in=enrolled_tournament_ids) | Q(end_datetime__lt=now)
                 )
                 .filter(public=True)
                 .distinct()
@@ -84,13 +84,13 @@ def available_tournaments(player, force_update=False):
             )
         else:
             mains = (
-                Tournament.objects.exclude(Q(start_datetime__lt=now))
+                Tournament.objects.exclude(Q(end_datetime__lt=now))
                 .filter(sideevent__isnull=True)
                 .distinct()
                 .order_by("start_datetime")
             )
             sides = (
-                SideEvent.objects.exclude(Q(start_datetime__lt=now))
+                SideEvent.objects.exclude(Q(end_datetime__lt=now))
                 .distinct()
                 .order_by("start_datetime")
             )
@@ -111,8 +111,9 @@ def enrolled_tournaments(player, force_update=False):
         now = timezone.now()
         if player:
             mains = (
-                Tournament.objects.exclude(Q(start_datetime__lt=now))
-                .filter(sideevent__isnull=True, enrollment__player=player)
+                Tournament.objects.filter(
+                    sideevent__isnull=True, enrollment__player=player
+                )
                 .distinct()
                 .order_by("start_datetime")
             )
