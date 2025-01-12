@@ -28,42 +28,42 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 env_file = os.path.abspath("config/settings/.env")
 
 if os.path.isfile(env_file):
-  print("using local .env file")
-  # Use a local secret file, if provided
+    print("using local .env file")
+    # Use a local secret file, if provided
 
-  env.read_env(env_file)
+    env.read_env(env_file)
 # [START_EXCLUDE]
 elif os.getenv("TRAMPOLINE_CI", None):
-  # Create local settings if running with CI, for unit testing
+    # Create local settings if running with CI, for unit testing
 
-  placeholder = (
-    f"SECRET_KEY=a\n"
-    "GS_BUCKET_NAME=None\n"
-    f"DATABASE_URL=sqlite://{os.path.join(BASE_DIR, 'db.sqlite3')}"
-  )
-  env.read_env(io.StringIO(placeholder))
+    placeholder = (
+        f"SECRET_KEY=a\n"
+        "GS_BUCKET_NAME=None\n"
+        f"DATABASE_URL=sqlite://{os.path.join(BASE_DIR, 'db.sqlite3')}"
+    )
+    env.read_env(io.StringIO(placeholder))
 # [END_EXCLUDE]
 elif os.environ.get("GOOGLE_CLOUD_PROJECT", None):
-  # Pull secrets from Secret Manager
-  project_id = os.environ.get("GOOGLE_CLOUD_PROJECT")
+    # Pull secrets from Secret Manager
+    project_id = os.environ.get("GOOGLE_CLOUD_PROJECT")
 
-  client = secretmanager.SecretManagerServiceClient()
-  settings_name = os.environ.get("SETTINGS_NAME", "django_settings")
-  name = f"projects/{project_id}/secrets/{settings_name}/versions/latest"
-  payload = client.access_secret_version(name=name).payload.data.decode("UTF-8")
+    client = secretmanager.SecretManagerServiceClient()
+    settings_name = os.environ.get("SETTINGS_NAME", "django_settings")
+    name = f"projects/{project_id}/secrets/{settings_name}/versions/latest"
+    payload = client.access_secret_version(name=name).payload.data.decode("UTF-8")
 
-  env.read_env(io.StringIO(payload))
+    env.read_env(io.StringIO(payload))
 else:
-  raise Exception("No local .env or GOOGLE_CLOUD_PROJECT detected. No secrets found.")
+    raise Exception("No local .env or GOOGLE_CLOUD_PROJECT detected. No secrets found.")
 # [END gaeflex_py_django_secret_config]
 
 SECRET_KEY = env("SECRET_KEY")
 
-# SECURITY WARNING: App Engine's security features ensure that it is safe to
+# WARNING: App Engine's security features ensure that it is safe to
 # have ALLOWED_HOSTS = ['*'] when the app is deployed. If you deploy a Django
 # app not on App Engine, make sure to set an appropriate host here.
 ALLOWED_HOSTS = [
-  "*",
+    "*",
 ]
 
 # Database
@@ -75,20 +75,20 @@ DATABASES = {"default": env.db()}
 
 # If the flag as been set, configure to use proxy
 if os.getenv("USE_CLOUD_SQL_AUTH_PROXY", None):
-  DATABASES["default"]["HOST"] = "127.0.0.1"
-  DATABASES["default"]["PORT"] = 5432
+    DATABASES["default"]["HOST"] = "127.0.0.1"
+    DATABASES["default"]["PORT"] = 5432
 
 # [END gaeflex_py_django_database_config]
 # [END dbconfig]
 
 # Use a in-memory sqlite3 database when testing in CI systems
 if os.getenv("TRAMPOLINE_CI", None):
-  DATABASES = {
-    "default": {
-      "ENGINE": "django.db.backends.sqlite3",
-      "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
+        }
     }
-  }
 
 DEBUG = False
 
@@ -102,24 +102,24 @@ DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
 EMAIL_PORT = 465
 
-SECURE_SSL_REDIRECT = False
+SECURE_SSL_REDIRECT = True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
 SOCIALACCOUNT_STORE_TOKENS = True
 
 CSRF_TRUSTED_ORIGINS = [
-  "https://*.mtg-cube.de",
-  "https://vault.mtg-cube.de",
-  "https://*.mtg-cube.de/",
-  "https://vault.mtg-cube.de/",
-  "https://*.mtg-cube.de",
-  "https://www.vault.mtg-cube.de",
-  "https://*.mtg-cube.de/",
-  "https://www.vault.mtg-cube.de/",
-  "https://vault-446014.ew.r.appspot.com/",
-  "http://localhost:8080",
-  "http://127.0.0.1:8080",
+    "https://*.mtg-cube.de",
+    "https://vault.mtg-cube.de",
+    "https://*.mtg-cube.de/",
+    "https://vault.mtg-cube.de/",
+    "https://*.mtg-cube.de",
+    "https://www.vault.mtg-cube.de",
+    "https://*.mtg-cube.de/",
+    "https://www.vault.mtg-cube.de/",
+    "https://vault-446014.ew.r.appspot.com/",
+    "http://localhost:8080",
+    "http://127.0.0.1:8080",
 ]
 
 # CSRF_COOKIE_DOMAIN = 'https://*.paulkukowski.de'
@@ -127,7 +127,7 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SECURE_HSTS_SECONDS = 60
 # https://docs.djangoproject.com/en/dev/ref/settings/#secure-hsts-include-subdomains
 SECURE_HSTS_INCLUDE_SUBDOMAINS = env.bool(
-  "DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS", default=True
+    "DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS", default=True
 )
 
 # # https://docs.djangoproject.com/en/dev/ref/settings/#secure-hsts-preload
