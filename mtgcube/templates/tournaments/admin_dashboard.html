@@ -20,7 +20,7 @@
     <li class="start-phase">
         <form class="start-phase-form" method="post" enctype="multipart/form-data">
             {% csrf_token %}
-            <button type="submit" name="start-phase" value="{{ tournament.id }}">Start phase</button>
+            <button type="submit" name="start-phase" value="{{ tournament.id }}" onclick="return confirm();">Finish all ongoing drafts and start the next phase</button>
         </form>
     </li>
     <li class="finish-event-rd">
