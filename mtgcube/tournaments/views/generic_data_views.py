@@ -6,70 +6,87 @@ from .. import queries
 
 
 class SeatingsView(LoginRequiredMixin, View):
-  def get(self, request, *args, **kwargs):
-    draft = queries.get_draft(slug=kwargs["draft_slug"])
+    def get(self, request, *args, **kwargs):
+        draft = queries.get_draft(slug=kwargs["draft_slug"])
 
-    if not draft.seated:
-      return JsonResponse({"error": "No seatings yet."}, status=200)
+        if not draft:
+            return JsonResponse({"error": "No draft found."}, status=404)
 
-    current_round = queries.current_round(draft)
+        if not draft.seated:
+            return JsonResponse({"error": "No seatings yet."}, status=200)
 
-    # Get seatings
-    if current_round:
-      if current_round.started or current_round.paired or current_round.round_idx > 1:
-        return JsonResponse({"error": "No seatings anymore."})
+        current_round = queries.current_round(draft)
 
-    sorted_players = list(draft.enrollments.all().order_by("seat"))
-    seatings_out = [
-      {
-        "seat": player.seat,
-        "id": player.id,
-        "name": player.player.user.name,
-      }
-      for player in sorted_players
-    ]
-    return JsonResponse({"seatings": seatings_out})
+        # Get seatings
+        if current_round:
+            if (
+                current_round.started
+                or current_round.paired
+                or current_round.round_idx > 1
+            ):
+                return JsonResponse({"error": "No seatings anymore."})
+
+        sorted_players = list(draft.enrollments.all().order_by("seat"))
+        seatings_out = [
+            {
+                "seat": player.seat,
+                "id": player.id,
+                "name": player.player.user.name,
+            }
+            for player in sorted_players
+        ]
+        return JsonResponse({"seatings": seatings_out})
 
 
 class PlayerListView(LoginRequiredMixin, View):
-  def get(self, request, *args, **kwargs):
-    draft = queries.get_draft(slug=kwargs["draft_slug"])
+    def get(self, request, *args, **kwargs):
+        draft = queries.get_draft(slug=kwargs["draft_slug"])
 
-    players = [
-      enrollment.player.user.name
-      for enrollment in draft.enrollments.filter(dropped=False)
-    ]
+        if not draft:
+            return JsonResponse({"error": "No draft found."}, status=404)
 
-    return JsonResponse({"players": players})
+        players = [
+            enrollment.player.user.name
+            for enrollment in draft.enrollments.filter(dropped=False)
+        ]
+
+        return JsonResponse({"players": players})
 
 
 class DraftStandingsView(LoginRequiredMixin, View):
-  def get(self, request, *args, **kwargs):
-    draft = queries.get_draft(slug=kwargs["draft_slug"])
+    def get(self, request, *args, **kwargs):
+        draft = queries.get_draft(slug=kwargs["draft_slug"])
 
-    # Get standings
-    standings = queries.draft_standings(draft)
-    if not standings:
-      return JsonResponse({"error": "No draft standings yet."}, status=200)
+        # Get standings
+        standings = queries.draft_standings(draft)
+        if not standings:
+            return JsonResponse({"error": "No draft standings yet."}, status=200)
 
-    current_round = queries.current_round(draft, force_update=True)
+        current_round = queries.current_round(draft, force_update=True)
 
-    if not current_round.finished:
-      rd_idx = current_round.round_idx - 1
-    else:
-      rd_idx = current_round.round_idx
+        if not current_round:
+            return JsonResponse({"error": "No current round found."}, status=404)
 
-    return JsonResponse({"standings": standings, "current_round": rd_idx})
+        if not current_round.finished:
+            rd_idx = current_round.round_idx - 1
+        else:
+            rd_idx = current_round.round_idx
+
+        return JsonResponse({"standings": standings, "current_round": rd_idx})
 
 
 class EventStandingsView(LoginRequiredMixin, View):
-  def get(self, request, *args, **kwargs):
-    tournament = queries.get_tournament(slug=kwargs["slug"], force_update=True)
+    def get(self, request, *args, **kwargs):
+        tournament = queries.get_tournament(slug=kwargs["slug"], force_update=True)
 
-    standings = queries.tournament_standings(tournament)
-    if not standings:
-      return JsonResponse({"error": "No event standings yet."})
+        if not tournament:
+            return JsonResponse({"error": "No tournament found."}, status=404)
 
-    return JsonResponse(
-      {"standings": standings, "current_round": tournament.current_round - 1}
-    )
+        standings = queries.tournament_standings(tournament)
+
+        if not standings:
+            return JsonResponse({"error": "No event standings yet."})
+
+        return JsonResponse(
+            {"standings": standings, "current_round": tournament.current_round - 1}
+        )
