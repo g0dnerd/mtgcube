@@ -109,7 +109,7 @@ class AdminConfirmResultView(FormView, LoginRequiredMixin):
         )
 
     def form_valid(self, form):
-        match_id = form.cleaned_data["match_id"]
+        match_id = form.cleaned_data["confirm_match_id"]
 
         match = queries.get_match(match_id)
 

@@ -6,7 +6,7 @@
             <div class="pairing" id="pairing-{{ match_id }}" style="display:none;">
                 <form class="d-none" id="confirm-result-form-{{ match_id }}" method="post" enctype="multipart/form-data">
                     {% csrf_token %}
-                    {{ confirm_form.match_id }}
+                    {{ confirm_form.confirm_match_id }}
                     <span id="pairing-info-{{ match_id }}" style="min-width: fit-content;"></span>
                     <button id="confirm-result-btn-{{ match_id }}" name="action" value="confirm" type="submit" style="max-width: max-content; margin-left:10px; display:none;">{% trans 'Confirm Result' %}</button>
                 </form>
